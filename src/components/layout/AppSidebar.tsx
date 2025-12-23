@@ -13,8 +13,6 @@ import {
   UserCog,
   MessageSquare,
   Settings,
-  ChevronLeft,
-  ChevronRight,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -24,7 +22,6 @@ import { useSidebar } from "@/contexts/SidebarContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAlunos } from "@/hooks/useAlunos";
 import { usePagamentos } from "@/hooks/usePagamentos";
-import { NotificationsDropdown } from "@/components/notifications/NotificationsDropdown";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -146,8 +143,6 @@ export function AppSidebar() {
 
       {/* Bottom section */}
       <div className="p-3 border-t border-sidebar-border space-y-2">
-        <NotificationsDropdown variant="full" collapsed={collapsed} />
-        
         <Button
           variant="ghost"
           onClick={handleSignOut}

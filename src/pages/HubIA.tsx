@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 import { useAlunos } from "@/hooks/useAlunos";
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useAulas } from "@/hooks/useAulas";
@@ -509,9 +510,7 @@ export default function HubIA() {
               <Bot className="w-5 h-5 text-primary" />
               <span className="font-medium">Resposta da IA</span>
             </div>
-            <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap">
-              {aiResponse}
-            </div>
+            <MarkdownRenderer content={aiResponse} className="text-foreground" />
             <div className="flex gap-2 mt-4">
               <Button 
                 variant="outline" 
@@ -772,7 +771,11 @@ export default function HubIA() {
                       ? "bg-primary text-primary-foreground" 
                       : "bg-muted"
                   }`}>
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    {message.role === "user" ? (
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    ) : (
+                      <MarkdownRenderer content={message.content} className="text-sm" />
+                    )}
                   </div>
                 </motion.div>
               ))}
