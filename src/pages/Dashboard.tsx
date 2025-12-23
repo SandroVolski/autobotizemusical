@@ -4,15 +4,60 @@ import {
   DollarSign, 
   Calendar, 
   TrendingUp,
-  Music
+  Loader2
 } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { UpcomingClasses } from "@/components/dashboard/UpcomingClasses";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { AIInsights } from "@/components/dashboard/AIInsights";
 import { QuickActions } from "@/components/dashboard/QuickActions";
+import { useAlunos } from "@/hooks/useAlunos";
+import { usePagamentos } from "@/hooks/usePagamentos";
+import { useAulas } from "@/hooks/useAulas";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  const { data: alunos, isLoading: loadingAlunos } = useAlunos();
+  const { data: pagamentos, isLoading: loadingPagamentos } = usePagamentos();
+  const { data: aulas, isLoading: loadingAulas } = useAulas();
+
+  const isLoading = loadingAlunos || loadingPagamentos || loadingAulas;
+
+  // Calculate real stats
+  const totalAlunos = alunos?.length || 0;
+  const alunosAtivos = alunos?.filter(a => a.status === "ativo").length || 0;
+  
+  // Calculate monthly revenue
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  const receitaMensal = pagamentos?.filter(p => {
+    const date = new Date(p.data_vencimento);
+    return date.getMonth() === currentMonth && 
+           date.getFullYear() === currentYear && 
+           p.status === "pago";
+  }).reduce((acc, p) => acc + Number(p.valor), 0) || 0;
+
+  // Get today's classes
+  const today = new Date().getDay();
+  const aulasHoje = aulas?.filter(a => a.dia_semana === today) || [];
+  const aulasConfirmadas = aulasHoje.filter(a => a.status === "ativo").length;
+  const aulasPendentes = aulasHoje.filter(a => a.status !== "ativo").length;
+
+  // Calculate retention rate (active / total)
+  const taxaRetencao = totalAlunos > 0 ? Math.round((alunosAtivos / totalAlunos) * 100) : 0;
+
+  // Get user name from email or profile
+  const userName = user?.email?.split("@")[0] || "Usuário";
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -23,7 +68,7 @@ export default function Dashboard() {
         className="flex flex-col gap-1"
       >
         <h1 className="text-3xl font-bold">
-          Bem-vindo, <span className="gradient-text">Sandro</span>
+          Bem-vindo, <span className="gradient-text">{userName}</span>
         </h1>
         <p className="text-muted-foreground">
           Aqui está um resumo da sua escola de música
@@ -34,32 +79,30 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title="Total de Alunos"
-          value="142"
+          value={totalAlunos}
           icon={Users}
-          trend={{ value: 12, isPositive: true }}
+          description={`${alunosAtivos} ativos`}
           variant="primary"
           delay={0}
         />
         <StatsCard
           title="Receita Mensal"
-          value="R$ 17.5k"
+          value={receitaMensal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
           icon={DollarSign}
-          trend={{ value: 8, isPositive: true }}
           variant="secondary"
           delay={0.1}
         />
         <StatsCard
           title="Aulas Hoje"
-          value="24"
+          value={aulasHoje.length}
           icon={Calendar}
-          description="4 confirmadas, 2 pendentes"
+          description={`${aulasConfirmadas} confirmadas, ${aulasPendentes} pendentes`}
           delay={0.2}
         />
         <StatsCard
           title="Taxa de Retenção"
-          value="94%"
+          value={`${taxaRetencao}%`}
           icon={TrendingUp}
-          trend={{ value: 3, isPositive: true }}
           variant="primary"
           delay={0.3}
         />

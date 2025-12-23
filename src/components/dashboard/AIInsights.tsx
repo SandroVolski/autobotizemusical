@@ -2,36 +2,90 @@ import { motion } from "framer-motion";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bot, Sparkles, TrendingDown, AlertTriangle, Lightbulb, ChevronRight } from "lucide-react";
-
-const insights = [
-  {
-    id: 1,
-    type: "warning",
-    icon: AlertTriangle,
-    title: "Risco de Evasão Detectado",
-    description: "3 alunos apresentam baixa frequência nas últimas semanas. Recomendamos entrar em contato.",
-    action: "Ver alunos",
-  },
-  {
-    id: 2,
-    type: "suggestion",
-    icon: Lightbulb,
-    title: "Otimização de Horários",
-    description: "Identificamos 4 slots vagos que poderiam ser preenchidos. A IA sugere ajustes na grade.",
-    action: "Ver sugestões",
-  },
-  {
-    id: 3,
-    type: "trend",
-    icon: TrendingDown,
-    title: "Queda em Matrículas",
-    description: "Matrículas de piano diminuíram 15% este mês. Considere uma campanha promocional.",
-    action: "Criar campanha",
-  },
-];
+import { Bot, Sparkles, TrendingDown, AlertTriangle, Lightbulb, ChevronRight, Users, DollarSign } from "lucide-react";
+import { useAlunos } from "@/hooks/useAlunos";
+import { usePagamentos } from "@/hooks/usePagamentos";
+import { useAulas } from "@/hooks/useAulas";
+import { useNavigate } from "react-router-dom";
 
 export function AIInsights() {
+  const navigate = useNavigate();
+  const { data: alunos } = useAlunos();
+  const { data: pagamentos } = usePagamentos();
+  const { data: aulas } = useAulas();
+
+  // Generate real insights based on data
+  const insights = [];
+
+  // Check for inactive students
+  const alunosInativos = alunos?.filter(a => a.status === "inativo").length || 0;
+  if (alunosInativos > 0) {
+    insights.push({
+      id: 1,
+      type: "warning",
+      icon: AlertTriangle,
+      title: "Alunos Inativos",
+      description: `${alunosInativos} aluno(s) estão inativos. Considere entrar em contato para reativação.`,
+      action: "Ver alunos",
+      route: "/alunos",
+    });
+  }
+
+  // Check for overdue payments
+  const pagamentosAtrasados = pagamentos?.filter(p => p.status === "atrasado").length || 0;
+  if (pagamentosAtrasados > 0) {
+    insights.push({
+      id: 2,
+      type: "trend",
+      icon: DollarSign,
+      title: "Pagamentos Atrasados",
+      description: `${pagamentosAtrasados} pagamento(s) em atraso. Acione a cobrança.`,
+      action: "Ver financeiro",
+      route: "/financeiro",
+    });
+  }
+
+  // Check for few classes scheduled
+  const totalAulas = aulas?.length || 0;
+  if (totalAulas < 5) {
+    insights.push({
+      id: 3,
+      type: "suggestion",
+      icon: Lightbulb,
+      title: "Poucas Aulas Agendadas",
+      description: `Apenas ${totalAulas} aula(s) na agenda. Agende mais aulas para seus alunos.`,
+      action: "Ver agenda",
+      route: "/agenda",
+    });
+  }
+
+  // Check for low student count
+  const totalAlunos = alunos?.length || 0;
+  if (totalAlunos < 3) {
+    insights.push({
+      id: 4,
+      type: "trend",
+      icon: Users,
+      title: "Poucos Alunos Cadastrados",
+      description: `Sua escola tem apenas ${totalAlunos} aluno(s). Considere campanhas de captação.`,
+      action: "Novo aluno",
+      route: "/alunos",
+    });
+  }
+
+  // Default insight if no issues
+  if (insights.length === 0) {
+    insights.push({
+      id: 5,
+      type: "suggestion",
+      icon: Sparkles,
+      title: "Tudo em Ordem!",
+      description: "Sua escola está funcionando bem. Continue assim!",
+      action: "Ver IA",
+      route: "/hub-ia",
+    });
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -54,25 +108,26 @@ export function AIInsights() {
                 <p className="text-sm text-muted-foreground">Análises automáticas do seu negócio</p>
               </div>
             </div>
-            <Badge variant="glow">3 novos</Badge>
+            <Badge variant="glow">{insights.length} {insights.length === 1 ? "item" : "itens"}</Badge>
           </div>
         </CardHeader>
         <CardContent className="relative space-y-4">
-          {insights.map((insight, index) => (
+          {insights.slice(0, 3).map((insight, index) => (
             <motion.div
               key={insight.id}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: 0.1 * index }}
               className="flex items-start gap-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors group cursor-pointer"
+              onClick={() => navigate(insight.route)}
             >
               <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
                 insight.type === "warning" ? "bg-warning/20" :
-                insight.type === "suggestion" ? "bg-info/20" : "bg-destructive/20"
+                insight.type === "suggestion" ? "bg-primary/20" : "bg-destructive/20"
               }`}>
                 <insight.icon className={`w-5 h-5 ${
                   insight.type === "warning" ? "text-warning" :
-                  insight.type === "suggestion" ? "text-info" : "text-destructive"
+                  insight.type === "suggestion" ? "text-primary" : "text-destructive"
                 }`} />
               </div>
               
@@ -88,9 +143,9 @@ export function AIInsights() {
             </motion.div>
           ))}
 
-          <Button variant="outline" className="w-full mt-4">
+          <Button variant="outline" className="w-full mt-4" onClick={() => navigate("/hub-ia")}>
             <Bot className="w-4 h-4 mr-2" />
-            Ver todos os insights
+            Abrir Hub de IA
           </Button>
         </CardContent>
       </Card>
