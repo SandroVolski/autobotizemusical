@@ -80,7 +80,7 @@ export default function HubIA() {
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
-  const { alunos } = useAlunos();
+  const { data: alunos } = useAlunos();
 
   // Scroll to bottom when messages change
   useEffect(() => {

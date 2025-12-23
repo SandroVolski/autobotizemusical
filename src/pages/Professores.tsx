@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useProfessores } from "@/hooks/useProfessores";
+import { useProfessores, useCreateProfessor, useDeleteProfessor } from "@/hooks/useProfessores";
 import { toast } from "@/hooks/use-toast";
 
 const statusConfig = {
@@ -55,7 +55,9 @@ export default function Professores() {
     biografia: "",
   });
 
-  const { professores, isLoading, createProfessor, deleteProfessor, isCreating, isDeleting } = useProfessores();
+  const { data: professores, isLoading } = useProfessores();
+  const createProfessorMutation = useCreateProfessor();
+  const deleteProfessorMutation = useDeleteProfessor();
 
   const totalHoras = professores?.reduce((acc, p) => acc + (Number(p.valor_hora) || 0) * 30, 0) || 0;
   const mediaAvaliacao = professores?.length 
@@ -78,15 +80,14 @@ export default function Professores() {
       return;
     }
 
-    createProfessor({
+    createProfessorMutation.mutate({
       nome: newProfessor.nome,
-      email: newProfessor.email || null,
-      telefone: newProfessor.telefone || null,
+      email: newProfessor.email || undefined,
+      telefone: newProfessor.telefone || undefined,
       especialidades: newProfessor.especialidades ? newProfessor.especialidades.split(",").map(e => e.trim()) : [],
-      valor_hora: newProfessor.valor_hora ? parseFloat(newProfessor.valor_hora) : null,
-      biografia: newProfessor.biografia || null,
+      valor_hora: newProfessor.valor_hora ? parseFloat(newProfessor.valor_hora) : undefined,
+      biografia: newProfessor.biografia || undefined,
       status: "ativo",
-      avaliacao: 5.0,
     });
 
     setNewProfessor({ nome: "", email: "", telefone: "", especialidades: "", valor_hora: "", biografia: "" });
@@ -187,9 +188,9 @@ export default function Professores() {
               <Button 
                 className="w-full mt-2" 
                 onClick={handleCreateProfessor}
-                disabled={isCreating}
+                disabled={createProfessorMutation.isPending}
               >
-                {isCreating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                {createProfessorMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 Cadastrar Professor
               </Button>
             </div>
@@ -330,8 +331,8 @@ export default function Professores() {
                         <DropdownMenuItem>Relatório</DropdownMenuItem>
                         <DropdownMenuItem 
                           className="text-destructive"
-                          onClick={() => deleteProfessor(professor.id)}
-                          disabled={isDeleting}
+                          onClick={() => deleteProfessorMutation.mutate(professor.id)}
+                          disabled={deleteProfessorMutation.isPending}
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
                           Excluir
