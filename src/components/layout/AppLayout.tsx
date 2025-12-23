@@ -1,17 +1,17 @@
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 import { AppSidebar } from "./AppSidebar";
 import { motion } from "framer-motion";
-import { Menu, Search, Bell, User } from "lucide-react";
+import { Search, Bell, User, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { useSidebar } from "@/contexts/SidebarContext";
 
 interface AppLayoutProps {
   children: ReactNode;
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { collapsed, toggleCollapsed } = useSidebar();
 
   return (
     <div className="min-h-screen bg-background">
@@ -20,7 +20,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* Main content area */}
       <motion.main
         initial={false}
-        animate={{ marginLeft: sidebarCollapsed ? 80 : 280 }}
+        animate={{ marginLeft: collapsed ? 80 : 280 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
         className="min-h-screen"
       >
@@ -28,6 +28,14 @@ export function AppLayout({ children }: AppLayoutProps) {
         <header className="sticky top-0 z-40 h-16 border-b border-border bg-background/80 backdrop-blur-xl">
           <div className="flex items-center justify-between h-full px-6">
             <div className="flex items-center gap-4 flex-1">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="lg:hidden"
+                onClick={toggleCollapsed}
+              >
+                <Menu className="w-5 h-5" />
+              </Button>
               <div className="relative max-w-md flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
