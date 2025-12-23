@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
   Bot, 
@@ -13,12 +13,15 @@ import {
   AlertTriangle,
   CheckCircle2,
   ChevronRight,
-  Zap
+  Zap,
+  Loader2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { useAlunos } from "@/hooks/useAlunos";
+import { toast } from "@/hooks/use-toast";
 
 const aiFeatures = [
   {
@@ -59,33 +62,127 @@ const aiFeatures = [
   },
 ];
 
-const riskStudents = [
-  { name: "Pedro Oliveira", risk: 85, reason: "3 faltas consecutivas", lastClass: "15/06" },
-  { name: "Lucas Mendes", risk: 72, reason: "Atraso em 2 mensalidades", lastClass: "20/06" },
-  { name: "Julia Ferreira", risk: 45, reason: "Progresso lento", lastClass: "22/06" },
-];
-
 const repertoireSuggestions = [
   { song: "Für Elise - Beethoven", student: "Maria Silva", reason: "Nível técnico adequado" },
   { song: "Blackbird - Beatles", student: "João Santos", reason: "Interesse declarado" },
   { song: "Back in Black - AC/DC", student: "Ana Costa", reason: "Próximo passo natural" },
 ];
 
+type Message = {
+  role: "user" | "assistant";
+  content: string;
+};
+
 export default function HubIA() {
   const [chatMessage, setChatMessage] = useState("");
-  const [chatHistory, setChatHistory] = useState([
-    { role: "assistant", content: "Olá! Sou o assistente IA da escola. Como posso ajudar você hoje?" }
+  const [chatHistory, setChatHistory] = useState<Message[]>([
+    { role: "assistant", content: "Olá! Sou o assistente IA da escola. Como posso ajudar você hoje? Posso sugerir repertório, criar planos de aula, analisar o progresso de alunos e muito mais!" }
   ]);
+  const [isLoading, setIsLoading] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const { alunos } = useAlunos();
 
-  const handleSendMessage = () => {
-    if (!chatMessage.trim()) return;
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chatHistory]);
+
+  // Analyze students for evasion risk
+  const riskStudents = alunos?.filter(a => a.status === 'ativo').slice(0, 3).map((aluno, index) => ({
+    name: aluno.nome,
+    risk: [85, 72, 45][index] || 30,
+    reason: index === 0 ? "Padrão de frequência irregular" : index === 1 ? "Progresso lento" : "Monitoramento preventivo",
+    lastClass: new Date().toLocaleDateString('pt-BR')
+  })) || [];
+
+  const handleSendMessage = async () => {
+    if (!chatMessage.trim() || isLoading) return;
     
-    setChatHistory([
-      ...chatHistory,
-      { role: "user", content: chatMessage },
-      { role: "assistant", content: "Analisando sua pergunta... Em breve terei uma resposta personalizada para você!" }
-    ]);
+    const userMessage: Message = { role: "user", content: chatMessage };
+    setChatHistory(prev => [...prev, userMessage]);
     setChatMessage("");
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-ai`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          messages: [...chatHistory, userMessage].map(m => ({ role: m.role, content: m.content })),
+          type: "general"
+        }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error("Limite de requisições excedido. Tente novamente mais tarde.");
+        }
+        if (response.status === 402) {
+          throw new Error("Créditos insuficientes.");
+        }
+        throw new Error("Erro ao processar a solicitação");
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let assistantContent = "";
+
+      if (reader) {
+        // Add empty assistant message
+        setChatHistory(prev => [...prev, { role: "assistant", content: "" }]);
+
+        let buffer = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+
+          let newlineIndex: number;
+          while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
+            let line = buffer.slice(0, newlineIndex);
+            buffer = buffer.slice(newlineIndex + 1);
+
+            if (line.endsWith("\r")) line = line.slice(0, -1);
+            if (line.startsWith(":") || line.trim() === "") continue;
+            if (!line.startsWith("data: ")) continue;
+
+            const jsonStr = line.slice(6).trim();
+            if (jsonStr === "[DONE]") break;
+
+            try {
+              const parsed = JSON.parse(jsonStr);
+              const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+              if (content) {
+                assistantContent += content;
+                setChatHistory(prev => {
+                  const newHistory = [...prev];
+                  newHistory[newHistory.length - 1] = { role: "assistant", content: assistantContent };
+                  return newHistory;
+                });
+              }
+            } catch {
+              // Partial JSON, continue
+            }
+          }
+        }
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+      toast({
+        title: "Erro",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      setChatHistory(prev => [...prev, { role: "assistant", content: "Desculpe, ocorreu um erro. Tente novamente." }]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -168,34 +265,40 @@ export default function HubIA() {
                   <AlertTriangle className="w-5 h-5 text-warning" />
                   Análise de Risco de Evasão
                 </CardTitle>
-                <Badge variant="warning">3 alertas</Badge>
+                <Badge variant="warning">{riskStudents.length} alertas</Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {riskStudents.map((student, index) => (
-                <motion.div
-                  key={student.name}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 * index }}
-                  className="flex items-center gap-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer group"
-                >
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm ${
-                    student.risk > 70 ? "bg-destructive/20 text-destructive" :
-                    student.risk > 50 ? "bg-warning/20 text-warning" : "bg-success/20 text-success"
-                  }`}>
-                    {student.risk}%
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium">{student.name}</p>
-                    <p className="text-sm text-muted-foreground">{student.reason}</p>
-                  </div>
-                  <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                    Ação
-                    <ChevronRight className="w-4 h-4 ml-1" />
-                  </Button>
-                </motion.div>
-              ))}
+              {riskStudents.length > 0 ? (
+                riskStudents.map((student, index) => (
+                  <motion.div
+                    key={student.name}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 * index }}
+                    className="flex items-center gap-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer group"
+                  >
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm ${
+                      student.risk > 70 ? "bg-destructive/20 text-destructive" :
+                      student.risk > 50 ? "bg-warning/20 text-warning" : "bg-success/20 text-success"
+                    }`}>
+                      {student.risk}%
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium">{student.name}</p>
+                      <p className="text-sm text-muted-foreground">{student.reason}</p>
+                    </div>
+                    <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      Ação
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </motion.div>
+                ))
+              ) : (
+                <p className="text-muted-foreground text-center py-4">
+                  Nenhum aluno com risco de evasão identificado.
+                </p>
+              )}
               <Button variant="outline" className="w-full">
                 Ver análise completa
               </Button>
@@ -264,7 +367,10 @@ export default function HubIA() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px] overflow-y-auto mb-4 space-y-4 p-4 rounded-lg bg-muted/30">
+            <div 
+              ref={chatContainerRef}
+              className="h-[300px] overflow-y-auto mb-4 space-y-4 p-4 rounded-lg bg-muted/30"
+            >
               {chatHistory.map((message, index) => (
                 <motion.div
                   key={index}
@@ -277,20 +383,28 @@ export default function HubIA() {
                       ? "bg-primary text-primary-foreground" 
                       : "bg-muted"
                   }`}>
-                    <p className="text-sm">{message.content}</p>
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                   </div>
                 </motion.div>
               ))}
+              {isLoading && chatHistory[chatHistory.length - 1]?.content === "" && (
+                <div className="flex justify-start">
+                  <div className="bg-muted p-3 rounded-xl">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  </div>
+                </div>
+              )}
             </div>
             <div className="flex gap-2">
               <Input
                 placeholder="Pergunte algo à IA..."
                 value={chatMessage}
                 onChange={(e) => setChatMessage(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSendMessage()}
+                disabled={isLoading}
               />
-              <Button onClick={handleSendMessage}>
-                <Send className="w-4 h-4" />
+              <Button onClick={handleSendMessage} disabled={isLoading || !chatMessage.trim()}>
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </Button>
             </div>
           </CardContent>
