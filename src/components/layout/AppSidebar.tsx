@@ -90,7 +90,10 @@ export function AppSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-3 overflow-y-auto">
+      <nav className={cn(
+        "flex-1 p-3 transition-all duration-200",
+        collapsed ? "overflow-hidden" : "overflow-y-auto"
+      )}>
         <ul className="space-y-1">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.path;

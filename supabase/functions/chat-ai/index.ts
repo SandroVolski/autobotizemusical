@@ -47,6 +47,38 @@ Responda em português brasileiro.`;
 - Atividades práticas
 - Exercícios técnicos
 - Métodos de avaliação
+
+IMPORTANTE: Quando você mencionar músicas específicas para praticar, estudar ou como exemplo, SEMPRE inclua:
+1. **Link para a cifra**: https://www.cifraclub.com.br/[artista]/[musica]/ (substitua espaços por hífens e remova acentos)
+2. **Link para o YouTube**: https://www.youtube.com/results?search_query=[artista]+[musica]
+
+Formate sua resposta de forma clara e organizada.
+Responda em português brasileiro.`;
+    } else if (type === "exercise-generator") {
+      systemPrompt = `Você é um especialista em criação de exercícios musicais. Crie exercícios práticos e progressivos considerando:
+- Nível técnico do aluno
+- Instrumento específico
+- Objetivos de desenvolvimento
+- Dificuldade progressiva
+
+IMPORTANTE: Quando você sugerir músicas para praticar os exercícios, treinar técnicas ou como referência, SEMPRE inclua:
+1. **Link para a cifra**: https://www.cifraclub.com.br/[artista]/[musica]/ (substitua espaços por hífens e remova acentos)
+2. **Link para o YouTube**: https://www.youtube.com/results?search_query=[artista]+[musica]
+
+Formate sua resposta de forma clara e organizada.
+Responda em português brasileiro.`;
+    } else if (type === "study-plan") {
+      systemPrompt = `Você é um especialista em planejamento de estudos musicais. Crie planos de estudo personalizados incluindo:
+- Cronograma semanal/mensal
+- Metas de curto e longo prazo
+- Exercícios técnicos recomendados
+- Repertório progressivo
+
+IMPORTANTE: Quando você recomendar músicas para o plano de estudos, seja para treino técnico, repertório ou prática, SEMPRE inclua:
+1. **Link para a cifra**: https://www.cifraclub.com.br/[artista]/[musica]/ (substitua espaços por hífens e remova acentos)
+2. **Link para o YouTube**: https://www.youtube.com/results?search_query=[artista]+[musica]
+
+Formate sua resposta de forma clara e organizada.
 Responda em português brasileiro.`;
     } else if (type === "evasion-analysis") {
       systemPrompt = `Você é um especialista em retenção de alunos em escolas de música. Analise padrões de comportamento e sugira:
