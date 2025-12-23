@@ -59,12 +59,16 @@ export function AppSidebar() {
     await signOut();
   };
 
+  const { setIsHovering, hoverMode } = useSidebar();
+
   return (
     <motion.aside
       initial={false}
-      animate={{ width: collapsed ? 80 : 280 }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
+      animate={{ width: collapsed ? 72 : 280 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
       className="h-screen bg-sidebar border-r border-sidebar-border flex flex-col fixed left-0 top-0 z-50"
+      onMouseEnter={() => hoverMode && setIsHovering(true)}
+      onMouseLeave={() => hoverMode && setIsHovering(false)}
     >
       {/* Logo */}
       <div className="p-4 border-b border-sidebar-border">
@@ -154,15 +158,6 @@ export function AppSidebar() {
         >
           <LogOut className="w-5 h-5" />
           {!collapsed && <span className="text-sm">Sair</span>}
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleCollapsed}
-          className="w-full mt-2"
-        >
-          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </Button>
       </div>
     </motion.aside>

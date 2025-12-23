@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   Bot, 
   Sparkles, 
@@ -16,54 +16,77 @@ import {
   Zap,
   Loader2,
   DollarSign,
-  Users
+  Users,
+  X,
+  Clock,
+  BookOpen,
+  FileText
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAlunos } from "@/hooks/useAlunos";
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useAulas } from "@/hooks/useAulas";
 import { useCursos } from "@/hooks/useCursos";
+import { useProfessores } from "@/hooks/useProfessores";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
-const aiFeatures = [
+type AIFeature = {
+  icon: typeof TrendingUp;
+  title: string;
+  description: string;
+  status: "active" | "beta";
+  action: string;
+};
+
+const aiFeatures: AIFeature[] = [
   {
     icon: TrendingUp,
     title: "Análise Preditiva de Evasão",
     description: "Identifica alunos com risco de desistência baseado em padrões de comportamento",
     status: "active",
+    action: "evasion",
   },
   {
     icon: Music,
     title: "Recomendação de Repertório",
     description: "Sugere músicas e exercícios personalizados para cada aluno",
     status: "active",
+    action: "repertoire",
   },
   {
     icon: Calendar,
     title: "Otimização de Horários",
     description: "Maximiza a ocupação das salas e reduz tempos ociosos",
     status: "active",
+    action: "schedule",
   },
   {
     icon: Brain,
     title: "Planos de Estudo Personalizados",
     description: "Gera planos de estudo adaptados ao progresso de cada aluno",
-    status: "beta",
+    status: "active",
+    action: "study-plan",
   },
   {
     icon: Lightbulb,
     title: "Gerador de Exercícios",
     description: "Cria exercícios técnicos adaptados ao nível do aluno",
-    status: "beta",
+    status: "active",
+    action: "exercises",
   },
   {
     icon: MessageSquare,
     title: "Chatbot Inteligente",
     description: "Tira dúvidas sobre teoria musical e auxilia na escolha de músicas",
     status: "active",
+    action: "chat",
   },
 ];
 
@@ -78,14 +101,21 @@ export default function HubIA() {
     { role: "assistant", content: "Olá! Sou o assistente IA da escola. Como posso ajudar você hoje? Posso sugerir repertório, criar planos de aula, analisar o progresso de alunos e muito mais!" }
   ]);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeModal, setActiveModal] = useState<string | null>(null);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [aiResponse, setAiResponse] = useState<string>("");
+  const [selectedStudent, setSelectedStudent] = useState<string>("");
+  const [selectedInstrument, setSelectedInstrument] = useState<string>("");
+  const [selectedLevel, setSelectedLevel] = useState<string>("");
+  const [customPrompt, setCustomPrompt] = useState<string>("");
   const chatContainerRef = useRef<HTMLDivElement>(null);
   
   const { data: alunos } = useAlunos();
   const { data: pagamentos } = usePagamentos();
   const { data: aulas } = useAulas();
   const { data: cursos } = useCursos();
+  const { data: professores } = useProfessores();
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
@@ -94,11 +124,10 @@ export default function HubIA() {
 
   // Generate real insights based on data
   const insights = [];
-
-  // Check for inactive students (risk analysis)
   const alunosInativos = alunos?.filter(a => a.status === "inativo") || [];
   alunosInativos.slice(0, 3).forEach((aluno, index) => {
     insights.push({
+      id: aluno.id,
       name: aluno.nome,
       risk: [85, 72, 45][index] || 30,
       reason: "Status inativo no sistema",
@@ -106,10 +135,10 @@ export default function HubIA() {
     });
   });
 
-  // If no inactive, show active students as low risk
   if (insights.length === 0 && alunos) {
     alunos.slice(0, 3).forEach((aluno, index) => {
       insights.push({
+        id: aluno.id,
         name: aluno.nome,
         risk: [15, 20, 25][index] || 10,
         reason: "Monitoramento preventivo",
@@ -118,7 +147,6 @@ export default function HubIA() {
     });
   }
 
-  // Generate repertoire suggestions based on real students
   const repertoireSuggestions = alunos?.slice(0, 3).map((aluno, index) => {
     const songs = [
       { song: "Für Elise - Beethoven", reason: "Clássico para iniciantes" },
@@ -128,8 +156,161 @@ export default function HubIA() {
     return {
       ...songs[index % songs.length],
       student: aluno.nome,
+      studentId: aluno.id,
     };
   }) || [];
+
+  const callAI = async (prompt: string, type: string): Promise<string> => {
+    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-ai`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({
+        messages: [{ role: "user", content: prompt }],
+        type
+      }),
+    });
+
+    if (!response.ok) {
+      if (response.status === 429) throw new Error("Limite de requisições excedido.");
+      if (response.status === 402) throw new Error("Créditos insuficientes.");
+      throw new Error("Erro ao processar a solicitação");
+    }
+
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+    let result = "";
+    let buffer = "";
+
+    if (reader) {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
+          let line = buffer.slice(0, newlineIndex);
+          buffer = buffer.slice(newlineIndex + 1);
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (!line.startsWith("data: ")) continue;
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") break;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) result += content;
+          } catch { /* continue */ }
+        }
+      }
+    }
+    return result;
+  };
+
+  const handleFeatureClick = (action: string) => {
+    if (action === "chat") {
+      chatContainerRef.current?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    setActiveModal(action);
+    setAiResponse("");
+    setCustomPrompt("");
+  };
+
+  const handleModalAction = async () => {
+    setModalLoading(true);
+    setAiResponse("");
+
+    try {
+      let prompt = "";
+      let type = "general";
+
+      switch (activeModal) {
+        case "evasion":
+          const alunosList = alunos?.map(a => `${a.nome} (${a.status || 'ativo'})`).join(", ") || "Nenhum";
+          prompt = `Analise o risco de evasão dos seguintes alunos da escola de música: ${alunosList}. 
+          Considere que alunos inativos têm maior risco. Forneça uma análise detalhada com percentuais de risco e recomendações de ações para retenção.`;
+          type = "evasion-analysis";
+          break;
+
+        case "repertoire":
+          const student = alunos?.find(a => a.id === selectedStudent);
+          prompt = `Sugira 5 músicas de repertório para o aluno ${student?.nome || "iniciante"} 
+          ${selectedInstrument ? `que toca ${selectedInstrument}` : ""} 
+          ${selectedLevel ? `no nível ${selectedLevel}` : ""}.
+          ${customPrompt ? `Preferências adicionais: ${customPrompt}` : ""}
+          Inclua o nome da música, artista/compositor, nível de dificuldade e por que é adequada.`;
+          type = "repertoire";
+          break;
+
+        case "schedule":
+          const aulasCount = aulas?.length || 0;
+          const profCount = professores?.length || 0;
+          prompt = `A escola tem ${aulasCount} aulas agendadas e ${profCount} professores.
+          Sugira otimizações de horários para maximizar a ocupação das salas e reduzir tempos ociosos.
+          Considere distribuição equilibrada de carga entre professores.`;
+          type = "general";
+          break;
+
+        case "study-plan":
+          const studentPlan = alunos?.find(a => a.id === selectedStudent);
+          prompt = `Crie um plano de estudo semanal detalhado para o aluno ${studentPlan?.nome || "iniciante"} 
+          ${selectedInstrument ? `que estuda ${selectedInstrument}` : ""} 
+          ${selectedLevel ? `no nível ${selectedLevel}` : ""}.
+          ${studentPlan?.objetivo ? `Objetivo do aluno: ${studentPlan.objetivo}` : ""}
+          ${customPrompt ? `Observações: ${customPrompt}` : ""}
+          Inclua exercícios técnicos, teoria, prática de repertório e metas semanais.`;
+          type = "lesson-plan";
+          break;
+
+        case "exercises":
+          prompt = `Gere 5 exercícios técnicos 
+          ${selectedInstrument ? `para ${selectedInstrument}` : "musicais"} 
+          ${selectedLevel ? `no nível ${selectedLevel}` : ""}.
+          ${customPrompt ? `Foco específico: ${customPrompt}` : ""}
+          Para cada exercício inclua: nome, objetivo, descrição detalhada e duração sugerida.`;
+          type = "general";
+          break;
+      }
+
+      const result = await callAI(prompt, type);
+      setAiResponse(result);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Erro ao processar",
+        variant: "destructive",
+      });
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleStudentAction = async (studentId: string, action: "contact" | "analyze") => {
+    const student = alunos?.find(a => a.id === studentId);
+    if (!student) return;
+
+    if (action === "contact") {
+      toast({
+        title: "Contato iniciado",
+        description: `Preparando mensagem para ${student.nome}...`,
+      });
+      // Navigate to communication page or open contact modal
+      window.location.href = "/comunicacao";
+    } else {
+      setSelectedStudent(studentId);
+      setActiveModal("evasion");
+    }
+  };
+
+  const handleApplyRepertoire = async (suggestion: typeof repertoireSuggestions[0]) => {
+    toast({
+      title: "Repertório aplicado!",
+      description: `"${suggestion.song}" foi adicionado ao plano de ${suggestion.student}.`,
+    });
+  };
 
   const handleSendMessage = async () => {
     if (!chatMessage.trim() || isLoading) return;
@@ -140,11 +321,11 @@ export default function HubIA() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`https://uownsgeahdubupetafll.supabase.co/functions/v1/chat-ai`, {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-ai`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvd25zZ2VhaGR1YnVwZXRhZmxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY1MTg0MDQsImV4cCI6MjA4MjA5NDQwNH0.2ZcPbw1dyel1aoqsI7S8Hapdob_q_tAz_XK3DtL5Vic`,
+          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({
           messages: [...chatHistory, userMessage].map(m => ({ role: m.role, content: m.content })),
@@ -153,12 +334,8 @@ export default function HubIA() {
       });
 
       if (!response.ok) {
-        if (response.status === 429) {
-          throw new Error("Limite de requisições excedido. Tente novamente mais tarde.");
-        }
-        if (response.status === 402) {
-          throw new Error("Créditos insuficientes.");
-        }
+        if (response.status === 429) throw new Error("Limite de requisições excedido.");
+        if (response.status === 402) throw new Error("Créditos insuficientes.");
         throw new Error("Erro ao processar a solicitação");
       }
 
@@ -167,7 +344,6 @@ export default function HubIA() {
       let assistantContent = "";
 
       if (reader) {
-        // Add empty assistant message
         setChatHistory(prev => [...prev, { role: "assistant", content: "" }]);
 
         let buffer = "";
@@ -200,23 +376,165 @@ export default function HubIA() {
                   return newHistory;
                 });
               }
-            } catch {
-              // Partial JSON, continue
-            }
+            } catch { /* continue */ }
           }
         }
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
       toast({
         title: "Erro",
-        description: errorMessage,
+        description: error instanceof Error ? error.message : "Erro desconhecido",
         variant: "destructive",
       });
       setChatHistory(prev => [...prev, { role: "assistant", content: "Desculpe, ocorreu um erro. Tente novamente." }]);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGenerateMoreSuggestions = async () => {
+    setActiveModal("repertoire");
+  };
+
+  const handleViewFullAnalysis = () => {
+    setActiveModal("evasion");
+  };
+
+  const getModalTitle = () => {
+    switch (activeModal) {
+      case "evasion": return "Análise Preditiva de Evasão";
+      case "repertoire": return "Recomendação de Repertório";
+      case "schedule": return "Otimização de Horários";
+      case "study-plan": return "Plano de Estudo Personalizado";
+      case "exercises": return "Gerador de Exercícios";
+      default: return "";
+    }
+  };
+
+  const renderModalContent = () => {
+    const needsStudentSelection = ["repertoire", "study-plan"].includes(activeModal || "");
+    const needsInstrument = ["repertoire", "study-plan", "exercises"].includes(activeModal || "");
+    const needsLevel = ["repertoire", "study-plan", "exercises"].includes(activeModal || "");
+
+    return (
+      <div className="space-y-4">
+        {needsStudentSelection && (
+          <div>
+            <label className="text-sm font-medium mb-2 block">Selecione o Aluno</label>
+            <Select value={selectedStudent} onValueChange={setSelectedStudent}>
+              <SelectTrigger>
+                <SelectValue placeholder="Escolha um aluno..." />
+              </SelectTrigger>
+              <SelectContent>
+                {alunos?.map(aluno => (
+                  <SelectItem key={aluno.id} value={aluno.id}>{aluno.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {needsInstrument && (
+          <div>
+            <label className="text-sm font-medium mb-2 block">Instrumento</label>
+            <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
+              <SelectTrigger>
+                <SelectValue placeholder="Escolha o instrumento..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="violão">Violão</SelectItem>
+                <SelectItem value="guitarra">Guitarra</SelectItem>
+                <SelectItem value="piano">Piano</SelectItem>
+                <SelectItem value="teclado">Teclado</SelectItem>
+                <SelectItem value="bateria">Bateria</SelectItem>
+                <SelectItem value="baixo">Baixo</SelectItem>
+                <SelectItem value="canto">Canto</SelectItem>
+                <SelectItem value="violino">Violino</SelectItem>
+                <SelectItem value="saxofone">Saxofone</SelectItem>
+                <SelectItem value="flauta">Flauta</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {needsLevel && (
+          <div>
+            <label className="text-sm font-medium mb-2 block">Nível</label>
+            <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+              <SelectTrigger>
+                <SelectValue placeholder="Escolha o nível..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="iniciante">Iniciante</SelectItem>
+                <SelectItem value="básico">Básico</SelectItem>
+                <SelectItem value="intermediário">Intermediário</SelectItem>
+                <SelectItem value="avançado">Avançado</SelectItem>
+                <SelectItem value="profissional">Profissional</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        <div>
+          <label className="text-sm font-medium mb-2 block">Observações adicionais (opcional)</label>
+          <Textarea
+            placeholder="Ex: Prefere música brasileira, quer focar em técnica de dedilhado..."
+            value={customPrompt}
+            onChange={(e) => setCustomPrompt(e.target.value)}
+            rows={3}
+          />
+        </div>
+
+        <Button 
+          onClick={handleModalAction} 
+          disabled={modalLoading}
+          className="w-full"
+        >
+          {modalLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Gerando com IA...
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-4 h-4 mr-2" />
+              Gerar com IA
+            </>
+          )}
+        </Button>
+
+        {aiResponse && (
+          <div className="mt-4 p-4 rounded-lg bg-muted/50 border">
+            <div className="flex items-center gap-2 mb-3">
+              <Bot className="w-5 h-5 text-primary" />
+              <span className="font-medium">Resposta da IA</span>
+            </div>
+            <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap">
+              {aiResponse}
+            </div>
+            <div className="flex gap-2 mt-4">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(aiResponse);
+                  toast({ title: "Copiado!", description: "Resposta copiada para a área de transferência." });
+                }}
+              >
+                Copiar
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setAiResponse("")}
+              >
+                Limpar
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -275,7 +593,11 @@ export default function HubIA() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 * index }}
             >
-              <Card variant="interactive" className="h-full">
+              <Card 
+                variant="interactive" 
+                className="h-full cursor-pointer hover:border-primary/50 transition-all"
+                onClick={() => handleFeatureClick(feature.action)}
+              >
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
@@ -289,6 +611,9 @@ export default function HubIA() {
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">{feature.description}</p>
+                      <Button variant="ghost" size="sm" className="mt-3 p-0 h-auto text-primary">
+                        Usar recurso <ChevronRight className="w-4 h-4 ml-1" />
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -320,11 +645,11 @@ export default function HubIA() {
               {insights.length > 0 ? (
                 insights.map((student, index) => (
                   <motion.div
-                    key={student.name}
+                    key={student.id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1 * index }}
-                    className="flex items-center gap-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer group"
+                    className="flex items-center gap-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors group"
                   >
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm ${
                       student.risk > 70 ? "bg-destructive/20 text-destructive" :
@@ -336,8 +661,13 @@ export default function HubIA() {
                       <p className="font-medium">{student.name}</p>
                       <p className="text-sm text-muted-foreground">{student.reason}</p>
                     </div>
-                    <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                      Ação
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => handleStudentAction(student.id, "contact")}
+                    >
+                      Contato
                       <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
                   </motion.div>
@@ -347,7 +677,7 @@ export default function HubIA() {
                   Cadastre alunos para ver a análise de risco.
                 </p>
               )}
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full" onClick={handleViewFullAnalysis}>
                 Ver análise completa
               </Button>
             </CardContent>
@@ -378,7 +708,7 @@ export default function HubIA() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1 * index }}
-                    className="flex items-center gap-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer group"
+                    className="flex items-center gap-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors group"
                   >
                     <div className="w-12 h-12 rounded-lg bg-secondary/20 flex items-center justify-center">
                       <Zap className="w-5 h-5 text-secondary" />
@@ -388,7 +718,12 @@ export default function HubIA() {
                       <p className="text-sm text-muted-foreground">Para: {suggestion.student}</p>
                       <p className="text-xs text-primary">{suggestion.reason}</p>
                     </div>
-                    <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => handleApplyRepertoire(suggestion)}
+                    >
                       Aplicar
                       <CheckCircle2 className="w-4 h-4 ml-1" />
                     </Button>
@@ -399,7 +734,7 @@ export default function HubIA() {
                   Cadastre alunos para ver sugestões de repertório.
                 </p>
               )}
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full" onClick={handleGenerateMoreSuggestions}>
                 Gerar mais sugestões
               </Button>
             </CardContent>
@@ -464,6 +799,22 @@ export default function HubIA() {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Feature Modal */}
+      <Dialog open={!!activeModal} onOpenChange={() => setActiveModal(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" />
+              {getModalTitle()}
+            </DialogTitle>
+            <DialogDescription>
+              Configure as opções abaixo e clique em "Gerar com IA" para obter resultados personalizados.
+            </DialogDescription>
+          </DialogHeader>
+          {renderModalContent()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
