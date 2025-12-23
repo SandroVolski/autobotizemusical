@@ -37,7 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useInstrumentos } from "@/hooks/useInstrumentos";
+import { useInstrumentos, useCreateInstrumento, useDeleteInstrumento } from "@/hooks/useInstrumentos";
 import { toast } from "@/hooks/use-toast";
 
 const statusConfig = {
@@ -58,7 +58,9 @@ export default function Instrumentos() {
     modelo: "",
   });
 
-  const { instrumentos, isLoading, createInstrumento, deleteInstrumento, isCreating, isDeleting } = useInstrumentos();
+  const { data: instrumentos, isLoading } = useInstrumentos();
+  const createInstrumentoMutation = useCreateInstrumento();
+  const deleteInstrumentoMutation = useDeleteInstrumento();
 
   const stats = {
     total: instrumentos?.length || 0,
@@ -83,13 +85,13 @@ export default function Instrumentos() {
       return;
     }
 
-    createInstrumento({
+    createInstrumentoMutation.mutate({
       nome: newInstrumento.nome,
       tipo: newInstrumento.tipo,
-      localizacao: newInstrumento.localizacao || null,
-      valor_patrimonio: newInstrumento.valor_patrimonio ? parseFloat(newInstrumento.valor_patrimonio) : null,
-      marca: newInstrumento.marca || null,
-      modelo: newInstrumento.modelo || null,
+      localizacao: newInstrumento.localizacao || undefined,
+      valor_patrimonio: newInstrumento.valor_patrimonio ? parseFloat(newInstrumento.valor_patrimonio) : undefined,
+      marca: newInstrumento.marca || undefined,
+      modelo: newInstrumento.modelo || undefined,
       status: "disponivel",
     });
 
@@ -217,9 +219,9 @@ export default function Instrumentos() {
               <Button 
                 className="w-full mt-2" 
                 onClick={handleCreateInstrumento}
-                disabled={isCreating}
+                disabled={createInstrumentoMutation.isPending}
               >
-                {isCreating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                {createInstrumentoMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 Cadastrar Instrumento
               </Button>
             </div>
@@ -351,8 +353,8 @@ export default function Instrumentos() {
                         <DropdownMenuItem>Histórico</DropdownMenuItem>
                         <DropdownMenuItem 
                           className="text-destructive"
-                          onClick={() => deleteInstrumento(instrumento.id)}
-                          disabled={isDeleting}
+                          onClick={() => deleteInstrumentoMutation.mutate(instrumento.id)}
+                          disabled={deleteInstrumentoMutation.isPending}
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
                           Remover

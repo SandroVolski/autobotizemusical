@@ -40,7 +40,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCursos } from "@/hooks/useCursos";
+import { useCursos, useCreateCurso, useDeleteCurso } from "@/hooks/useCursos";
 import { toast } from "@/hooks/use-toast";
 
 const nivelConfig = {
@@ -62,7 +62,9 @@ export default function Cursos() {
     descricao: "",
   });
 
-  const { cursos, isLoading, createCurso, deleteCurso, isCreating, isDeleting } = useCursos();
+  const { data: cursos, isLoading } = useCursos();
+  const createCursoMutation = useCreateCurso();
+  const deleteCursoMutation = useDeleteCurso();
 
   const totalAlunos = 0; // TODO: Calculate from aulas table
   const receitaMensal = cursos?.reduce((acc, curso) => acc + (Number(curso.valor_mensal) || 0), 0) || 0;
@@ -83,14 +85,14 @@ export default function Cursos() {
       return;
     }
 
-    createCurso({
+    createCursoMutation.mutate({
       nome: newCurso.nome,
       instrumento: newCurso.instrumento,
       nivel: newCurso.nivel || "iniciante",
-      duracao: newCurso.duracao || null,
-      carga_horaria: newCurso.carga_horaria || null,
-      valor_mensal: newCurso.valor_mensal ? parseFloat(newCurso.valor_mensal) : null,
-      descricao: newCurso.descricao || null,
+      duracao: newCurso.duracao || undefined,
+      carga_horaria: newCurso.carga_horaria || undefined,
+      valor_mensal: newCurso.valor_mensal ? parseFloat(newCurso.valor_mensal) : undefined,
+      descricao: newCurso.descricao || undefined,
       status: "ativo",
     });
 
@@ -221,9 +223,9 @@ export default function Cursos() {
               <Button 
                 className="w-full mt-2" 
                 onClick={handleCreateCurso}
-                disabled={isCreating}
+                disabled={createCursoMutation.isPending}
               >
-                {isCreating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                {createCursoMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 Criar Curso
               </Button>
             </div>
@@ -357,8 +359,8 @@ export default function Cursos() {
                         <DropdownMenuItem>Duplicar</DropdownMenuItem>
                         <DropdownMenuItem 
                           className="text-destructive"
-                          onClick={() => deleteCurso(curso.id)}
-                          disabled={isDeleting}
+                          onClick={() => deleteCursoMutation.mutate(curso.id)}
+                          disabled={deleteCursoMutation.isPending}
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
                           Excluir
