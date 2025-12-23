@@ -7,11 +7,11 @@ import {
   Bell,
   Mail,
   Phone,
-  Users,
   Plus,
   MoreVertical,
   Clock,
-  CheckCheck,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,86 +35,66 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const conversas = [
-  {
-    id: 1,
-    nome: "João Silva",
-    mensagem: "Olá, gostaria de remarcar minha aula de amanhã",
-    hora: "14:30",
-    naoLida: true,
-    tipo: "aluno",
-  },
-  {
-    id: 2,
-    nome: "Maria Santos",
-    mensagem: "Obrigada pela aula de hoje, foi muito produtiva!",
-    hora: "12:15",
-    naoLida: false,
-    tipo: "aluno",
-  },
-  {
-    id: 3,
-    nome: "Prof. Carlos",
-    mensagem: "Preciso atualizar minha disponibilidade para a próxima semana",
-    hora: "11:00",
-    naoLida: true,
-    tipo: "professor",
-  },
-  {
-    id: 4,
-    nome: "Ana Costa",
-    mensagem: "Pode me enviar a partitura da última aula?",
-    hora: "Ontem",
-    naoLida: false,
-    tipo: "aluno",
-  },
-  {
-    id: 5,
-    nome: "Pedro Oliveira",
-    mensagem: "Confirmado para a apresentação de sábado!",
-    hora: "Ontem",
-    naoLida: false,
-    tipo: "aluno",
-  },
-];
-
-const avisos = [
-  {
-    id: 1,
-    titulo: "Recesso de Final de Ano",
-    mensagem: "A escola estará em recesso de 23/12 a 03/01",
-    data: "15/06/2024",
-    destinatarios: "Todos",
-  },
-  {
-    id: 2,
-    titulo: "Apresentação de Alunos",
-    mensagem: "Dia 20/06 às 19h teremos a apresentação semestral",
-    data: "10/06/2024",
-    destinatarios: "Todos",
-  },
-  {
-    id: 3,
-    titulo: "Novo Material Didático",
-    mensagem: "Apostilas atualizadas disponíveis para download",
-    data: "05/06/2024",
-    destinatarios: "Alunos",
-  },
-];
-
-const mensagensChat = [
-  { id: 1, remetente: "João Silva", mensagem: "Olá, boa tarde!", hora: "14:28", proprio: false },
-  { id: 2, remetente: "Você", mensagem: "Olá João! Como posso ajudar?", hora: "14:29", proprio: true },
-  { id: 3, remetente: "João Silva", mensagem: "Gostaria de remarcar minha aula de amanhã", hora: "14:30", proprio: false },
-  { id: 4, remetente: "João Silva", mensagem: "Tenho um compromisso no horário", hora: "14:30", proprio: false },
-];
+import { Checkbox } from "@/components/ui/checkbox";
+import { useAvisos, useCreateAviso, useDeleteAviso, type NovoAviso } from "@/hooks/useAvisos";
+import { useNotificacoes, useNotificacoesNaoLidas, useMarcarComoLida, useMarcarTodasComoLidas } from "@/hooks/useNotificacoes";
+import { toast } from "@/hooks/use-toast";
 
 export default function Comunicacao() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [novaMensagem, setNovaMensagem] = useState("");
-  const [conversaSelecionada, setConversaSelecionada] = useState(conversas[0]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newAviso, setNewAviso] = useState<NovoAviso>({
+    titulo: "",
+    mensagem: "",
+    destinatarios: "todos",
+    enviado_email: false,
+    enviado_whatsapp: false,
+  });
+
+  const { data: avisos, isLoading: loadingAvisos } = useAvisos();
+  const { data: notificacoes, isLoading: loadingNotificacoes } = useNotificacoes();
+  const { data: notificacoesNaoLidas } = useNotificacoesNaoLidas();
+  const createAvisoMutation = useCreateAviso();
+  const deleteAvisoMutation = useDeleteAviso();
+  const marcarComoLidaMutation = useMarcarComoLida();
+  const marcarTodasComoLidasMutation = useMarcarTodasComoLidas();
+
+  const handleCreateAviso = () => {
+    if (!newAviso.titulo || !newAviso.mensagem) {
+      toast({
+        title: "Erro",
+        description: "Título e mensagem são obrigatórios",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createAvisoMutation.mutate(newAviso, {
+      onSuccess: () => {
+        setIsDialogOpen(false);
+        setNewAviso({
+          titulo: "",
+          mensagem: "",
+          destinatarios: "todos",
+          enviado_email: false,
+          enviado_whatsapp: false,
+        });
+      }
+    });
+  };
+
+  const filteredAvisos = avisos?.filter(aviso =>
+    aviso.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    aviso.mensagem.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
+
+  if (loadingAvisos || loadingNotificacoes) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -127,7 +107,7 @@ export default function Comunicacao() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Comunicação</h1>
           <p className="text-muted-foreground">
-            Mensagens, avisos e notificações
+            Avisos e notificações
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -143,12 +123,20 @@ export default function Comunicacao() {
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="titulo">Título</Label>
-                <Input id="titulo" placeholder="Título do aviso" />
+                <Label htmlFor="titulo">Título *</Label>
+                <Input 
+                  id="titulo" 
+                  placeholder="Título do aviso"
+                  value={newAviso.titulo}
+                  onChange={(e) => setNewAviso(prev => ({ ...prev, titulo: e.target.value }))}
+                />
               </div>
               <div className="grid gap-2">
                 <Label>Destinatários</Label>
-                <Select>
+                <Select
+                  value={newAviso.destinatarios}
+                  onValueChange={(value) => setNewAviso(prev => ({ ...prev, destinatarios: value }))}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
@@ -156,25 +144,49 @@ export default function Comunicacao() {
                     <SelectItem value="todos">Todos</SelectItem>
                     <SelectItem value="alunos">Apenas Alunos</SelectItem>
                     <SelectItem value="professores">Apenas Professores</SelectItem>
-                    <SelectItem value="turma">Turma Específica</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="mensagem">Mensagem</Label>
-                <Textarea id="mensagem" placeholder="Digite a mensagem..." rows={4} />
+                <Label htmlFor="mensagem">Mensagem *</Label>
+                <Textarea 
+                  id="mensagem" 
+                  placeholder="Digite a mensagem..." 
+                  rows={4}
+                  value={newAviso.mensagem}
+                  onChange={(e) => setNewAviso(prev => ({ ...prev, mensagem: e.target.value }))}
+                />
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1 gap-2">
-                  <Mail className="w-4 h-4" />
-                  Enviar por E-mail
-                </Button>
-                <Button variant="outline" className="flex-1 gap-2">
-                  <Phone className="w-4 h-4" />
-                  Enviar por WhatsApp
-                </Button>
+              <div className="flex gap-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="email"
+                    checked={newAviso.enviado_email}
+                    onCheckedChange={(checked) => setNewAviso(prev => ({ ...prev, enviado_email: checked as boolean }))}
+                  />
+                  <Label htmlFor="email" className="flex items-center gap-2 cursor-pointer">
+                    <Mail className="w-4 h-4" />
+                    Enviar por E-mail
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="whatsapp"
+                    checked={newAviso.enviado_whatsapp}
+                    onCheckedChange={(checked) => setNewAviso(prev => ({ ...prev, enviado_whatsapp: checked as boolean }))}
+                  />
+                  <Label htmlFor="whatsapp" className="flex items-center gap-2 cursor-pointer">
+                    <Phone className="w-4 h-4" />
+                    Enviar por WhatsApp
+                  </Label>
+                </div>
               </div>
-              <Button className="w-full" onClick={() => setIsDialogOpen(false)}>
+              <Button 
+                className="w-full" 
+                onClick={handleCreateAviso}
+                disabled={createAvisoMutation.isPending}
+              >
+                {createAvisoMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                 Enviar Aviso
               </Button>
             </div>
@@ -191,7 +203,7 @@ export default function Comunicacao() {
                 <MessageSquare className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{conversas.filter(c => c.naoLida).length}</p>
+                <p className="text-2xl font-bold">{notificacoesNaoLidas?.length || 0}</p>
                 <p className="text-xs text-muted-foreground">Não Lidas</p>
               </div>
             </div>
@@ -204,8 +216,8 @@ export default function Comunicacao() {
                 <Bell className="w-5 h-5 text-secondary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{avisos.length}</p>
-                <p className="text-xs text-muted-foreground">Avisos Ativos</p>
+                <p className="text-2xl font-bold">{avisos?.length || 0}</p>
+                <p className="text-xs text-muted-foreground">Avisos Enviados</p>
               </div>
             </div>
           </CardContent>
@@ -217,8 +229,8 @@ export default function Comunicacao() {
                 <Mail className="w-5 h-5 text-success" />
               </div>
               <div>
-                <p className="text-2xl font-bold">156</p>
-                <p className="text-xs text-muted-foreground">E-mails Enviados</p>
+                <p className="text-2xl font-bold">{avisos?.filter(a => a.enviado_email).length || 0}</p>
+                <p className="text-xs text-muted-foreground">Por E-mail</p>
               </div>
             </div>
           </CardContent>
@@ -230,8 +242,8 @@ export default function Comunicacao() {
                 <Phone className="w-5 h-5 text-warning" />
               </div>
               <div>
-                <p className="text-2xl font-bold">89</p>
-                <p className="text-xs text-muted-foreground">WhatsApp Enviados</p>
+                <p className="text-2xl font-bold">{avisos?.filter(a => a.enviado_whatsapp).length || 0}</p>
+                <p className="text-xs text-muted-foreground">Por WhatsApp</p>
               </div>
             </div>
           </CardContent>
@@ -239,156 +251,179 @@ export default function Comunicacao() {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="mensagens" className="space-y-4">
+      <Tabs defaultValue="avisos" className="space-y-4">
         <TabsList className="bg-muted/50">
-          <TabsTrigger value="mensagens">Mensagens</TabsTrigger>
           <TabsTrigger value="avisos">Avisos</TabsTrigger>
+          <TabsTrigger value="notificacoes">
+            Notificações
+            {(notificacoesNaoLidas?.length || 0) > 0 && (
+              <Badge variant="destructive" className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                {notificacoesNaoLidas?.length}
+              </Badge>
+            )}
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="mensagens" className="space-y-4">
-          <div className="grid lg:grid-cols-3 gap-4 h-[600px]">
-            {/* Lista de Conversas */}
-            <Card className="glass-card lg:col-span-1">
-              <CardHeader className="pb-3">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar conversas..."
-                    className="pl-10"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2 overflow-y-auto max-h-[500px]">
-                {conversas.map((conversa) => (
-                  <div
-                    key={conversa.id}
-                    onClick={() => setConversaSelecionada(conversa)}
-                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                      conversaSelecionada.id === conversa.id
-                        ? "bg-primary/20 border border-primary/30"
-                        : "hover:bg-muted/50"
-                    }`}
-                  >
-                    <Avatar className="w-10 h-10">
-                      <AvatarFallback className="bg-primary/20 text-primary text-sm">
-                        {conversa.nome.split(" ").map(n => n[0]).join("").slice(0, 2)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium text-sm truncate">{conversa.nome}</p>
-                        <span className="text-xs text-muted-foreground">{conversa.hora}</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground truncate">{conversa.mensagem}</p>
-                    </div>
-                    {conversa.naoLida && (
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                    )}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Chat */}
-            <Card className="glass-card lg:col-span-2 flex flex-col">
-              <CardHeader className="pb-3 border-b border-border">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="w-10 h-10">
-                      <AvatarFallback className="bg-primary/20 text-primary">
-                        {conversaSelecionada.nome.split(" ").map(n => n[0]).join("").slice(0, 2)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium">{conversaSelecionada.nome}</p>
-                      <p className="text-xs text-muted-foreground capitalize">{conversaSelecionada.tipo}</p>
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="icon">
-                    <MoreVertical className="w-4 h-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
-                {mensagensChat.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={`flex ${msg.proprio ? "justify-end" : "justify-start"}`}
-                  >
-                    <div
-                      className={`max-w-[70%] p-3 rounded-lg ${
-                        msg.proprio
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted/50"
-                      }`}
-                    >
-                      <p className="text-sm">{msg.mensagem}</p>
-                      <div className={`flex items-center gap-1 mt-1 ${
-                        msg.proprio ? "justify-end" : "justify-start"
-                      }`}>
-                        <span className="text-xs opacity-70">{msg.hora}</span>
-                        {msg.proprio && <CheckCheck className="w-3 h-3 opacity-70" />}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-              <div className="p-4 border-t border-border">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Digite sua mensagem..."
-                    value={novaMensagem}
-                    onChange={(e) => setNovaMensagem(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button size="icon">
-                    <Send className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </TabsContent>
-
         <TabsContent value="avisos" className="space-y-4">
-          <div className="grid gap-4">
-            {avisos.map((aviso, index) => (
-              <motion.div
-                key={aviso.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <Card className="glass-card">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-4">
-                        <div className="p-3 rounded-lg bg-primary/20">
-                          <Bell className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold">{aviso.titulo}</h3>
-                          <p className="text-muted-foreground mt-1">{aviso.mensagem}</p>
-                          <div className="flex items-center gap-4 mt-3">
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <Clock className="w-3 h-3" />
-                              {aviso.data}
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar avisos..."
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          {filteredAvisos.length === 0 ? (
+            <Card className="glass-card">
+              <CardContent className="py-12 text-center">
+                <Bell className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Nenhum aviso encontrado</h3>
+                <p className="text-muted-foreground mb-4">
+                  {searchTerm ? "Tente outra busca" : "Envie seu primeiro aviso"}
+                </p>
+                {!searchTerm && (
+                  <Button onClick={() => setIsDialogOpen(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Novo Aviso
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4">
+              {filteredAvisos.map((aviso, index) => (
+                <motion.div
+                  key={aviso.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <Card className="glass-card">
+                    <CardContent className="pt-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-4">
+                          <div className="p-3 rounded-lg bg-primary/20">
+                            <Bell className="w-5 h-5 text-primary" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold">{aviso.titulo}</h3>
+                            <p className="text-muted-foreground mt-1">{aviso.mensagem}</p>
+                            <div className="flex items-center gap-4 mt-3">
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <Clock className="w-3 h-3" />
+                                {new Date(aviso.created_at).toLocaleDateString("pt-BR")}
+                              </div>
+                              <Badge variant="outline">{aviso.destinatarios}</Badge>
+                              {aviso.enviado_email && (
+                                <Badge variant="secondary" className="gap-1">
+                                  <Mail className="w-3 h-3" />
+                                  E-mail
+                                </Badge>
+                              )}
+                              {aviso.enviado_whatsapp && (
+                                <Badge variant="secondary" className="gap-1">
+                                  <Phone className="w-3 h-3" />
+                                  WhatsApp
+                                </Badge>
+                              )}
                             </div>
-                            <Badge variant="outline">{aviso.destinatarios}</Badge>
                           </div>
                         </div>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => deleteAvisoMutation.mutate(aviso.id)}
+                          disabled={deleteAvisoMutation.isPending}
+                        >
+                          <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+                        </Button>
                       </div>
-                      <Button variant="ghost" size="icon">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="notificacoes" className="space-y-4">
+          {(notificacoesNaoLidas?.length || 0) > 0 && (
+            <div className="flex justify-end">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => marcarTodasComoLidasMutation.mutate()}
+                disabled={marcarTodasComoLidasMutation.isPending}
+              >
+                Marcar todas como lidas
+              </Button>
+            </div>
+          )}
+
+          {!notificacoes || notificacoes.length === 0 ? (
+            <Card className="glass-card">
+              <CardContent className="py-12 text-center">
+                <Bell className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Nenhuma notificação</h3>
+                <p className="text-muted-foreground">
+                  Você não tem notificações no momento
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {notificacoes.map((notificacao, index) => (
+                <motion.div
+                  key={notificacao.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <Card 
+                    className={`glass-card cursor-pointer transition-colors ${
+                      !notificacao.lida ? "border-primary/30 bg-primary/5" : ""
+                    }`}
+                    onClick={() => {
+                      if (!notificacao.lida) {
+                        marcarComoLidaMutation.mutate(notificacao.id);
+                      }
+                    }}
+                  >
+                    <CardContent className="py-4">
+                      <div className="flex items-start gap-4">
+                        <div className={`p-2 rounded-lg ${
+                          notificacao.tipo === "alerta" ? "bg-warning/20" :
+                          notificacao.tipo === "erro" ? "bg-destructive/20" :
+                          "bg-primary/20"
+                        }`}>
+                          <Bell className={`w-4 h-4 ${
+                            notificacao.tipo === "alerta" ? "text-warning" :
+                            notificacao.tipo === "erro" ? "text-destructive" :
+                            "text-primary"
+                          }`} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium">{notificacao.titulo}</h4>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(notificacao.created_at).toLocaleDateString("pt-BR")}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">{notificacao.mensagem}</p>
+                        </div>
+                        {!notificacao.lida && (
+                          <div className="w-2 h-2 rounded-full bg-primary" />
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </motion.div>
