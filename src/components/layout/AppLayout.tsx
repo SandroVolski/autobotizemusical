@@ -1,10 +1,11 @@
 import { ReactNode } from "react";
 import { AppSidebar } from "./AppSidebar";
 import { motion } from "framer-motion";
-import { Search, Bell, User, Menu } from "lucide-react";
+import { Search, User, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSidebar } from "@/contexts/SidebarContext";
+import { NotificationsDropdown } from "@/components/notifications/NotificationsDropdown";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -46,10 +47,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
 
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-destructive" />
-              </Button>
+              <NotificationsDropdown variant="icon" />
               
               <div className="flex items-center gap-3 pl-3 border-l border-border">
                 <div className="text-right hidden sm:block">

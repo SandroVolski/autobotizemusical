@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   BarChart3,
@@ -11,6 +11,7 @@ import {
   BookOpen,
   Clock,
   FileText,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,43 +38,172 @@ import {
   Pie,
   Cell,
 } from "recharts";
-
-const frequenciaData = [
-  { mes: "Jan", presencas: 85, faltas: 15 },
-  { mes: "Fev", presencas: 88, faltas: 12 },
-  { mes: "Mar", presencas: 82, faltas: 18 },
-  { mes: "Abr", presencas: 90, faltas: 10 },
-  { mes: "Mai", presencas: 87, faltas: 13 },
-  { mes: "Jun", presencas: 92, faltas: 8 },
-];
-
-const evolucaoAlunosData = [
-  { mes: "Jan", alunos: 120 },
-  { mes: "Fev", alunos: 128 },
-  { mes: "Mar", alunos: 135 },
-  { mes: "Abr", alunos: 138 },
-  { mes: "Mai", alunos: 140 },
-  { mes: "Jun", alunos: 142 },
-];
-
-const instrumentosData = [
-  { name: "Piano", value: 35, color: "hsl(var(--primary))" },
-  { name: "Violão", value: 28, color: "hsl(var(--secondary))" },
-  { name: "Guitarra", value: 18, color: "hsl(var(--warning))" },
-  { name: "Bateria", value: 12, color: "hsl(var(--success))" },
-  { name: "Outros", value: 7, color: "hsl(var(--muted-foreground))" },
-];
-
-const relatoriosDisponiveis = [
-  { id: 1, nome: "Relatório Financeiro Mensal", tipo: "Financeiro", data: "01/06/2024" },
-  { id: 2, nome: "Frequência por Turma", tipo: "Pedagógico", data: "28/05/2024" },
-  { id: 3, nome: "Desempenho de Alunos", tipo: "Pedagógico", data: "25/05/2024" },
-  { id: 4, nome: "Ocupação de Salas", tipo: "Operacional", data: "20/05/2024" },
-  { id: 5, nome: "Análise de Evasão", tipo: "IA Analytics", data: "15/05/2024" },
-];
+import { useAlunos } from "@/hooks/useAlunos";
+import { usePagamentos } from "@/hooks/usePagamentos";
+import { useCursos } from "@/hooks/useCursos";
+import { useProfessores } from "@/hooks/useProfessores";
+import { useAulas } from "@/hooks/useAulas";
+import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export default function Relatorios() {
   const [periodo, setPeriodo] = useState("mensal");
+
+  const { data: alunos, isLoading: loadingAlunos } = useAlunos();
+  const { data: pagamentos, isLoading: loadingPagamentos } = usePagamentos();
+  const { data: cursos, isLoading: loadingCursos } = useCursos();
+  const { data: professores } = useProfessores();
+  const { data: aulas } = useAulas();
+
+  const isLoading = loadingAlunos || loadingPagamentos || loadingCursos;
+
+  // Calculate real stats
+  const stats = useMemo(() => {
+    const totalAlunos = alunos?.length || 0;
+    const alunosAtivos = alunos?.filter(a => a.status === "ativo").length || 0;
+    const taxaRetencao = totalAlunos > 0 ? ((alunosAtivos / totalAlunos) * 100).toFixed(1) : "0.0";
+
+    const pagamentosPendentes = pagamentos?.filter(p => p.status === "pendente").length || 0;
+    const totalPagamentos = pagamentos?.length || 0;
+    const inadimplencia = totalPagamentos > 0 ? ((pagamentosPendentes / totalPagamentos) * 100).toFixed(1) : "0.0";
+
+    const totalAulas = aulas?.length || 0;
+    const aulasAtivas = aulas?.filter(a => a.status === "ativo").length || 0;
+    const ocupacao = totalAulas > 0 ? ((aulasAtivas / Math.max(totalAulas, 10)) * 100).toFixed(1) : "0.0";
+
+    return {
+      taxaRetencao,
+      inadimplencia,
+      ocupacao,
+      totalAlunos,
+    };
+  }, [alunos, pagamentos, aulas]);
+
+  // Generate chart data based on real data
+  const evolucaoAlunosData = useMemo(() => {
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const date = subMonths(new Date(), i);
+      const monthStart = startOfMonth(date);
+      const monthEnd = endOfMonth(date);
+      
+      const alunosNoMes = alunos?.filter(a => {
+        const dataMatricula = a.data_matricula ? new Date(a.data_matricula) : new Date(a.created_at);
+        return dataMatricula <= monthEnd;
+      }).length || 0;
+
+      months.push({
+        mes: format(date, "MMM", { locale: ptBR }),
+        alunos: alunosNoMes,
+      });
+    }
+    return months;
+  }, [alunos]);
+
+  // Instrument distribution from cursos
+  const instrumentosData = useMemo(() => {
+    const instrumentCount: Record<string, number> = {};
+    cursos?.forEach(curso => {
+      const instrumento = curso.instrumento || "Outros";
+      instrumentCount[instrumento] = (instrumentCount[instrumento] || 0) + 1;
+    });
+
+    const colors = [
+      "hsl(var(--primary))",
+      "hsl(var(--secondary))",
+      "hsl(var(--warning))",
+      "hsl(var(--success))",
+      "hsl(var(--muted-foreground))",
+    ];
+
+    return Object.entries(instrumentCount)
+      .map(([name, value], index) => ({
+        name,
+        value,
+        color: colors[index % colors.length],
+      }))
+      .slice(0, 5);
+  }, [cursos]);
+
+  // Revenue data from pagamentos
+  const receitaData = useMemo(() => {
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const date = subMonths(new Date(), i);
+      const monthStart = startOfMonth(date);
+      const monthEnd = endOfMonth(date);
+      
+      const receitaMes = pagamentos?.filter(p => {
+        if (!p.data_pagamento) return false;
+        const dataPagamento = new Date(p.data_pagamento);
+        return isWithinInterval(dataPagamento, { start: monthStart, end: monthEnd }) && p.status === "pago";
+      }).reduce((acc, p) => acc + Number(p.valor), 0) || 0;
+
+      const pendenteMes = pagamentos?.filter(p => {
+        const dataVencimento = new Date(p.data_vencimento);
+        return isWithinInterval(dataVencimento, { start: monthStart, end: monthEnd }) && p.status === "pendente";
+      }).reduce((acc, p) => acc + Number(p.valor), 0) || 0;
+
+      months.push({
+        mes: format(date, "MMM", { locale: ptBR }),
+        receita: receitaMes,
+        pendente: pendenteMes,
+      });
+    }
+    return months;
+  }, [pagamentos]);
+
+  // Recent reports based on real data
+  const relatoriosDisponiveis = useMemo(() => {
+    const reports = [];
+    
+    if (alunos && alunos.length > 0) {
+      reports.push({
+        id: "1",
+        nome: `Relatório de Alunos (${alunos.length} cadastrados)`,
+        tipo: "Operacional",
+        data: format(new Date(), "dd/MM/yyyy"),
+      });
+    }
+
+    if (pagamentos && pagamentos.length > 0) {
+      const totalReceita = pagamentos.filter(p => p.status === "pago").reduce((acc, p) => acc + Number(p.valor), 0);
+      reports.push({
+        id: "2",
+        nome: `Relatório Financeiro (${totalReceita.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })})`,
+        tipo: "Financeiro",
+        data: format(new Date(), "dd/MM/yyyy"),
+      });
+    }
+
+    if (cursos && cursos.length > 0) {
+      reports.push({
+        id: "3",
+        nome: `Cursos Ativos (${cursos.filter(c => c.status === "ativo").length} cursos)`,
+        tipo: "Pedagógico",
+        data: format(new Date(), "dd/MM/yyyy"),
+      });
+    }
+
+    if (professores && professores.length > 0) {
+      reports.push({
+        id: "4",
+        nome: `Equipe de Professores (${professores.length} professores)`,
+        tipo: "Operacional",
+        data: format(new Date(), "dd/MM/yyyy"),
+      });
+    }
+
+    return reports;
+  }, [alunos, pagamentos, cursos, professores]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -115,12 +245,11 @@ export default function Relatorios() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Taxa de Frequência</p>
-                <p className="text-2xl font-bold">89.2%</p>
+                <p className="text-sm text-muted-foreground">Total de Alunos</p>
+                <p className="text-2xl font-bold">{stats.totalAlunos}</p>
               </div>
               <div className="flex items-center gap-1 text-success">
-                <TrendingUp className="w-4 h-4" />
-                <span className="text-sm">+2.4%</span>
+                <Users className="w-4 h-4" />
               </div>
             </div>
           </CardContent>
@@ -130,11 +259,10 @@ export default function Relatorios() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Taxa de Retenção</p>
-                <p className="text-2xl font-bold">94.5%</p>
+                <p className="text-2xl font-bold">{stats.taxaRetencao}%</p>
               </div>
               <div className="flex items-center gap-1 text-success">
                 <TrendingUp className="w-4 h-4" />
-                <span className="text-sm">+1.2%</span>
               </div>
             </div>
           </CardContent>
@@ -143,12 +271,11 @@ export default function Relatorios() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Ocupação de Salas</p>
-                <p className="text-2xl font-bold">78.3%</p>
+                <p className="text-sm text-muted-foreground">Ocupação de Aulas</p>
+                <p className="text-2xl font-bold">{stats.ocupacao}%</p>
               </div>
               <div className="flex items-center gap-1 text-warning">
-                <TrendingDown className="w-4 h-4" />
-                <span className="text-sm">-0.8%</span>
+                <Clock className="w-4 h-4" />
               </div>
             </div>
           </CardContent>
@@ -158,11 +285,10 @@ export default function Relatorios() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Inadimplência</p>
-                <p className="text-2xl font-bold">3.2%</p>
+                <p className="text-2xl font-bold">{stats.inadimplencia}%</p>
               </div>
-              <div className="flex items-center gap-1 text-success">
+              <div className="flex items-center gap-1 text-destructive">
                 <TrendingDown className="w-4 h-4" />
-                <span className="text-sm">-0.5%</span>
               </div>
             </div>
           </CardContent>
@@ -179,17 +305,17 @@ export default function Relatorios() {
 
         <TabsContent value="operacional" className="space-y-4">
           <div className="grid lg:grid-cols-2 gap-4">
-            {/* Frequência Chart */}
+            {/* Evolução de Alunos */}
             <Card className="glass-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-primary" />
-                  Taxa de Frequência
+                  <Users className="w-5 h-5 text-primary" />
+                  Evolução de Alunos
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={frequenciaData}>
+                  <LineChart data={evolucaoAlunosData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="mes" stroke="hsl(var(--muted-foreground))" />
                     <YAxis stroke="hsl(var(--muted-foreground))" />
@@ -200,9 +326,14 @@ export default function Relatorios() {
                         borderRadius: "8px",
                       }}
                     />
-                    <Bar dataKey="presencas" fill="hsl(var(--success))" name="Presenças" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="faltas" fill="hsl(var(--destructive))" name="Faltas" radius={[4, 4, 0, 0]} />
-                  </BarChart>
+                    <Line
+                      type="monotone"
+                      dataKey="alunos"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth={3}
+                      dot={{ fill: "hsl(var(--primary))", strokeWidth: 2 }}
+                    />
+                  </LineChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
@@ -216,39 +347,111 @@ export default function Relatorios() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
-                    <Pie
-                      data={instrumentosData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      dataKey="value"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {instrumentosData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
+                {instrumentosData.length === 0 ? (
+                  <div className="flex items-center justify-center h-[250px] text-muted-foreground">
+                    <p>Nenhum curso cadastrado</p>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={250}>
+                    <PieChart>
+                      <Pie
+                        data={instrumentosData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={100}
+                        dataKey="value"
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      >
+                        {instrumentosData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
 
-          {/* Evolução de Alunos */}
+        <TabsContent value="pedagogico" className="space-y-4">
+          <div className="grid lg:grid-cols-2 gap-4">
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-primary" />
+                  Cursos por Nível
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {["iniciante", "intermediario", "avancado"].map((nivel) => {
+                    const count = cursos?.filter(c => c.nivel === nivel).length || 0;
+                    const total = cursos?.length || 1;
+                    const percentage = (count / total) * 100;
+                    
+                    return (
+                      <div key={nivel} className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="capitalize">{nivel}</span>
+                          <span className="text-muted-foreground">{count} cursos</span>
+                        </div>
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-primary rounded-full transition-all"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-primary" />
+                  Professores por Especialidade
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {professores?.slice(0, 5).map((prof) => (
+                    <div key={prof.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
+                      <span className="font-medium">{prof.nome}</span>
+                      <div className="flex gap-1">
+                        {prof.especialidades?.slice(0, 2).map((esp) => (
+                          <Badge key={esp} variant="outline" className="text-xs">
+                            {esp}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  {(!professores || professores.length === 0) && (
+                    <p className="text-muted-foreground text-center py-4">Nenhum professor cadastrado</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="financeiro" className="space-y-4">
           <Card className="glass-card">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-primary" />
-                Evolução de Alunos Matriculados
+                <DollarSign className="w-5 h-5 text-primary" />
+                Receita x Pendências
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={evolucaoAlunosData}>
+                <BarChart data={receitaData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="mes" stroke="hsl(var(--muted-foreground))" />
                   <YAxis stroke="hsl(var(--muted-foreground))" />
@@ -258,46 +461,12 @@ export default function Relatorios() {
                       border: "1px solid hsl(var(--border))",
                       borderRadius: "8px",
                     }}
+                    formatter={(value: number) => value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                   />
-                  <Line
-                    type="monotone"
-                    dataKey="alunos"
-                    stroke="hsl(var(--primary))"
-                    strokeWidth={3}
-                    dot={{ fill: "hsl(var(--primary))", strokeWidth: 2 }}
-                  />
-                </LineChart>
+                  <Bar dataKey="receita" fill="hsl(var(--success))" name="Receita" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="pendente" fill="hsl(var(--warning))" name="Pendente" radius={[4, 4, 0, 0]} />
+                </BarChart>
               </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="pedagogico" className="space-y-4">
-          <Card className="glass-card">
-            <CardContent className="pt-6">
-              <div className="text-center py-12">
-                <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Relatórios Pedagógicos</h3>
-                <p className="text-muted-foreground mb-4">
-                  Análise de desempenho, evolução de turmas e taxa de aprovação
-                </p>
-                <Button>Ver Relatórios Completos</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="financeiro" className="space-y-4">
-          <Card className="glass-card">
-            <CardContent className="pt-6">
-              <div className="text-center py-12">
-                <DollarSign className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Relatórios Financeiros</h3>
-                <p className="text-muted-foreground mb-4">
-                  Faturamento, inadimplência e projeções de receita
-                </p>
-                <Button>Ver Relatórios Completos</Button>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -308,32 +477,40 @@ export default function Relatorios() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="w-5 h-5 text-primary" />
-            Relatórios Recentes
+            Relatórios Disponíveis
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {relatoriosDisponiveis.map((relatorio) => (
-              <div
-                key={relatorio.id}
-                className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <FileText className="w-5 h-5 text-muted-foreground" />
-                  <div>
-                    <p className="font-medium">{relatorio.nome}</p>
-                    <p className="text-sm text-muted-foreground">{relatorio.data}</p>
+          {relatoriosDisponiveis.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>Nenhum relatório disponível ainda</p>
+              <p className="text-sm">Cadastre alunos, pagamentos e cursos para gerar relatórios</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {relatoriosDisponiveis.map((relatorio) => (
+                <div
+                  key={relatorio.id}
+                  className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <FileText className="w-5 h-5 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium">{relatorio.nome}</p>
+                      <p className="text-sm text-muted-foreground">{relatorio.data}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline">{relatorio.tipo}</Badge>
+                    <Button variant="ghost" size="icon">
+                      <Download className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Badge variant="outline">{relatorio.tipo}</Badge>
-                  <Button variant="ghost" size="icon">
-                    <Download className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </motion.div>

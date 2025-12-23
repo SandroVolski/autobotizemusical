@@ -16,19 +16,22 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
-  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useSidebar } from "@/contexts/SidebarContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAlunos } from "@/hooks/useAlunos";
+import { usePagamentos } from "@/hooks/usePagamentos";
+import { NotificationsDropdown } from "@/components/notifications/NotificationsDropdown";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-  { icon: Users, label: "Alunos", path: "/alunos", badge: 142 },
+  { icon: Users, label: "Alunos", path: "/alunos", badgeKey: "alunos" },
   { icon: Music, label: "Instrumentos", path: "/instrumentos" },
   { icon: BookOpen, label: "Cursos", path: "/cursos" },
-  { icon: DollarSign, label: "Financeiro", path: "/financeiro", badge: 5 },
+  { icon: DollarSign, label: "Financeiro", path: "/financeiro", badgeKey: "financeiro" },
   { icon: Calendar, label: "Agenda", path: "/agenda" },
   { icon: BarChart3, label: "Relatórios", path: "/relatorios" },
   { icon: GraduationCap, label: "Pedagógico", path: "/pedagogico" },
@@ -40,7 +43,21 @@ const menuItems = [
 
 export function AppSidebar() {
   const { collapsed, toggleCollapsed } = useSidebar();
+  const { signOut } = useAuth();
   const location = useLocation();
+
+  const { data: alunos } = useAlunos();
+  const { data: pagamentos } = usePagamentos();
+
+  // Calculate real badges
+  const badgeValues: Record<string, number | undefined> = {
+    alunos: alunos?.length,
+    financeiro: pagamentos?.filter(p => p.status === "pendente").length,
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
     <motion.aside
@@ -76,6 +93,8 @@ export function AppSidebar() {
         <ul className="space-y-1">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.path;
+            const badgeValue = item.badgeKey ? badgeValues[item.badgeKey] : item.badge;
+            
             return (
               <li key={item.path}>
                 <NavLink
@@ -103,15 +122,15 @@ export function AppSidebar() {
                       </motion.span>
                     )}
                   </AnimatePresence>
-                  {!collapsed && item.badge && (
+                  {!collapsed && badgeValue !== undefined && badgeValue !== 0 && (
                     <Badge 
-                      variant={typeof item.badge === "string" ? "glow" : "secondary"}
+                      variant={typeof badgeValue === "string" ? "glow" : "secondary"}
                       className="text-xs"
                     >
-                      {item.badge}
+                      {badgeValue}
                     </Badge>
                   )}
-                  {collapsed && item.badge && (
+                  {collapsed && badgeValue !== undefined && badgeValue !== 0 && (
                     <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-secondary" />
                   )}
                 </NavLink>
@@ -123,20 +142,11 @@ export function AppSidebar() {
 
       {/* Bottom section */}
       <div className="p-3 border-t border-sidebar-border space-y-2">
-        <Button
-          variant="ghost"
-          className={cn(
-            "w-full justify-start gap-3 text-muted-foreground hover:text-foreground",
-            collapsed && "justify-center"
-          )}
-        >
-          <Bell className="w-5 h-5" />
-          {!collapsed && <span className="text-sm">Notificações</span>}
-          {!collapsed && <Badge variant="destructive" className="ml-auto">3</Badge>}
-        </Button>
+        <NotificationsDropdown variant="full" collapsed={collapsed} />
         
         <Button
           variant="ghost"
+          onClick={handleSignOut}
           className={cn(
             "w-full justify-start gap-3 text-muted-foreground hover:text-destructive",
             collapsed && "justify-center"
