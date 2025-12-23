@@ -6,30 +6,41 @@ import {
   Plus,
   Clock,
   MapPin,
-  User,
-  Music
+  Music,
+  Loader2,
+  Trash2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useAulas, useCreateAula, useDeleteAula, type NovaAula } from "@/hooks/useAulas";
+import { useAlunos } from "@/hooks/useAlunos";
+import { useProfessores } from "@/hooks/useProfessores";
+import { useCursos } from "@/hooks/useCursos";
+import { toast } from "@/hooks/use-toast";
 
 const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const hours = Array.from({ length: 12 }, (_, i) => i + 8); // 8:00 to 19:00
 
-const classes = [
-  { id: 1, student: "Maria Silva", instrument: "Piano", time: "09:00", duration: 45, room: "Sala 1", day: 1, status: "confirmada" },
-  { id: 2, student: "João Santos", instrument: "Violão", time: "10:00", duration: 45, room: "Sala 2", day: 1, status: "pendente" },
-  { id: 3, student: "Ana Costa", instrument: "Bateria", time: "11:00", duration: 60, room: "Sala 3", day: 1, status: "confirmada" },
-  { id: 4, student: "Pedro Oliveira", instrument: "Guitarra", time: "14:00", duration: 45, room: "Sala 1", day: 1, status: "confirmada" },
-  { id: 5, student: "Carla Lima", instrument: "Canto", time: "09:00", duration: 60, room: "Sala 2", day: 2, status: "confirmada" },
-  { id: 6, student: "Lucas Mendes", instrument: "Violino", time: "15:00", duration: 45, room: "Sala 1", day: 2, status: "pendente" },
-  { id: 7, student: "Julia Ferreira", instrument: "Piano", time: "10:00", duration: 45, room: "Sala 1", day: 3, status: "confirmada" },
-  { id: 8, student: "Rafael Souza", instrument: "Baixo", time: "16:00", duration: 60, room: "Sala 3", day: 3, status: "confirmada" },
-];
-
 const getClassPosition = (time: string) => {
-  const [hours] = time.split(":").map(Number);
-  return (hours - 8) * 80; // 80px per hour
+  const [hoursVal] = time.split(":").map(Number);
+  return (hoursVal - 8) * 80; // 80px per hour
 };
 
 const getClassHeight = (duration: number) => {
@@ -38,6 +49,23 @@ const getClassHeight = (duration: number) => {
 
 export default function Agenda() {
   const [currentWeek, setCurrentWeek] = useState(new Date());
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newAula, setNewAula] = useState<NovaAula>({
+    aluno_id: "",
+    professor_id: "",
+    curso_id: "",
+    horario: "09:00",
+    dia_semana: 1,
+    duracao_minutos: 60,
+    sala: "",
+  });
+
+  const { data: aulas, isLoading } = useAulas();
+  const { data: alunos } = useAlunos();
+  const { data: professores } = useProfessores();
+  const { data: cursos } = useCursos();
+  const createAulaMutation = useCreateAula();
+  const deleteAulaMutation = useDeleteAula();
 
   const getWeekDates = () => {
     const dates = [];
@@ -54,6 +82,54 @@ export default function Agenda() {
 
   const weekDates = getWeekDates();
 
+  const handleCreateAula = () => {
+    if (!newAula.horario) {
+      toast({
+        title: "Erro",
+        description: "Horário é obrigatório",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createAulaMutation.mutate({
+      ...newAula,
+      aluno_id: newAula.aluno_id || undefined,
+      professor_id: newAula.professor_id || undefined,
+      curso_id: newAula.curso_id || undefined,
+    }, {
+      onSuccess: () => {
+        setIsDialogOpen(false);
+        setNewAula({
+          aluno_id: "",
+          professor_id: "",
+          curso_id: "",
+          horario: "09:00",
+          dia_semana: 1,
+          duracao_minutos: 60,
+          sala: "",
+        });
+      }
+    });
+  };
+
+  // Get classes for a specific day of week
+  const getClassesForDay = (dayIndex: number) => {
+    return aulas?.filter(aula => aula.dia_semana === dayIndex) || [];
+  };
+
+  // Get today's classes (Monday = 1 in our system)
+  const today = new Date().getDay();
+  const todayClasses = aulas?.filter(aula => aula.dia_semana === today) || [];
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -68,10 +144,137 @@ export default function Agenda() {
             Gerencie as aulas e horários da escola
           </p>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Aula
-        </Button>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              Nova Aula
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Agendar Nova Aula</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label>Aluno</Label>
+                <Select
+                  value={newAula.aluno_id}
+                  onValueChange={(value) => setNewAula(prev => ({ ...prev, aluno_id: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um aluno" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {alunos?.map(aluno => (
+                      <SelectItem key={aluno.id} value={aluno.id}>{aluno.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label>Professor</Label>
+                <Select
+                  value={newAula.professor_id}
+                  onValueChange={(value) => setNewAula(prev => ({ ...prev, professor_id: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um professor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {professores?.map(prof => (
+                      <SelectItem key={prof.id} value={prof.id}>{prof.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label>Curso</Label>
+                <Select
+                  value={newAula.curso_id}
+                  onValueChange={(value) => setNewAula(prev => ({ ...prev, curso_id: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um curso" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cursos?.map(curso => (
+                      <SelectItem key={curso.id} value={curso.id}>{curso.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Dia da Semana</Label>
+                  <Select
+                    value={String(newAula.dia_semana)}
+                    onValueChange={(value) => setNewAula(prev => ({ ...prev, dia_semana: parseInt(value) }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Domingo</SelectItem>
+                      <SelectItem value="1">Segunda</SelectItem>
+                      <SelectItem value="2">Terça</SelectItem>
+                      <SelectItem value="3">Quarta</SelectItem>
+                      <SelectItem value="4">Quinta</SelectItem>
+                      <SelectItem value="5">Sexta</SelectItem>
+                      <SelectItem value="6">Sábado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="horario">Horário *</Label>
+                  <Input 
+                    id="horario" 
+                    type="time"
+                    value={newAula.horario}
+                    onChange={(e) => setNewAula(prev => ({ ...prev, horario: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Duração (minutos)</Label>
+                  <Select
+                    value={String(newAula.duracao_minutos)}
+                    onValueChange={(value) => setNewAula(prev => ({ ...prev, duracao_minutos: parseInt(value) }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="30">30 min</SelectItem>
+                      <SelectItem value="45">45 min</SelectItem>
+                      <SelectItem value="60">1 hora</SelectItem>
+                      <SelectItem value="90">1h30</SelectItem>
+                      <SelectItem value="120">2 horas</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="sala">Sala</Label>
+                  <Input 
+                    id="sala" 
+                    placeholder="Ex: Sala 1"
+                    value={newAula.sala}
+                    onChange={(e) => setNewAula(prev => ({ ...prev, sala: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <Button 
+                className="w-full mt-2" 
+                onClick={handleCreateAula}
+                disabled={createAulaMutation.isPending}
+              >
+                {createAulaMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                Agendar Aula
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </motion.div>
 
       {/* Calendar Navigation */}
@@ -142,7 +345,7 @@ export default function Agenda() {
                 <div className="flex min-w-[700px]">
                   {weekDates.map((date, dayIndex) => {
                     const isToday = date.toDateString() === new Date().toDateString();
-                    const dayClasses = classes.filter((c) => c.day === dayIndex);
+                    const dayClasses = getClassesForDay(dayIndex);
 
                     return (
                       <div key={dayIndex} className="flex-1 border-r border-border last:border-r-0">
@@ -168,27 +371,33 @@ export default function Agenda() {
                           ))}
 
                           {/* Classes */}
-                          {dayClasses.map((classItem) => (
+                          {dayClasses.map((aula) => (
                             <motion.div
-                              key={classItem.id}
+                              key={aula.id}
                               initial={{ opacity: 0, scale: 0.9 }}
                               animate={{ opacity: 1, scale: 1 }}
                               className={`absolute left-1 right-1 rounded-lg p-2 cursor-pointer transition-all hover:scale-[1.02] ${
-                                classItem.status === "confirmada"
+                                aula.status === "ativo"
                                   ? "bg-primary/20 border border-primary/30"
                                   : "bg-warning/20 border border-warning/30"
                               }`}
                               style={{
-                                top: getClassPosition(classItem.time),
-                                height: getClassHeight(classItem.duration),
+                                top: getClassPosition(aula.horario),
+                                height: getClassHeight(aula.duracao_minutos || 60),
                               }}
                             >
-                              <p className="text-xs font-medium truncate">{classItem.student}</p>
-                              <p className="text-xs text-muted-foreground truncate">{classItem.instrument}</p>
-                              <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                                <MapPin className="w-3 h-3" />
-                                <span>{classItem.room}</span>
-                              </div>
+                              <p className="text-xs font-medium truncate">
+                                {aula.alunos?.nome || "Sem aluno"}
+                              </p>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {aula.cursos?.nome || "Sem curso"}
+                              </p>
+                              {aula.sala && (
+                                <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                                  <MapPin className="w-3 h-3" />
+                                  <span>{aula.sala}</span>
+                                </div>
+                              )}
                             </motion.div>
                           ))}
                         </div>
@@ -210,32 +419,50 @@ export default function Agenda() {
       >
         <Card variant="glass">
           <CardHeader>
-            <CardTitle className="text-lg">Aulas de Hoje</CardTitle>
+            <CardTitle className="text-lg">Aulas de Hoje ({todayClasses.length})</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {classes.filter(c => c.day === 1).map((classItem) => (
-                <motion.div
-                  key={classItem.id}
-                  whileHover={{ scale: 1.02 }}
-                  className="p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-lg font-bold text-primary">{classItem.time}</span>
-                    <Badge variant={classItem.status === "confirmada" ? "success" : "warning"}>
-                      {classItem.status}
-                    </Badge>
-                  </div>
-                  <p className="font-medium">{classItem.student}</p>
-                  <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                    <Music className="w-3 h-3" />
-                    <span>{classItem.instrument}</span>
-                    <span>•</span>
-                    <span>{classItem.duration}min</span>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+            {todayClasses.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Nenhuma aula agendada para hoje
+              </div>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {todayClasses.map((aula) => (
+                  <motion.div
+                    key={aula.id}
+                    whileHover={{ scale: 1.02 }}
+                    className="p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer relative group"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-lg font-bold text-primary">{aula.horario}</span>
+                      <Badge variant={aula.status === "ativo" ? "success" : "warning"}>
+                        {aula.status}
+                      </Badge>
+                    </div>
+                    <p className="font-medium">{aula.alunos?.nome || "Sem aluno"}</p>
+                    <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                      <Music className="w-3 h-3" />
+                      <span>{aula.cursos?.nome || "Sem curso"}</span>
+                      <span>•</span>
+                      <span>{aula.duracao_minutos || 60}min</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteAulaMutation.mutate(aula.id);
+                      }}
+                      disabled={deleteAulaMutation.isPending}
+                    >
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>
