@@ -33,6 +33,12 @@ Responda sempre em português brasileiro de forma clara e útil.`;
 - Interesses musicais
 - Objetivos de aprendizado
 - Progressão pedagógica natural
+
+IMPORTANTE: Para CADA música sugerida, você DEVE incluir:
+1. **Link para a cifra**: Use o formato https://www.cifraclub.com.br/[artista]/[musica]/ (substitua espaços por hífens e remova acentos)
+2. **Link para o YouTube**: Use o formato https://www.youtube.com/results?search_query=[artista]+[musica] (para busca direta)
+
+Formate sua resposta de forma clara e organizada, usando negrito para títulos e listas para organizar as informações.
 Responda em português brasileiro.`;
     } else if (type === "lesson-plan") {
       systemPrompt = `Você é um especialista em pedagogia musical. Crie planos de aula detalhados incluindo:
