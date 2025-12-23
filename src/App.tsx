@@ -2,9 +2,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { SidebarProvider } from "@/contexts/SidebarContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -25,9 +27,11 @@ const queryClient = new QueryClient();
 
 // Wrapper component for authenticated pages
 const AuthenticatedPage = ({ children }: { children: React.ReactNode }) => (
-  <SidebarProvider>
-    <AppLayout>{children}</AppLayout>
-  </SidebarProvider>
+  <ProtectedRoute>
+    <SidebarProvider>
+      <AppLayout>{children}</AppLayout>
+    </SidebarProvider>
+  </ProtectedRoute>
 );
 
 const App = () => (
@@ -36,107 +40,109 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route
-            path="/dashboard"
-            element={
-              <AuthenticatedPage>
-                <Dashboard />
-              </AuthenticatedPage>
-            }
-          />
-          <Route
-            path="/alunos"
-            element={
-              <AuthenticatedPage>
-                <Alunos />
-              </AuthenticatedPage>
-            }
-          />
-          <Route
-            path="/agenda"
-            element={
-              <AuthenticatedPage>
-                <Agenda />
-              </AuthenticatedPage>
-            }
-          />
-          <Route
-            path="/financeiro"
-            element={
-              <AuthenticatedPage>
-                <Financeiro />
-              </AuthenticatedPage>
-            }
-          />
-          <Route
-            path="/hub-ia"
-            element={
-              <AuthenticatedPage>
-                <HubIA />
-              </AuthenticatedPage>
-            }
-          />
-          <Route
-            path="/instrumentos"
-            element={
-              <AuthenticatedPage>
-                <Instrumentos />
-              </AuthenticatedPage>
-            }
-          />
-          <Route
-            path="/cursos"
-            element={
-              <AuthenticatedPage>
-                <Cursos />
-              </AuthenticatedPage>
-            }
-          />
-          <Route
-            path="/relatorios"
-            element={
-              <AuthenticatedPage>
-                <Relatorios />
-              </AuthenticatedPage>
-            }
-          />
-          <Route
-            path="/pedagogico"
-            element={
-              <AuthenticatedPage>
-                <Pedagogico />
-              </AuthenticatedPage>
-            }
-          />
-          <Route
-            path="/professores"
-            element={
-              <AuthenticatedPage>
-                <Professores />
-              </AuthenticatedPage>
-            }
-          />
-          <Route
-            path="/comunicacao"
-            element={
-              <AuthenticatedPage>
-                <Comunicacao />
-              </AuthenticatedPage>
-            }
-          />
-          <Route
-            path="/configuracoes"
-            element={
-              <AuthenticatedPage>
-                <Configuracoes />
-              </AuthenticatedPage>
-            }
-          />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/dashboard"
+              element={
+                <AuthenticatedPage>
+                  <Dashboard />
+                </AuthenticatedPage>
+              }
+            />
+            <Route
+              path="/alunos"
+              element={
+                <AuthenticatedPage>
+                  <Alunos />
+                </AuthenticatedPage>
+              }
+            />
+            <Route
+              path="/agenda"
+              element={
+                <AuthenticatedPage>
+                  <Agenda />
+                </AuthenticatedPage>
+              }
+            />
+            <Route
+              path="/financeiro"
+              element={
+                <AuthenticatedPage>
+                  <Financeiro />
+                </AuthenticatedPage>
+              }
+            />
+            <Route
+              path="/hub-ia"
+              element={
+                <AuthenticatedPage>
+                  <HubIA />
+                </AuthenticatedPage>
+              }
+            />
+            <Route
+              path="/instrumentos"
+              element={
+                <AuthenticatedPage>
+                  <Instrumentos />
+                </AuthenticatedPage>
+              }
+            />
+            <Route
+              path="/cursos"
+              element={
+                <AuthenticatedPage>
+                  <Cursos />
+                </AuthenticatedPage>
+              }
+            />
+            <Route
+              path="/relatorios"
+              element={
+                <AuthenticatedPage>
+                  <Relatorios />
+                </AuthenticatedPage>
+              }
+            />
+            <Route
+              path="/pedagogico"
+              element={
+                <AuthenticatedPage>
+                  <Pedagogico />
+                </AuthenticatedPage>
+              }
+            />
+            <Route
+              path="/professores"
+              element={
+                <AuthenticatedPage>
+                  <Professores />
+                </AuthenticatedPage>
+              }
+            />
+            <Route
+              path="/comunicacao"
+              element={
+                <AuthenticatedPage>
+                  <Comunicacao />
+                </AuthenticatedPage>
+              }
+            />
+            <Route
+              path="/configuracoes"
+              element={
+                <AuthenticatedPage>
+                  <Configuracoes />
+                </AuthenticatedPage>
+              }
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

@@ -5,14 +5,12 @@ import {
   Plus,
   Search,
   Filter,
-  Guitar,
-  Piano,
-  Drum,
   MoreVertical,
   Package,
   Wrench,
-  AlertTriangle,
   CheckCircle,
+  Loader2,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,69 +37,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const instrumentos = [
-  { 
-    id: 1, 
-    nome: "Piano Yamaha C3", 
-    tipo: "Piano", 
-    status: "disponivel", 
-    localizacao: "Sala 1",
-    valorPatrimonio: 45000,
-    ultimaManutencao: "2024-01-15",
-    emprestadoPara: null,
-  },
-  { 
-    id: 2, 
-    nome: "Violão Giannini", 
-    tipo: "Violão", 
-    status: "emprestado", 
-    localizacao: "Sala 3",
-    valorPatrimonio: 1200,
-    ultimaManutencao: "2024-02-20",
-    emprestadoPara: "João Silva",
-  },
-  { 
-    id: 3, 
-    nome: "Bateria Pearl Export", 
-    tipo: "Bateria", 
-    status: "manutencao", 
-    localizacao: "Sala 5",
-    valorPatrimonio: 8500,
-    ultimaManutencao: "2024-03-10",
-    emprestadoPara: null,
-  },
-  { 
-    id: 4, 
-    nome: "Teclado Korg PA700", 
-    tipo: "Teclado", 
-    status: "disponivel", 
-    localizacao: "Sala 2",
-    valorPatrimonio: 12000,
-    ultimaManutencao: "2024-01-05",
-    emprestadoPara: null,
-  },
-  { 
-    id: 5, 
-    nome: "Violino Stradivarius Réplica", 
-    tipo: "Violino", 
-    status: "disponivel", 
-    localizacao: "Sala 4",
-    valorPatrimonio: 3500,
-    ultimaManutencao: "2024-02-28",
-    emprestadoPara: null,
-  },
-  { 
-    id: 6, 
-    nome: "Guitarra Fender Stratocaster", 
-    tipo: "Guitarra", 
-    status: "emprestado", 
-    localizacao: "Sala 3",
-    valorPatrimonio: 7800,
-    ultimaManutencao: "2024-01-22",
-    emprestadoPara: "Maria Santos",
-  },
-];
+import { useInstrumentos } from "@/hooks/useInstrumentos";
+import { toast } from "@/hooks/use-toast";
 
 const statusConfig = {
   disponivel: { label: "Disponível", color: "bg-success/20 text-success border-success/30" },
@@ -112,19 +49,61 @@ const statusConfig = {
 export default function Instrumentos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newInstrumento, setNewInstrumento] = useState({
+    nome: "",
+    tipo: "",
+    localizacao: "",
+    valor_patrimonio: "",
+    marca: "",
+    modelo: "",
+  });
+
+  const { instrumentos, isLoading, createInstrumento, deleteInstrumento, isCreating, isDeleting } = useInstrumentos();
 
   const stats = {
-    total: instrumentos.length,
-    disponiveis: instrumentos.filter(i => i.status === "disponivel").length,
-    emprestados: instrumentos.filter(i => i.status === "emprestado").length,
-    manutencao: instrumentos.filter(i => i.status === "manutencao").length,
+    total: instrumentos?.length || 0,
+    disponiveis: instrumentos?.filter(i => i.status === "disponivel").length || 0,
+    emprestados: instrumentos?.filter(i => i.status === "emprestado").length || 0,
+    manutencao: instrumentos?.filter(i => i.status === "manutencao").length || 0,
   };
 
-  const filteredInstrumentos = instrumentos.filter(
+  const filteredInstrumentos = instrumentos?.filter(
     (instrumento) =>
       instrumento.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       instrumento.tipo.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) || [];
+
+  const handleCreateInstrumento = () => {
+    if (!newInstrumento.nome || !newInstrumento.tipo) {
+      toast({
+        title: "Erro",
+        description: "Nome e tipo são obrigatórios",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createInstrumento({
+      nome: newInstrumento.nome,
+      tipo: newInstrumento.tipo,
+      localizacao: newInstrumento.localizacao || null,
+      valor_patrimonio: newInstrumento.valor_patrimonio ? parseFloat(newInstrumento.valor_patrimonio) : null,
+      marca: newInstrumento.marca || null,
+      modelo: newInstrumento.modelo || null,
+      status: "disponivel",
+    });
+
+    setNewInstrumento({ nome: "", tipo: "", localizacao: "", valor_patrimonio: "", marca: "", modelo: "" });
+    setIsDialogOpen(false);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -153,46 +132,94 @@ export default function Instrumentos() {
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="nome">Nome do Instrumento</Label>
-                <Input id="nome" placeholder="Ex: Piano Yamaha C3" />
+                <Label htmlFor="nome">Nome do Instrumento *</Label>
+                <Input 
+                  id="nome" 
+                  placeholder="Ex: Piano Yamaha C3"
+                  value={newInstrumento.nome}
+                  onChange={(e) => setNewInstrumento(prev => ({ ...prev, nome: e.target.value }))}
+                />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="tipo">Tipo</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="piano">Piano</SelectItem>
-                    <SelectItem value="violao">Violão</SelectItem>
-                    <SelectItem value="guitarra">Guitarra</SelectItem>
-                    <SelectItem value="bateria">Bateria</SelectItem>
-                    <SelectItem value="teclado">Teclado</SelectItem>
-                    <SelectItem value="violino">Violino</SelectItem>
-                    <SelectItem value="outro">Outro</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="tipo">Tipo *</Label>
+                  <Select
+                    value={newInstrumento.tipo}
+                    onValueChange={(value) => setNewInstrumento(prev => ({ ...prev, tipo: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Piano">Piano</SelectItem>
+                      <SelectItem value="Violão">Violão</SelectItem>
+                      <SelectItem value="Guitarra">Guitarra</SelectItem>
+                      <SelectItem value="Bateria">Bateria</SelectItem>
+                      <SelectItem value="Teclado">Teclado</SelectItem>
+                      <SelectItem value="Violino">Violino</SelectItem>
+                      <SelectItem value="Baixo">Baixo</SelectItem>
+                      <SelectItem value="Saxofone">Saxofone</SelectItem>
+                      <SelectItem value="Flauta">Flauta</SelectItem>
+                      <SelectItem value="Outro">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="localizacao">Localização</Label>
+                  <Select
+                    value={newInstrumento.localizacao}
+                    onValueChange={(value) => setNewInstrumento(prev => ({ ...prev, localizacao: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a sala" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Sala 1">Sala 1</SelectItem>
+                      <SelectItem value="Sala 2">Sala 2</SelectItem>
+                      <SelectItem value="Sala 3">Sala 3</SelectItem>
+                      <SelectItem value="Sala 4">Sala 4</SelectItem>
+                      <SelectItem value="Sala 5">Sala 5</SelectItem>
+                      <SelectItem value="Depósito">Depósito</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="localizacao">Localização</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a sala" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="sala1">Sala 1</SelectItem>
-                    <SelectItem value="sala2">Sala 2</SelectItem>
-                    <SelectItem value="sala3">Sala 3</SelectItem>
-                    <SelectItem value="sala4">Sala 4</SelectItem>
-                    <SelectItem value="sala5">Sala 5</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="marca">Marca</Label>
+                  <Input 
+                    id="marca" 
+                    placeholder="Ex: Yamaha"
+                    value={newInstrumento.marca}
+                    onChange={(e) => setNewInstrumento(prev => ({ ...prev, marca: e.target.value }))}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="modelo">Modelo</Label>
+                  <Input 
+                    id="modelo" 
+                    placeholder="Ex: C3"
+                    value={newInstrumento.modelo}
+                    onChange={(e) => setNewInstrumento(prev => ({ ...prev, modelo: e.target.value }))}
+                  />
+                </div>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="valor">Valor Patrimonial (R$)</Label>
-                <Input id="valor" type="number" placeholder="0,00" />
+                <Input 
+                  id="valor" 
+                  type="number" 
+                  placeholder="0,00"
+                  value={newInstrumento.valor_patrimonio}
+                  onChange={(e) => setNewInstrumento(prev => ({ ...prev, valor_patrimonio: e.target.value }))}
+                />
               </div>
-              <Button className="w-full mt-2" onClick={() => setIsDialogOpen(false)}>
+              <Button 
+                className="w-full mt-2" 
+                onClick={handleCreateInstrumento}
+                disabled={isCreating}
+              >
+                {isCreating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 Cadastrar Instrumento
               </Button>
             </div>
@@ -274,73 +301,102 @@ export default function Instrumentos() {
       </div>
 
       {/* Instruments Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredInstrumentos.map((instrumento, index) => (
-          <motion.div
-            key={instrumento.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-          >
-            <Card className="glass-card hover:border-primary/30 transition-all">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary/20">
-                      <Music className="w-5 h-5 text-primary" />
+      {filteredInstrumentos.length === 0 ? (
+        <Card className="glass-card">
+          <CardContent className="py-12 text-center">
+            <Music className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Nenhum instrumento encontrado</h3>
+            <p className="text-muted-foreground mb-4">
+              {searchTerm ? "Tente outra busca" : "Cadastre seu primeiro instrumento"}
+            </p>
+            {!searchTerm && (
+              <Button onClick={() => setIsDialogOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Instrumento
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredInstrumentos.map((instrumento, index) => (
+            <motion.div
+              key={instrumento.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+            >
+              <Card className="glass-card hover:border-primary/30 transition-all">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-primary/20">
+                        <Music className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-base">{instrumento.nome}</CardTitle>
+                        <p className="text-sm text-muted-foreground">{instrumento.tipo}</p>
+                      </div>
                     </div>
-                    <div>
-                      <CardTitle className="text-base">{instrumento.nome}</CardTitle>
-                      <p className="text-sm text-muted-foreground">{instrumento.tipo}</p>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem>Editar</DropdownMenuItem>
+                        <DropdownMenuItem>Emprestar</DropdownMenuItem>
+                        <DropdownMenuItem>Registrar Manutenção</DropdownMenuItem>
+                        <DropdownMenuItem>Histórico</DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="text-destructive"
+                          onClick={() => deleteInstrumento(instrumento.id)}
+                          disabled={isDeleting}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Remover
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Status</span>
+                    <Badge className={statusConfig[instrumento.status as keyof typeof statusConfig]?.color || statusConfig.disponivel.color}>
+                      {statusConfig[instrumento.status as keyof typeof statusConfig]?.label || "Disponível"}
+                    </Badge>
+                  </div>
+                  {instrumento.localizacao && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Localização</span>
+                      <span className="text-sm font-medium">{instrumento.localizacao}</span>
                     </div>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>Editar</DropdownMenuItem>
-                      <DropdownMenuItem>Emprestar</DropdownMenuItem>
-                      <DropdownMenuItem>Registrar Manutenção</DropdownMenuItem>
-                      <DropdownMenuItem>Histórico</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">Remover</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Status</span>
-                  <Badge className={statusConfig[instrumento.status as keyof typeof statusConfig].color}>
-                    {statusConfig[instrumento.status as keyof typeof statusConfig].label}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Localização</span>
-                  <span className="text-sm font-medium">{instrumento.localizacao}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Valor</span>
-                  <span className="text-sm font-medium">
-                    {instrumento.valorPatrimonio.toLocaleString("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    })}
-                  </span>
-                </div>
-                {instrumento.emprestadoPara && (
-                  <div className="flex items-center justify-between pt-2 border-t border-border">
-                    <span className="text-sm text-muted-foreground">Emprestado para</span>
-                    <span className="text-sm font-medium text-warning">{instrumento.emprestadoPara}</span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
+                  )}
+                  {instrumento.marca && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Marca</span>
+                      <span className="text-sm font-medium">{instrumento.marca} {instrumento.modelo}</span>
+                    </div>
+                  )}
+                  {instrumento.valor_patrimonio && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Valor</span>
+                      <span className="text-sm font-medium">
+                        {Number(instrumento.valor_patrimonio).toLocaleString("pt-BR", {
+                          style: "currency",
+                          currency: "BRL",
+                        })}
+                      </span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      )}
     </motion.div>
   );
 }

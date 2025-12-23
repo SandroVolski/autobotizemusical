@@ -11,6 +11,8 @@ import {
   GraduationCap,
   Music,
   DollarSign,
+  Loader2,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,95 +40,71 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const cursos = [
-  {
-    id: 1,
-    nome: "Piano Básico",
-    instrumento: "Piano",
-    nivel: "Iniciante",
-    duracao: "6 meses",
-    cargaHoraria: "2h/semana",
-    alunos: 24,
-    valor: 450,
-    status: "ativo",
-  },
-  {
-    id: 2,
-    nome: "Violão Popular",
-    instrumento: "Violão",
-    nivel: "Iniciante",
-    duracao: "4 meses",
-    cargaHoraria: "1h/semana",
-    alunos: 32,
-    valor: 350,
-    status: "ativo",
-  },
-  {
-    id: 3,
-    nome: "Guitarra Rock",
-    instrumento: "Guitarra",
-    nivel: "Intermediário",
-    duracao: "8 meses",
-    cargaHoraria: "2h/semana",
-    alunos: 18,
-    valor: 500,
-    status: "ativo",
-  },
-  {
-    id: 4,
-    nome: "Bateria Avançada",
-    instrumento: "Bateria",
-    nivel: "Avançado",
-    duracao: "12 meses",
-    cargaHoraria: "2h/semana",
-    alunos: 8,
-    valor: 600,
-    status: "ativo",
-  },
-  {
-    id: 5,
-    nome: "Teoria Musical",
-    instrumento: "Teoria",
-    nivel: "Todos",
-    duracao: "3 meses",
-    cargaHoraria: "1h/semana",
-    alunos: 45,
-    valor: 280,
-    status: "ativo",
-  },
-  {
-    id: 6,
-    nome: "Canto Coral",
-    instrumento: "Canto",
-    nivel: "Iniciante",
-    duracao: "6 meses",
-    cargaHoraria: "2h/semana",
-    alunos: 20,
-    valor: 320,
-    status: "pausado",
-  },
-];
+import { useCursos } from "@/hooks/useCursos";
+import { toast } from "@/hooks/use-toast";
 
 const nivelConfig = {
-  Iniciante: "bg-success/20 text-success border-success/30",
-  Intermediário: "bg-warning/20 text-warning border-warning/30",
-  Avançado: "bg-primary/20 text-primary border-primary/30",
-  Todos: "bg-secondary/20 text-secondary border-secondary/30",
+  iniciante: "bg-success/20 text-success border-success/30",
+  intermediario: "bg-warning/20 text-warning border-warning/30",
+  avancado: "bg-primary/20 text-primary border-primary/30",
 };
 
 export default function Cursos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newCurso, setNewCurso] = useState({
+    nome: "",
+    instrumento: "",
+    nivel: "",
+    duracao: "",
+    carga_horaria: "",
+    valor_mensal: "",
+    descricao: "",
+  });
 
-  const totalAlunos = cursos.reduce((acc, curso) => acc + curso.alunos, 0);
-  const receitaMensal = cursos.reduce((acc, curso) => acc + (curso.valor * curso.alunos), 0);
+  const { cursos, isLoading, createCurso, deleteCurso, isCreating, isDeleting } = useCursos();
 
-  const filteredCursos = cursos.filter(
+  const totalAlunos = 0; // TODO: Calculate from aulas table
+  const receitaMensal = cursos?.reduce((acc, curso) => acc + (Number(curso.valor_mensal) || 0), 0) || 0;
+
+  const filteredCursos = cursos?.filter(
     (curso) =>
       curso.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       curso.instrumento.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) || [];
+
+  const handleCreateCurso = () => {
+    if (!newCurso.nome || !newCurso.instrumento) {
+      toast({
+        title: "Erro",
+        description: "Nome e instrumento são obrigatórios",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createCurso({
+      nome: newCurso.nome,
+      instrumento: newCurso.instrumento,
+      nivel: newCurso.nivel || "iniciante",
+      duracao: newCurso.duracao || null,
+      carga_horaria: newCurso.carga_horaria || null,
+      valor_mensal: newCurso.valor_mensal ? parseFloat(newCurso.valor_mensal) : null,
+      descricao: newCurso.descricao || null,
+      status: "ativo",
+    });
+
+    setNewCurso({ nome: "", instrumento: "", nivel: "", duracao: "", carga_horaria: "", valor_mensal: "", descricao: "" });
+    setIsDialogOpen(false);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -155,29 +133,41 @@ export default function Cursos() {
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="nome">Nome do Curso</Label>
-                <Input id="nome" placeholder="Ex: Piano Intermediário" />
+                <Label htmlFor="nome">Nome do Curso *</Label>
+                <Input 
+                  id="nome" 
+                  placeholder="Ex: Piano Intermediário"
+                  value={newCurso.nome}
+                  onChange={(e) => setNewCurso(prev => ({ ...prev, nome: e.target.value }))}
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="instrumento">Instrumento</Label>
-                  <Select>
+                  <Label htmlFor="instrumento">Instrumento *</Label>
+                  <Select
+                    value={newCurso.instrumento}
+                    onValueChange={(value) => setNewCurso(prev => ({ ...prev, instrumento: value }))}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="piano">Piano</SelectItem>
-                      <SelectItem value="violao">Violão</SelectItem>
-                      <SelectItem value="guitarra">Guitarra</SelectItem>
-                      <SelectItem value="bateria">Bateria</SelectItem>
-                      <SelectItem value="canto">Canto</SelectItem>
-                      <SelectItem value="teoria">Teoria Musical</SelectItem>
+                      <SelectItem value="Piano">Piano</SelectItem>
+                      <SelectItem value="Violão">Violão</SelectItem>
+                      <SelectItem value="Guitarra">Guitarra</SelectItem>
+                      <SelectItem value="Bateria">Bateria</SelectItem>
+                      <SelectItem value="Canto">Canto</SelectItem>
+                      <SelectItem value="Violino">Violino</SelectItem>
+                      <SelectItem value="Teoria Musical">Teoria Musical</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="nivel">Nível</Label>
-                  <Select>
+                  <Select
+                    value={newCurso.nivel}
+                    onValueChange={(value) => setNewCurso(prev => ({ ...prev, nivel: value }))}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
@@ -192,22 +182,48 @@ export default function Cursos() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="duracao">Duração</Label>
-                  <Input id="duracao" placeholder="Ex: 6 meses" />
+                  <Input 
+                    id="duracao" 
+                    placeholder="Ex: 6 meses"
+                    value={newCurso.duracao}
+                    onChange={(e) => setNewCurso(prev => ({ ...prev, duracao: e.target.value }))}
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="carga">Carga Horária</Label>
-                  <Input id="carga" placeholder="Ex: 2h/semana" />
+                  <Input 
+                    id="carga" 
+                    placeholder="Ex: 2h/semana"
+                    value={newCurso.carga_horaria}
+                    onChange={(e) => setNewCurso(prev => ({ ...prev, carga_horaria: e.target.value }))}
+                  />
                 </div>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="valor">Valor Mensal (R$)</Label>
-                <Input id="valor" type="number" placeholder="0,00" />
+                <Input 
+                  id="valor" 
+                  type="number" 
+                  placeholder="0,00"
+                  value={newCurso.valor_mensal}
+                  onChange={(e) => setNewCurso(prev => ({ ...prev, valor_mensal: e.target.value }))}
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="descricao">Descrição</Label>
-                <Textarea id="descricao" placeholder="Descreva o conteúdo programático..." />
+                <Textarea 
+                  id="descricao" 
+                  placeholder="Descreva o conteúdo programático..."
+                  value={newCurso.descricao}
+                  onChange={(e) => setNewCurso(prev => ({ ...prev, descricao: e.target.value }))}
+                />
               </div>
-              <Button className="w-full mt-2" onClick={() => setIsDialogOpen(false)}>
+              <Button 
+                className="w-full mt-2" 
+                onClick={handleCreateCurso}
+                disabled={isCreating}
+              >
+                {isCreating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 Criar Curso
               </Button>
             </div>
@@ -224,7 +240,7 @@ export default function Cursos() {
                 <BookOpen className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{cursos.length}</p>
+                <p className="text-2xl font-bold">{cursos?.length || 0}</p>
                 <p className="text-xs text-muted-foreground">Total de Cursos</p>
               </div>
             </div>
@@ -253,7 +269,7 @@ export default function Cursos() {
                 <p className="text-2xl font-bold">
                   {receitaMensal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                 </p>
-                <p className="text-xs text-muted-foreground">Receita Mensal</p>
+                <p className="text-xs text-muted-foreground">Valor Total/Mês</p>
               </div>
             </div>
           </CardContent>
@@ -265,7 +281,7 @@ export default function Cursos() {
                 <GraduationCap className="w-5 h-5 text-warning" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{cursos.filter(c => c.status === "ativo").length}</p>
+                <p className="text-2xl font-bold">{cursos?.filter(c => c.status === "ativo").length || 0}</p>
                 <p className="text-xs text-muted-foreground">Cursos Ativos</p>
               </div>
             </div>
@@ -291,78 +307,102 @@ export default function Cursos() {
       </div>
 
       {/* Courses Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredCursos.map((curso, index) => (
-          <motion.div
-            key={curso.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-          >
-            <Card className="glass-card hover:border-primary/30 transition-all">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary/20">
-                      <Music className="w-5 h-5 text-primary" />
+      {filteredCursos.length === 0 ? (
+        <Card className="glass-card">
+          <CardContent className="py-12 text-center">
+            <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Nenhum curso encontrado</h3>
+            <p className="text-muted-foreground mb-4">
+              {searchTerm ? "Tente outra busca" : "Cadastre seu primeiro curso"}
+            </p>
+            {!searchTerm && (
+              <Button onClick={() => setIsDialogOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Curso
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredCursos.map((curso, index) => (
+            <motion.div
+              key={curso.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+            >
+              <Card className="glass-card hover:border-primary/30 transition-all">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-primary/20">
+                        <Music className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-base">{curso.nome}</CardTitle>
+                        <p className="text-sm text-muted-foreground">{curso.instrumento}</p>
+                      </div>
                     </div>
-                    <div>
-                      <CardTitle className="text-base">{curso.nome}</CardTitle>
-                      <p className="text-sm text-muted-foreground">{curso.instrumento}</p>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem>Editar</DropdownMenuItem>
+                        <DropdownMenuItem>Ver Alunos</DropdownMenuItem>
+                        <DropdownMenuItem>Conteúdo Programático</DropdownMenuItem>
+                        <DropdownMenuItem>Duplicar</DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="text-destructive"
+                          onClick={() => deleteCurso(curso.id)}
+                          disabled={isDeleting}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Nível</span>
+                    <Badge className={nivelConfig[curso.nivel as keyof typeof nivelConfig] || nivelConfig.iniciante}>
+                      {curso.nivel ? curso.nivel.charAt(0).toUpperCase() + curso.nivel.slice(1) : "Iniciante"}
+                    </Badge>
+                  </div>
+                  {curso.duracao && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Duração</span>
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-sm font-medium">{curso.duracao}</span>
+                      </div>
                     </div>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>Editar</DropdownMenuItem>
-                      <DropdownMenuItem>Ver Alunos</DropdownMenuItem>
-                      <DropdownMenuItem>Conteúdo Programático</DropdownMenuItem>
-                      <DropdownMenuItem>Duplicar</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">Desativar</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Nível</span>
-                  <Badge className={nivelConfig[curso.nivel as keyof typeof nivelConfig]}>
-                    {curso.nivel}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Duração</span>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-muted-foreground" />
-                    <span className="text-sm font-medium">{curso.duracao}</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Carga Horária</span>
-                  <span className="text-sm font-medium">{curso.cargaHoraria}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Alunos</span>
-                  <div className="flex items-center gap-1">
-                    <Users className="w-3 h-3 text-muted-foreground" />
-                    <span className="text-sm font-medium">{curso.alunos}</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between pt-2 border-t border-border">
-                  <span className="text-sm text-muted-foreground">Mensalidade</span>
-                  <span className="text-lg font-bold text-primary">
-                    {curso.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
+                  )}
+                  {curso.carga_horaria && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Carga Horária</span>
+                      <span className="text-sm font-medium">{curso.carga_horaria}</span>
+                    </div>
+                  )}
+                  {curso.valor_mensal && (
+                    <div className="flex items-center justify-between pt-2 border-t border-border">
+                      <span className="text-sm text-muted-foreground">Mensalidade</span>
+                      <span className="text-lg font-bold text-primary">
+                        {Number(curso.valor_mensal).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                      </span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      )}
     </motion.div>
   );
 }

@@ -9,9 +9,10 @@ import {
   Phone,
   Mail,
   Music,
-  Calendar,
   Star,
   Clock,
+  Loader2,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,82 +33,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-const professores = [
-  {
-    id: 1,
-    nome: "Carlos Mendes",
-    email: "carlos@escola.com",
-    telefone: "(47) 99999-1111",
-    especialidades: ["Piano", "Teclado"],
-    alunos: 28,
-    horasSemanais: 32,
-    avaliacao: 4.9,
-    status: "ativo",
-  },
-  {
-    id: 2,
-    nome: "Ana Paula Costa",
-    email: "ana@escola.com",
-    telefone: "(47) 99999-2222",
-    especialidades: ["Violão", "Ukulele"],
-    alunos: 24,
-    horasSemanais: 28,
-    avaliacao: 4.8,
-    status: "ativo",
-  },
-  {
-    id: 3,
-    nome: "Pedro Oliveira",
-    email: "pedro@escola.com",
-    telefone: "(47) 99999-3333",
-    especialidades: ["Bateria", "Percussão"],
-    alunos: 18,
-    horasSemanais: 24,
-    avaliacao: 4.7,
-    status: "ativo",
-  },
-  {
-    id: 4,
-    nome: "Marina Silva",
-    email: "marina@escola.com",
-    telefone: "(47) 99999-4444",
-    especialidades: ["Guitarra", "Baixo"],
-    alunos: 22,
-    horasSemanais: 30,
-    avaliacao: 4.9,
-    status: "ativo",
-  },
-  {
-    id: 5,
-    nome: "Roberto Santos",
-    email: "roberto@escola.com",
-    telefone: "(47) 99999-5555",
-    especialidades: ["Canto", "Técnica Vocal"],
-    alunos: 20,
-    horasSemanais: 26,
-    avaliacao: 4.6,
-    status: "ferias",
-  },
-  {
-    id: 6,
-    nome: "Fernanda Lima",
-    email: "fernanda@escola.com",
-    telefone: "(47) 99999-6666",
-    especialidades: ["Violino", "Viola"],
-    alunos: 15,
-    horasSemanais: 20,
-    avaliacao: 4.8,
-    status: "ativo",
-  },
-];
+import { Textarea } from "@/components/ui/textarea";
+import { useProfessores } from "@/hooks/useProfessores";
+import { toast } from "@/hooks/use-toast";
 
 const statusConfig = {
   ativo: { label: "Ativo", color: "bg-success/20 text-success border-success/30" },
@@ -118,16 +46,60 @@ const statusConfig = {
 export default function Professores() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newProfessor, setNewProfessor] = useState({
+    nome: "",
+    email: "",
+    telefone: "",
+    especialidades: "",
+    valor_hora: "",
+    biografia: "",
+  });
 
-  const totalAlunos = professores.reduce((acc, p) => acc + p.alunos, 0);
-  const totalHoras = professores.reduce((acc, p) => acc + p.horasSemanais, 0);
-  const mediaAvaliacao = (professores.reduce((acc, p) => acc + p.avaliacao, 0) / professores.length).toFixed(1);
+  const { professores, isLoading, createProfessor, deleteProfessor, isCreating, isDeleting } = useProfessores();
 
-  const filteredProfessores = professores.filter(
+  const totalHoras = professores?.reduce((acc, p) => acc + (Number(p.valor_hora) || 0) * 30, 0) || 0;
+  const mediaAvaliacao = professores?.length 
+    ? (professores.reduce((acc, p) => acc + (Number(p.avaliacao) || 0), 0) / professores.length).toFixed(1) 
+    : "0.0";
+
+  const filteredProfessores = professores?.filter(
     (professor) =>
       professor.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      professor.especialidades.some((e) => e.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+      professor.especialidades?.some((e) => e.toLowerCase().includes(searchTerm.toLowerCase()))
+  ) || [];
+
+  const handleCreateProfessor = () => {
+    if (!newProfessor.nome) {
+      toast({
+        title: "Erro",
+        description: "Nome é obrigatório",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createProfessor({
+      nome: newProfessor.nome,
+      email: newProfessor.email || null,
+      telefone: newProfessor.telefone || null,
+      especialidades: newProfessor.especialidades ? newProfessor.especialidades.split(",").map(e => e.trim()) : [],
+      valor_hora: newProfessor.valor_hora ? parseFloat(newProfessor.valor_hora) : null,
+      biografia: newProfessor.biografia || null,
+      status: "ativo",
+      avaliacao: 5.0,
+    });
+
+    setNewProfessor({ nome: "", email: "", telefone: "", especialidades: "", valor_hora: "", biografia: "" });
+    setIsDialogOpen(false);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -156,40 +128,68 @@ export default function Professores() {
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="nome">Nome Completo</Label>
-                <Input id="nome" placeholder="Nome do professor" />
+                <Label htmlFor="nome">Nome Completo *</Label>
+                <Input 
+                  id="nome" 
+                  placeholder="Nome do professor"
+                  value={newProfessor.nome}
+                  onChange={(e) => setNewProfessor(prev => ({ ...prev, nome: e.target.value }))}
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="email">E-mail</Label>
-                  <Input id="email" type="email" placeholder="email@exemplo.com" />
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="email@exemplo.com"
+                    value={newProfessor.email}
+                    onChange={(e) => setNewProfessor(prev => ({ ...prev, email: e.target.value }))}
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="telefone">Telefone</Label>
-                  <Input id="telefone" placeholder="(47) 99999-9999" />
+                  <Input 
+                    id="telefone" 
+                    placeholder="(47) 99999-9999"
+                    value={newProfessor.telefone}
+                    onChange={(e) => setNewProfessor(prev => ({ ...prev, telefone: e.target.value }))}
+                  />
                 </div>
               </div>
               <div className="grid gap-2">
                 <Label>Especialidades</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione os instrumentos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="piano">Piano</SelectItem>
-                    <SelectItem value="violao">Violão</SelectItem>
-                    <SelectItem value="guitarra">Guitarra</SelectItem>
-                    <SelectItem value="bateria">Bateria</SelectItem>
-                    <SelectItem value="canto">Canto</SelectItem>
-                    <SelectItem value="violino">Violino</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Input 
+                  placeholder="Piano, Violão, Teoria (separar por vírgula)"
+                  value={newProfessor.especialidades}
+                  onChange={(e) => setNewProfessor(prev => ({ ...prev, especialidades: e.target.value }))}
+                />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="horas">Horas Semanais Disponíveis</Label>
-                <Input id="horas" type="number" placeholder="Ex: 30" />
+                <Label htmlFor="valor">Valor por Hora (R$)</Label>
+                <Input 
+                  id="valor" 
+                  type="number" 
+                  placeholder="Ex: 80"
+                  value={newProfessor.valor_hora}
+                  onChange={(e) => setNewProfessor(prev => ({ ...prev, valor_hora: e.target.value }))}
+                />
               </div>
-              <Button className="w-full mt-2" onClick={() => setIsDialogOpen(false)}>
+              <div className="grid gap-2">
+                <Label htmlFor="biografia">Biografia</Label>
+                <Textarea 
+                  id="biografia" 
+                  placeholder="Breve descrição do professor..."
+                  value={newProfessor.biografia}
+                  onChange={(e) => setNewProfessor(prev => ({ ...prev, biografia: e.target.value }))}
+                />
+              </div>
+              <Button 
+                className="w-full mt-2" 
+                onClick={handleCreateProfessor}
+                disabled={isCreating}
+              >
+                {isCreating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 Cadastrar Professor
               </Button>
             </div>
@@ -206,7 +206,7 @@ export default function Professores() {
                 <UserCog className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{professores.length}</p>
+                <p className="text-2xl font-bold">{professores?.length || 0}</p>
                 <p className="text-xs text-muted-foreground">Professores</p>
               </div>
             </div>
@@ -219,8 +219,8 @@ export default function Professores() {
                 <Music className="w-5 h-5 text-secondary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{totalAlunos}</p>
-                <p className="text-xs text-muted-foreground">Alunos Atendidos</p>
+                <p className="text-2xl font-bold">{professores?.filter(p => p.status === "ativo").length || 0}</p>
+                <p className="text-xs text-muted-foreground">Ativos</p>
               </div>
             </div>
           </CardContent>
@@ -232,8 +232,10 @@ export default function Professores() {
                 <Clock className="w-5 h-5 text-success" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{totalHoras}h</p>
-                <p className="text-xs text-muted-foreground">Horas/Semana</p>
+                <p className="text-2xl font-bold">
+                  {professores?.reduce((acc, p) => acc + (p.especialidades?.length || 0), 0) || 0}
+                </p>
+                <p className="text-xs text-muted-foreground">Especialidades</p>
               </div>
             </div>
           </CardContent>
@@ -271,85 +273,113 @@ export default function Professores() {
       </div>
 
       {/* Professors Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredProfessores.map((professor, index) => (
-          <motion.div
-            key={professor.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-          >
-            <Card className="glass-card hover:border-primary/30 transition-all">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="w-12 h-12 border-2 border-primary/30">
-                      <AvatarFallback className="bg-primary/20 text-primary font-semibold">
-                        {professor.nome.split(" ").map(n => n[0]).join("").slice(0, 2)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <CardTitle className="text-base">{professor.nome}</CardTitle>
-                      <div className="flex items-center gap-1 mt-1">
-                        <Star className="w-3 h-3 text-warning fill-warning" />
-                        <span className="text-sm text-muted-foreground">{professor.avaliacao}</span>
+      {filteredProfessores.length === 0 ? (
+        <Card className="glass-card">
+          <CardContent className="py-12 text-center">
+            <UserCog className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Nenhum professor encontrado</h3>
+            <p className="text-muted-foreground mb-4">
+              {searchTerm ? "Tente outra busca" : "Cadastre seu primeiro professor"}
+            </p>
+            {!searchTerm && (
+              <Button onClick={() => setIsDialogOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Professor
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredProfessores.map((professor, index) => (
+            <motion.div
+              key={professor.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+            >
+              <Card className="glass-card hover:border-primary/30 transition-all">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="w-12 h-12 border-2 border-primary/30">
+                        <AvatarFallback className="bg-primary/20 text-primary font-semibold">
+                          {professor.nome.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <CardTitle className="text-base">{professor.nome}</CardTitle>
+                        <div className="flex items-center gap-1 mt-1">
+                          <Star className="w-3 h-3 text-warning fill-warning" />
+                          <span className="text-sm text-muted-foreground">
+                            {Number(professor.avaliacao || 5).toFixed(1)}
+                          </span>
+                        </div>
                       </div>
                     </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem>Ver Perfil</DropdownMenuItem>
+                        <DropdownMenuItem>Editar</DropdownMenuItem>
+                        <DropdownMenuItem>Ver Agenda</DropdownMenuItem>
+                        <DropdownMenuItem>Relatório</DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="text-destructive"
+                          onClick={() => deleteProfessor(professor.id)}
+                          disabled={isDeleting}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>Ver Perfil</DropdownMenuItem>
-                      <DropdownMenuItem>Editar</DropdownMenuItem>
-                      <DropdownMenuItem>Ver Agenda</DropdownMenuItem>
-                      <DropdownMenuItem>Relatório</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">Desativar</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex flex-wrap gap-1">
-                  {professor.especialidades.map((esp) => (
-                    <Badge key={esp} variant="outline" className="text-xs">
-                      {esp}
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {professor.especialidades && professor.especialidades.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {professor.especialidades.map((esp) => (
+                        <Badge key={esp} variant="outline" className="text-xs">
+                          {esp}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  <div className="space-y-2 text-sm">
+                    {professor.email && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Mail className="w-4 h-4" />
+                        <span className="truncate">{professor.email}</span>
+                      </div>
+                    )}
+                    {professor.telefone && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Phone className="w-4 h-4" />
+                        <span>{professor.telefone}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t border-border">
+                    {professor.valor_hora && (
+                      <span className="text-sm font-medium">
+                        R$ {Number(professor.valor_hora).toFixed(2)}/h
+                      </span>
+                    )}
+                    <Badge className={statusConfig[professor.status as keyof typeof statusConfig]?.color || statusConfig.ativo.color}>
+                      {statusConfig[professor.status as keyof typeof statusConfig]?.label || "Ativo"}
                     </Badge>
-                  ))}
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Mail className="w-4 h-4" />
-                    <span>{professor.email}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Phone className="w-4 h-4" />
-                    <span>{professor.telefone}</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between pt-2 border-t border-border">
-                  <div className="flex items-center gap-4 text-sm">
-                    <div className="flex items-center gap-1">
-                      <Music className="w-3 h-3 text-muted-foreground" />
-                      <span>{professor.alunos} alunos</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-muted-foreground" />
-                      <span>{professor.horasSemanais}h/sem</span>
-                    </div>
-                  </div>
-                  <Badge className={statusConfig[professor.status as keyof typeof statusConfig].color}>
-                    {statusConfig[professor.status as keyof typeof statusConfig].label}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      )}
     </motion.div>
   );
 }
