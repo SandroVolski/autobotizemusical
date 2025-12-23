@@ -11,14 +11,14 @@ import {
   Calendar,
   CheckCircle,
   Clock,
-  Users,
+  Loader2,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
   DialogContent,
@@ -35,31 +35,64 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const planosAula = [
-  { id: 1, titulo: "Introdução às Escalas Maiores", instrumento: "Piano", nivel: "Iniciante", duracao: "45min", autor: "Prof. Carlos" },
-  { id: 2, titulo: "Acordes Básicos de Violão", instrumento: "Violão", nivel: "Iniciante", duracao: "30min", autor: "Prof. Ana" },
-  { id: 3, titulo: "Ritmos de Rock - Parte 1", instrumento: "Bateria", nivel: "Intermediário", duracao: "60min", autor: "Prof. Pedro" },
-  { id: 4, titulo: "Técnica de Palhetada Alternada", instrumento: "Guitarra", nivel: "Intermediário", duracao: "45min", autor: "Prof. Marina" },
-];
-
-const avaliacoes = [
-  { id: 1, aluno: "João Silva", curso: "Piano Básico", data: "15/06/2024", nota: 8.5, status: "concluida" },
-  { id: 2, aluno: "Maria Santos", curso: "Violão Popular", data: "18/06/2024", nota: null, status: "agendada" },
-  { id: 3, aluno: "Pedro Oliveira", curso: "Guitarra Rock", data: "10/06/2024", nota: 9.2, status: "concluida" },
-  { id: 4, aluno: "Ana Costa", curso: "Canto Coral", data: "20/06/2024", nota: null, status: "agendada" },
-];
-
-const materiais = [
-  { id: 1, titulo: "Apostila de Teoria Musical", tipo: "PDF", downloads: 245, autor: "Prof. Carlos" },
-  { id: 2, titulo: "Exercícios de Ritmo - Nível 1", tipo: "PDF", downloads: 189, autor: "Prof. Pedro" },
-  { id: 3, titulo: "Vídeo: Como Afinar o Violão", tipo: "Vídeo", downloads: 312, autor: "Prof. Ana" },
-  { id: 4, titulo: "Partituras Clássicas - Volume 1", tipo: "PDF", downloads: 156, autor: "Prof. Marina" },
-];
+import { usePlanosAula, useCreatePlanoAula, useDeletePlanoAula, type NovoPlanoAula } from "@/hooks/usePlanosAula";
+import { toast } from "@/hooks/use-toast";
 
 export default function Pedagogico() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newPlano, setNewPlano] = useState<NovoPlanoAula>({
+    titulo: "",
+    instrumento: "",
+    nivel: "iniciante",
+    duracao: "",
+    conteudo: "",
+    objetivos: "",
+    materiais: "",
+  });
+
+  const { data: planosAula, isLoading } = usePlanosAula();
+  const createPlanoMutation = useCreatePlanoAula();
+  const deletePlanoMutation = useDeletePlanoAula();
+
+  const filteredPlanos = planosAula?.filter(plano =>
+    plano.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    plano.instrumento.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
+
+  const handleCreatePlano = () => {
+    if (!newPlano.titulo || !newPlano.instrumento) {
+      toast({
+        title: "Erro",
+        description: "Título e instrumento são obrigatórios",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createPlanoMutation.mutate(newPlano, {
+      onSuccess: () => {
+        setIsDialogOpen(false);
+        setNewPlano({
+          titulo: "",
+          instrumento: "",
+          nivel: "iniciante",
+          duracao: "",
+          conteudo: "",
+          objetivos: "",
+          materiais: "",
+        });
+      }
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -72,7 +105,7 @@ export default function Pedagogico() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Gestão Pedagógica</h1>
           <p className="text-muted-foreground">
-            Planos de aula, avaliações e material didático
+            Planos de aula e material didático
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -88,27 +121,40 @@ export default function Pedagogico() {
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="titulo">Título</Label>
-                <Input id="titulo" placeholder="Ex: Introdução às Escalas" />
+                <Label htmlFor="titulo">Título *</Label>
+                <Input 
+                  id="titulo" 
+                  placeholder="Ex: Introdução às Escalas"
+                  value={newPlano.titulo}
+                  onChange={(e) => setNewPlano(prev => ({ ...prev, titulo: e.target.value }))}
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label>Instrumento</Label>
-                  <Select>
+                  <Label>Instrumento *</Label>
+                  <Select
+                    value={newPlano.instrumento}
+                    onValueChange={(value) => setNewPlano(prev => ({ ...prev, instrumento: value }))}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="piano">Piano</SelectItem>
-                      <SelectItem value="violao">Violão</SelectItem>
-                      <SelectItem value="guitarra">Guitarra</SelectItem>
-                      <SelectItem value="bateria">Bateria</SelectItem>
+                      <SelectItem value="Piano">Piano</SelectItem>
+                      <SelectItem value="Violão">Violão</SelectItem>
+                      <SelectItem value="Guitarra">Guitarra</SelectItem>
+                      <SelectItem value="Bateria">Bateria</SelectItem>
+                      <SelectItem value="Canto">Canto</SelectItem>
+                      <SelectItem value="Violino">Violino</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="grid gap-2">
                   <Label>Nível</Label>
-                  <Select>
+                  <Select
+                    value={newPlano.nivel}
+                    onValueChange={(value) => setNewPlano(prev => ({ ...prev, nivel: value }))}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
@@ -122,13 +168,47 @@ export default function Pedagogico() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="duracao">Duração</Label>
-                <Input id="duracao" placeholder="Ex: 45 minutos" />
+                <Input 
+                  id="duracao" 
+                  placeholder="Ex: 45 minutos"
+                  value={newPlano.duracao}
+                  onChange={(e) => setNewPlano(prev => ({ ...prev, duracao: e.target.value }))}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="objetivos">Objetivos</Label>
+                <Textarea 
+                  id="objetivos" 
+                  placeholder="Objetivos da aula..."
+                  value={newPlano.objetivos}
+                  onChange={(e) => setNewPlano(prev => ({ ...prev, objetivos: e.target.value }))}
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="conteudo">Conteúdo</Label>
-                <Textarea id="conteudo" placeholder="Descreva o conteúdo da aula..." rows={4} />
+                <Textarea 
+                  id="conteudo" 
+                  placeholder="Descreva o conteúdo da aula..." 
+                  rows={4}
+                  value={newPlano.conteudo}
+                  onChange={(e) => setNewPlano(prev => ({ ...prev, conteudo: e.target.value }))}
+                />
               </div>
-              <Button className="w-full mt-2" onClick={() => setIsDialogOpen(false)}>
+              <div className="grid gap-2">
+                <Label htmlFor="materiais">Materiais Necessários</Label>
+                <Input 
+                  id="materiais" 
+                  placeholder="Ex: Partitura, metrônomo"
+                  value={newPlano.materiais}
+                  onChange={(e) => setNewPlano(prev => ({ ...prev, materiais: e.target.value }))}
+                />
+              </div>
+              <Button 
+                className="w-full mt-2" 
+                onClick={handleCreatePlano}
+                disabled={createPlanoMutation.isPending}
+              >
+                {createPlanoMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                 Criar Plano
               </Button>
             </div>
@@ -145,7 +225,7 @@ export default function Pedagogico() {
                 <BookOpen className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{planosAula.length}</p>
+                <p className="text-2xl font-bold">{planosAula?.length || 0}</p>
                 <p className="text-xs text-muted-foreground">Planos de Aula</p>
               </div>
             </div>
@@ -158,8 +238,8 @@ export default function Pedagogico() {
                 <Award className="w-5 h-5 text-secondary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{avaliacoes.length}</p>
-                <p className="text-xs text-muted-foreground">Avaliações</p>
+                <p className="text-2xl font-bold">{planosAula?.filter(p => p.nivel === "avancado").length || 0}</p>
+                <p className="text-xs text-muted-foreground">Nível Avançado</p>
               </div>
             </div>
           </CardContent>
@@ -171,8 +251,8 @@ export default function Pedagogico() {
                 <FileText className="w-5 h-5 text-success" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{materiais.length}</p>
-                <p className="text-xs text-muted-foreground">Materiais</p>
+                <p className="text-2xl font-bold">{new Set(planosAula?.map(p => p.instrumento)).size || 0}</p>
+                <p className="text-xs text-muted-foreground">Instrumentos</p>
               </div>
             </div>
           </CardContent>
@@ -184,154 +264,94 @@ export default function Pedagogico() {
                 <BarChart3 className="w-5 h-5 text-warning" />
               </div>
               <div>
-                <p className="text-2xl font-bold">8.7</p>
-                <p className="text-xs text-muted-foreground">Média Geral</p>
+                <p className="text-2xl font-bold">{planosAula?.filter(p => p.nivel === "iniciante").length || 0}</p>
+                <p className="text-xs text-muted-foreground">Para Iniciantes</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue="planos" className="space-y-4">
-        <TabsList className="bg-muted/50">
-          <TabsTrigger value="planos">Planos de Aula</TabsTrigger>
-          <TabsTrigger value="avaliacoes">Avaliações</TabsTrigger>
-          <TabsTrigger value="materiais">Material Didático</TabsTrigger>
-        </TabsList>
+      {/* Content */}
+      <div className="space-y-4">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar planos de aula..."
+            className="pl-10"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
 
-        <TabsContent value="planos" className="space-y-4">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar planos de aula..."
-              className="pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            {planosAula.map((plano, index) => (
+        {filteredPlanos.length === 0 ? (
+          <Card className="glass-card">
+            <CardContent className="py-12 text-center">
+              <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Nenhum plano de aula encontrado</h3>
+              <p className="text-muted-foreground mb-4">
+                {searchTerm ? "Tente outra busca" : "Crie seu primeiro plano de aula"}
+              </p>
+              {!searchTerm && (
+                <Button onClick={() => setIsDialogOpen(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Novo Plano
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredPlanos.map((plano, index) => (
               <motion.div
                 key={plano.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <Card className="glass-card hover:border-primary/30 transition-all">
+                <Card className="glass-card hover:border-primary/30 transition-all relative group">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div>
                         <CardTitle className="text-base">{plano.titulo}</CardTitle>
-                        <p className="text-sm text-muted-foreground">{plano.autor}</p>
+                        <p className="text-sm text-muted-foreground">{plano.instrumento}</p>
                       </div>
-                      <Badge variant="outline">{plano.nivel}</Badge>
+                      <Badge variant="outline" className="capitalize">{plano.nivel}</Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Instrumento</span>
-                      <span className="font-medium">{plano.instrumento}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Duração</span>
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        <span className="font-medium">{plano.duracao}</span>
-                      </div>
-                    </div>
-                    <Button variant="outline" className="w-full mt-2">
-                      Ver Detalhes
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="avaliacoes" className="space-y-4">
-          <Card className="glass-card">
-            <CardContent className="pt-6">
-              <div className="space-y-4">
-                {avaliacoes.map((avaliacao) => (
-                  <div
-                    key={avaliacao.id}
-                    className="flex items-center justify-between p-4 rounded-lg bg-muted/30"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                        <GraduationCap className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{avaliacao.aluno}</p>
-                        <p className="text-sm text-muted-foreground">{avaliacao.curso}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Calendar className="w-3 h-3" />
-                          {avaliacao.data}
+                    {plano.duracao && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Duração</span>
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          <span className="font-medium">{plano.duracao}</span>
                         </div>
-                        {avaliacao.nota && (
-                          <p className="text-lg font-bold text-primary">{avaliacao.nota}</p>
-                        )}
                       </div>
-                      <Badge
-                        className={
-                          avaliacao.status === "concluida"
-                            ? "bg-success/20 text-success border-success/30"
-                            : "bg-warning/20 text-warning border-warning/30"
-                        }
+                    )}
+                    {plano.objetivos && (
+                      <p className="text-sm text-muted-foreground line-clamp-2">{plano.objetivos}</p>
+                    )}
+                    <div className="flex gap-2 pt-2">
+                      <Button variant="outline" className="flex-1">
+                        Ver Detalhes
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => deletePlanoMutation.mutate(plano.id)}
+                        disabled={deletePlanoMutation.isPending}
                       >
-                        {avaliacao.status === "concluida" ? "Concluída" : "Agendada"}
-                      </Badge>
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="materiais" className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            {materiais.map((material, index) => (
-              <motion.div
-                key={material.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <Card className="glass-card hover:border-primary/30 transition-all">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 rounded-lg bg-primary/20">
-                        <FileText className="w-6 h-6 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-medium">{material.titulo}</h3>
-                        <p className="text-sm text-muted-foreground">{material.autor}</p>
-                        <div className="flex items-center gap-4 mt-3">
-                          <Badge variant="outline">{material.tipo}</Badge>
-                          <span className="text-sm text-muted-foreground">
-                            {material.downloads} downloads
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <Button variant="outline" className="w-full mt-4">
-                      Baixar Material
-                    </Button>
                   </CardContent>
                 </Card>
               </motion.div>
             ))}
           </div>
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
     </motion.div>
   );
 }
