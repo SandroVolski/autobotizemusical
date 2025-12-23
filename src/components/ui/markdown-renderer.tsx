@@ -1,5 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
+import { ExternalLink } from "lucide-react";
 
 interface MarkdownRendererProps {
   content: string;
@@ -43,9 +44,16 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:text-primary/80 underline underline-offset-2 transition-colors"
+              className="inline-flex items-center gap-1 text-primary hover:text-primary/80 underline underline-offset-2 transition-colors cursor-pointer font-medium"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (href) {
+                  window.open(href, '_blank', 'noopener,noreferrer');
+                }
+              }}
             >
               {children}
+              <ExternalLink className="w-3 h-3" />
             </a>
           ),
           blockquote: ({ children }) => (
