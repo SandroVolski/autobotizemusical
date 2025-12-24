@@ -32,8 +32,8 @@ export function StatsCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
     >
-      <Card variant="interactive" className="overflow-hidden">
-        <CardContent className="p-6">
+      <Card variant="interactive" className="overflow-hidden h-full">
+        <CardContent className="p-6 h-full flex flex-col justify-between">
           <div className="flex items-start justify-between">
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground">{title}</p>

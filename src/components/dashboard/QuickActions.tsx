@@ -78,31 +78,20 @@ export function QuickActions() {
           <CardTitle className="text-lg">Ações Rápidas</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {actions.map((action, index) => (
               <motion.button
                 key={action.label}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.2, delay: 0.05 * index }}
-                whileHover={{ scale: 1.02, y: -2 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => navigate(action.route)}
-                className="group relative flex flex-col items-center gap-2 p-4 rounded-xl bg-card border border-border/50 hover:border-primary/30 transition-all duration-300 overflow-hidden"
+                className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-muted/50 transition-colors"
               >
-                {/* Gradient background on hover */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${action.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
-                
-                {/* Icon container */}
-                <div className={`relative flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br ${action.gradient} shadow-lg`}>
-                  <action.icon className="w-5 h-5 text-white" />
-                </div>
-                
-                {/* Text */}
-                <div className="relative text-center">
-                  <p className="text-sm font-semibold text-foreground leading-tight">{action.label}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{action.description}</p>
-                </div>
+                <action.icon className="w-5 h-5 text-primary" />
+                <span className="text-xs font-medium text-center">{action.label}</span>
               </motion.button>
             ))}
           </div>
