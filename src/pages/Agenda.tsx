@@ -8,7 +8,10 @@ import {
   MapPin,
   Music,
   Loader2,
-  Trash2
+  Trash2,
+  User,
+  GraduationCap,
+  X
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,27 +32,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAulas, useCreateAula, useDeleteAula, type NovaAula } from "@/hooks/useAulas";
+import { useAulas, useCreateAula, useDeleteAula, type NovaAula, type Aula } from "@/hooks/useAulas";
 import { useAlunos } from "@/hooks/useAlunos";
 import { useProfessores } from "@/hooks/useProfessores";
 import { useCursos } from "@/hooks/useCursos";
 import { toast } from "@/hooks/use-toast";
 
 const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-const hours = Array.from({ length: 12 }, (_, i) => i + 8); // 8:00 to 19:00
+// Generate 30-minute intervals from 8:00 to 20:00
+const timeSlots = Array.from({ length: 25 }, (_, i) => {
+  const hour = Math.floor(i / 2) + 8;
+  const minutes = (i % 2) * 30;
+  return { hour, minutes, label: `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}` };
+});
 
 const getClassPosition = (time: string) => {
-  const [hoursVal] = time.split(":").map(Number);
-  return (hoursVal - 8) * 80; // 80px per hour
+  const [hoursVal, minsVal] = time.split(":").map(Number);
+  return ((hoursVal - 8) * 2 + minsVal / 30) * 40; // 40px per 30-min slot
 };
 
 const getClassHeight = (duration: number) => {
-  return (duration / 60) * 80;
+  return (duration / 30) * 40; // 40px per 30-min slot
 };
 
 export default function Agenda() {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedAula, setSelectedAula] = useState<Aula | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [newAula, setNewAula] = useState<NovaAula>({
     aluno_id: "",
     professor_id: "",
@@ -59,6 +69,24 @@ export default function Agenda() {
     duracao_minutos: 60,
     sala: "",
   });
+
+  const openCreateDialog = (dayIndex: number, time: string) => {
+    setNewAula({
+      aluno_id: "",
+      professor_id: "",
+      curso_id: "",
+      horario: time,
+      dia_semana: dayIndex,
+      duracao_minutos: 60,
+      sala: "",
+    });
+    setIsDialogOpen(true);
+  };
+
+  const openDetailsDialog = (aula: Aula) => {
+    setSelectedAula(aula);
+    setIsDetailsOpen(true);
+  };
 
   const { data: aulas, isLoading } = useAulas();
   const { data: alunos } = useAlunos();
@@ -329,13 +357,15 @@ export default function Agenda() {
             <div className="flex">
               {/* Time column */}
               <div className="w-16 flex-shrink-0 border-r border-border">
-                <div className="h-16 border-b border-border" />
-                {hours.map((hour) => (
+                <div className="h-12 border-b border-border" />
+                {timeSlots.map((slot, index) => (
                   <div
-                    key={hour}
-                    className="h-20 border-b border-border flex items-start justify-center pt-2 text-xs text-muted-foreground"
+                    key={index}
+                    className={`h-10 border-b border-border flex items-start justify-center pt-1 text-xs text-muted-foreground ${
+                      slot.minutes === 30 ? "border-dashed" : ""
+                    }`}
                   >
-                    {hour}:00
+                    {slot.minutes === 0 ? slot.label : ""}
                   </div>
                 ))}
               </div>
@@ -350,11 +380,11 @@ export default function Agenda() {
                     return (
                       <div key={dayIndex} className="flex-1 border-r border-border last:border-r-0">
                         {/* Day header */}
-                        <div className={`h-16 border-b border-border flex flex-col items-center justify-center ${
+                        <div className={`h-12 border-b border-border flex flex-col items-center justify-center ${
                           isToday ? "bg-primary/10" : ""
                         }`}>
                           <span className="text-xs text-muted-foreground">{weekDays[dayIndex]}</span>
-                          <span className={`text-lg font-semibold ${
+                          <span className={`text-sm font-semibold ${
                             isToday ? "text-primary" : ""
                           }`}>
                             {date.getDate()}
@@ -363,10 +393,14 @@ export default function Agenda() {
 
                         {/* Time slots */}
                         <div className="relative">
-                          {hours.map((hour) => (
+                          {timeSlots.map((slot, index) => (
                             <div
-                              key={hour}
-                              className="h-20 border-b border-border hover:bg-muted/30 transition-colors cursor-pointer"
+                              key={index}
+                              onClick={() => openCreateDialog(dayIndex, slot.label)}
+                              className={`h-10 border-b hover:bg-primary/10 transition-colors cursor-pointer ${
+                                slot.minutes === 30 ? "border-dashed border-border/50" : "border-border"
+                              }`}
+                              title={`Criar aula às ${slot.label}`}
                             />
                           ))}
 
@@ -376,27 +410,27 @@ export default function Agenda() {
                               key={aula.id}
                               initial={{ opacity: 0, scale: 0.9 }}
                               animate={{ opacity: 1, scale: 1 }}
-                              className={`absolute left-1 right-1 rounded-lg p-2 cursor-pointer transition-all hover:scale-[1.02] ${
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openDetailsDialog(aula);
+                              }}
+                              className={`absolute left-1 right-1 rounded-lg p-1.5 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg z-10 overflow-hidden ${
                                 aula.status === "ativo"
-                                  ? "bg-primary/20 border border-primary/30"
-                                  : "bg-warning/20 border border-warning/30"
+                                  ? "bg-primary/20 border border-primary/30 hover:bg-primary/30"
+                                  : "bg-warning/20 border border-warning/30 hover:bg-warning/30"
                               }`}
                               style={{
                                 top: getClassPosition(aula.horario),
-                                height: getClassHeight(aula.duracao_minutos || 60),
+                                height: Math.max(getClassHeight(aula.duracao_minutos || 60), 36),
                               }}
                             >
                               <p className="text-xs font-medium truncate">
                                 {aula.alunos?.nome || "Sem aluno"}
                               </p>
-                              <p className="text-xs text-muted-foreground truncate">
-                                {aula.cursos?.nome || "Sem curso"}
-                              </p>
-                              {aula.sala && (
-                                <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                                  <MapPin className="w-3 h-3" />
-                                  <span>{aula.sala}</span>
-                                </div>
+                              {(aula.duracao_minutos || 60) >= 45 && (
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {aula.cursos?.nome || "Sem curso"}
+                                </p>
                               )}
                             </motion.div>
                           ))}
@@ -432,6 +466,7 @@ export default function Agenda() {
                   <motion.div
                     key={aula.id}
                     whileHover={{ scale: 1.02 }}
+                    onClick={() => openDetailsDialog(aula)}
                     className="p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer relative group"
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -466,6 +501,104 @@ export default function Agenda() {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Details Dialog */}
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="sm:max-w-[450px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-primary" />
+              Detalhes da Aula
+            </DialogTitle>
+          </DialogHeader>
+          {selectedAula && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-2xl font-bold text-primary">{selectedAula.horario}</span>
+                <Badge variant={selectedAula.status === "ativo" ? "success" : "warning"} className="text-sm">
+                  {selectedAula.status}
+                </Badge>
+              </div>
+
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                  <User className="w-5 h-5 text-primary" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Aluno</p>
+                    <p className="font-medium">{selectedAula.alunos?.nome || "Não definido"}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                  <GraduationCap className="w-5 h-5 text-primary" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Professor</p>
+                    <p className="font-medium">{selectedAula.professores?.nome || "Não definido"}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                  <Music className="w-5 h-5 text-primary" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Curso</p>
+                    <p className="font-medium">{selectedAula.cursos?.nome || "Não definido"}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                    <Clock className="w-5 h-5 text-primary" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Duração</p>
+                      <p className="font-medium">{selectedAula.duracao_minutos || 60} min</p>
+                    </div>
+                  </div>
+
+                  {selectedAula.sala && (
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                      <MapPin className="w-5 h-5 text-primary" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Sala</p>
+                        <p className="font-medium">{selectedAula.sala}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {selectedAula.observacoes && (
+                  <div className="p-3 rounded-lg bg-muted/50">
+                    <p className="text-xs text-muted-foreground mb-1">Observações</p>
+                    <p className="text-sm">{selectedAula.observacoes}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button
+                  variant="destructive"
+                  className="flex-1"
+                  onClick={() => {
+                    deleteAulaMutation.mutate(selectedAula.id, {
+                      onSuccess: () => setIsDetailsOpen(false)
+                    });
+                  }}
+                  disabled={deleteAulaMutation.isPending}
+                >
+                  {deleteAulaMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <Trash2 className="w-4 h-4 mr-2" />
+                  )}
+                  Excluir Aula
+                </Button>
+                <Button variant="outline" className="flex-1" onClick={() => setIsDetailsOpen(false)}>
+                  Fechar
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
