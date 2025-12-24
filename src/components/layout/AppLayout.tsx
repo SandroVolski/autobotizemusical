@@ -14,16 +14,21 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const { collapsed, toggleCollapsed, isMobile, setMobileOpen } = useSidebar();
 
+  const sidebarWidth = isMobile ? 0 : (collapsed ? 72 : 280);
+
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div className="min-h-screen bg-background overflow-hidden">
       <AppSidebar />
       
       {/* Main content area */}
       <motion.main
         initial={false}
-        animate={{ marginLeft: isMobile ? 0 : (collapsed ? 72 : 280) }}
+        animate={{ 
+          marginLeft: sidebarWidth,
+          width: `calc(100% - ${sidebarWidth}px)`
+        }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="min-h-screen w-full"
+        className="min-h-screen"
       >
         {/* Top bar */}
         <header className="sticky top-0 z-40 h-14 lg:h-16 bg-background/80 backdrop-blur-xl">
