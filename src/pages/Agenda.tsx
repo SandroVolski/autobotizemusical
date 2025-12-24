@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -11,13 +13,15 @@ import {
   Trash2,
   User,
   GraduationCap,
-  X
+  CalendarIcon
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Dialog,
   DialogContent,
@@ -37,18 +41,28 @@ import { useAlunos } from "@/hooks/useAlunos";
 import { useProfessores } from "@/hooks/useProfessores";
 import { useCursos } from "@/hooks/useCursos";
 import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-// Generate 30-minute intervals from 8:00 to 20:00
-const timeSlots = Array.from({ length: 25 }, (_, i) => {
-  const hour = Math.floor(i / 2) + 8;
-  const minutes = (i % 2) * 30;
-  return { hour, minutes, label: `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}` };
-});
+
+// Generate 30-minute intervals from 7:30 to 23:00
+const timeSlots: { hour: number; minutes: number; label: string }[] = [];
+// Start at 7:30
+timeSlots.push({ hour: 7, minutes: 30, label: "07:30" });
+// Then from 8:00 to 23:00 in 30-min intervals
+for (let h = 8; h <= 23; h++) {
+  timeSlots.push({ hour: h, minutes: 0, label: `${h.toString().padStart(2, '0')}:00` });
+  if (h < 23) {
+    timeSlots.push({ hour: h, minutes: 30, label: `${h.toString().padStart(2, '0')}:30` });
+  }
+}
+
+const START_HOUR = 7.5; // 7:30 in decimal
 
 const getClassPosition = (time: string) => {
   const [hoursVal, minsVal] = time.split(":").map(Number);
-  return ((hoursVal - 8) * 2 + minsVal / 30) * 40; // 40px per 30-min slot
+  const timeInHours = hoursVal + minsVal / 60;
+  return ((timeInHours - START_HOUR) * 2) * 40; // 40px per 30-min slot
 };
 
 const getClassHeight = (duration: number) => {
@@ -305,202 +319,244 @@ export default function Agenda() {
         </Dialog>
       </motion.div>
 
-      {/* Calendar Navigation */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <Card variant="glass">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  const newDate = new Date(currentWeek);
-                  newDate.setDate(newDate.getDate() - 7);
-                  setCurrentWeek(newDate);
-                }}
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </Button>
-              
-              <h2 className="text-lg font-semibold">
-                {currentWeek.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
-              </h2>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  const newDate = new Date(currentWeek);
-                  newDate.setDate(newDate.getDate() + 7);
-                  setCurrentWeek(newDate);
-                }}
-              >
-                <ChevronRight className="w-5 h-5" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Calendar Grid */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-      >
-        <Card variant="glass" className="overflow-hidden">
-          <CardContent className="p-0">
-            <div className="flex">
-              {/* Time column */}
-              <div className="w-16 flex-shrink-0 border-r border-border">
-                <div className="h-12 border-b border-border" />
-                {timeSlots.map((slot, index) => (
-                  <div
-                    key={index}
-                    className={`h-10 border-b border-border flex items-start justify-center pt-1 text-xs text-muted-foreground ${
-                      slot.minutes === 30 ? "border-dashed" : ""
-                    }`}
+      {/* Calendar Navigation + Today's Classes */}
+      <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
+        {/* Main Calendar Section */}
+        <div className="space-y-4">
+          {/* Calendar Navigation */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Card variant="glass">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      const newDate = new Date(currentWeek);
+                      newDate.setDate(newDate.getDate() - 7);
+                      setCurrentWeek(newDate);
+                    }}
                   >
-                    {slot.minutes === 0 ? slot.label : ""}
+                    <ChevronLeft className="w-5 h-5" />
+                  </Button>
+                  
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="ghost" className="gap-2">
+                        <CalendarIcon className="w-4 h-4" />
+                        <span className="font-semibold">
+                          {format(currentWeek, "MMMM 'de' yyyy", { locale: ptBR })}
+                        </span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="center">
+                      <Calendar
+                        mode="single"
+                        selected={currentWeek}
+                        onSelect={(date) => date && setCurrentWeek(date)}
+                        initialFocus
+                        locale={ptBR}
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      const newDate = new Date(currentWeek);
+                      newDate.setDate(newDate.getDate() + 7);
+                      setCurrentWeek(newDate);
+                    }}
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Calendar Grid */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Card variant="glass" className="overflow-hidden">
+              <CardContent className="p-0">
+                <div className="flex max-h-[600px] overflow-y-auto">
+                  {/* Time column */}
+                  <div className="w-14 flex-shrink-0 border-r border-border sticky left-0 bg-card z-20">
+                    <div className="h-12 border-b border-border" />
+                    {timeSlots.map((slot, index) => (
+                      <div
+                        key={index}
+                        className={`h-10 border-b flex items-start justify-center pt-1 text-xs text-muted-foreground ${
+                          slot.minutes === 30 ? "border-dashed border-border/50" : "border-border"
+                        }`}
+                      >
+                        {slot.minutes === 0 || (slot.hour === 7 && slot.minutes === 30) ? slot.label : ""}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
 
-              {/* Days columns */}
-              <div className="flex-1 overflow-x-auto">
-                <div className="flex min-w-[700px]">
-                  {weekDates.map((date, dayIndex) => {
-                    const isToday = date.toDateString() === new Date().toDateString();
-                    const dayClasses = getClassesForDay(dayIndex);
+                  {/* Days columns */}
+                  <div className="flex-1 overflow-x-auto">
+                    <div className="flex min-w-[700px]">
+                      {weekDates.map((date, dayIndex) => {
+                        const isToday = date.toDateString() === new Date().toDateString();
+                        const dayClasses = getClassesForDay(dayIndex);
 
-                    return (
-                      <div key={dayIndex} className="flex-1 border-r border-border last:border-r-0">
-                        {/* Day header */}
-                        <div className={`h-12 border-b border-border flex flex-col items-center justify-center ${
-                          isToday ? "bg-primary/10" : ""
-                        }`}>
-                          <span className="text-xs text-muted-foreground">{weekDays[dayIndex]}</span>
-                          <span className={`text-sm font-semibold ${
-                            isToday ? "text-primary" : ""
-                          }`}>
-                            {date.getDate()}
+                        return (
+                          <div key={dayIndex} className="flex-1 border-r border-border last:border-r-0">
+                            {/* Day header */}
+                            <div className={`h-12 border-b border-border flex flex-col items-center justify-center sticky top-0 bg-card z-10 ${
+                              isToday ? "bg-primary/10" : ""
+                            }`}>
+                              <span className="text-xs text-muted-foreground">{weekDays[dayIndex]}</span>
+                              <span className={`text-sm font-semibold ${
+                                isToday ? "text-primary" : ""
+                              }`}>
+                                {date.getDate()}
+                              </span>
+                            </div>
+
+                            {/* Time slots */}
+                            <div className="relative">
+                              {timeSlots.map((slot, index) => (
+                                <div
+                                  key={index}
+                                  onClick={() => openCreateDialog(dayIndex, slot.label)}
+                                  className={`h-10 border-b hover:bg-primary/10 transition-colors cursor-pointer ${
+                                    slot.minutes === 30 ? "border-dashed border-border/50" : "border-border"
+                                  }`}
+                                  title={`Criar aula às ${slot.label}`}
+                                />
+                              ))}
+
+                              {/* Classes */}
+                              {dayClasses.map((aula) => (
+                                <motion.div
+                                  key={aula.id}
+                                  initial={{ opacity: 0, scale: 0.9 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openDetailsDialog(aula);
+                                  }}
+                                  className={`absolute left-1 right-1 rounded-lg p-1.5 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg z-10 overflow-hidden ${
+                                    aula.status === "ativo"
+                                      ? "bg-primary/20 border border-primary/30 hover:bg-primary/30"
+                                      : "bg-warning/20 border border-warning/30 hover:bg-warning/30"
+                                  }`}
+                                  style={{
+                                    top: getClassPosition(aula.horario),
+                                    height: Math.max(getClassHeight(aula.duracao_minutos || 60), 36),
+                                  }}
+                                >
+                                  <p className="text-xs font-medium truncate">
+                                    {aula.alunos?.nome || "Sem aluno"}
+                                  </p>
+                                  {(aula.duracao_minutos || 60) >= 45 && (
+                                    <p className="text-xs text-muted-foreground truncate">
+                                      {aula.cursos?.nome || "Sem curso"}
+                                    </p>
+                                  )}
+                                </motion.div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Today's Classes Sidebar */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3 }}
+          className="lg:sticky lg:top-20 lg:self-start"
+        >
+          <Card variant="glass">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Clock className="w-5 h-5 text-primary" />
+                Aulas de Hoje
+                <Badge variant="secondary" className="ml-auto">
+                  {todayClasses.length}
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 max-h-[500px] overflow-y-auto">
+              {todayClasses.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Clock className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                  <p className="text-sm">Nenhuma aula hoje</p>
+                </div>
+              ) : (
+                todayClasses
+                  .sort((a, b) => a.horario.localeCompare(b.horario))
+                  .map((aula) => (
+                    <motion.div
+                      key={aula.id}
+                      whileHover={{ scale: 1.02 }}
+                      onClick={() => openDetailsDialog(aula)}
+                      className="p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer relative group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="text-center">
+                          <span className="text-lg font-bold text-primary block leading-none">
+                            {aula.horario.slice(0, 5)}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {aula.duracao_minutos || 60}min
                           </span>
                         </div>
-
-                        {/* Time slots */}
-                        <div className="relative">
-                          {timeSlots.map((slot, index) => (
-                            <div
-                              key={index}
-                              onClick={() => openCreateDialog(dayIndex, slot.label)}
-                              className={`h-10 border-b hover:bg-primary/10 transition-colors cursor-pointer ${
-                                slot.minutes === 30 ? "border-dashed border-border/50" : "border-border"
-                              }`}
-                              title={`Criar aula às ${slot.label}`}
-                            />
-                          ))}
-
-                          {/* Classes */}
-                          {dayClasses.map((aula) => (
-                            <motion.div
-                              key={aula.id}
-                              initial={{ opacity: 0, scale: 0.9 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openDetailsDialog(aula);
-                              }}
-                              className={`absolute left-1 right-1 rounded-lg p-1.5 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg z-10 overflow-hidden ${
-                                aula.status === "ativo"
-                                  ? "bg-primary/20 border border-primary/30 hover:bg-primary/30"
-                                  : "bg-warning/20 border border-warning/30 hover:bg-warning/30"
-                              }`}
-                              style={{
-                                top: getClassPosition(aula.horario),
-                                height: Math.max(getClassHeight(aula.duracao_minutos || 60), 36),
-                              }}
-                            >
-                              <p className="text-xs font-medium truncate">
-                                {aula.alunos?.nome || "Sem aluno"}
-                              </p>
-                              {(aula.duracao_minutos || 60) >= 45 && (
-                                <p className="text-xs text-muted-foreground truncate">
-                                  {aula.cursos?.nome || "Sem curso"}
-                                </p>
-                              )}
-                            </motion.div>
-                          ))}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate text-sm">
+                            {aula.alunos?.nome || "Sem aluno"}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {aula.cursos?.nome || "Sem curso"}
+                          </p>
                         </div>
+                        <Badge 
+                          variant={aula.status === "ativo" ? "success" : "warning"} 
+                          className="text-xs shrink-0"
+                        >
+                          {aula.status}
+                        </Badge>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Today's Classes Summary */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        <Card variant="glass">
-          <CardHeader>
-            <CardTitle className="text-lg">Aulas de Hoje ({todayClasses.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {todayClasses.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                Nenhuma aula agendada para hoje
-              </div>
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {todayClasses.map((aula) => (
-                  <motion.div
-                    key={aula.id}
-                    whileHover={{ scale: 1.02 }}
-                    onClick={() => openDetailsDialog(aula)}
-                    className="p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer relative group"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-lg font-bold text-primary">{aula.horario}</span>
-                      <Badge variant={aula.status === "ativo" ? "success" : "warning"}>
-                        {aula.status}
-                      </Badge>
-                    </div>
-                    <p className="font-medium">{aula.alunos?.nome || "Sem aluno"}</p>
-                    <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                      <Music className="w-3 h-3" />
-                      <span>{aula.cursos?.nome || "Sem curso"}</span>
-                      <span>•</span>
-                      <span>{aula.duracao_minutos || 60}min</span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteAulaMutation.mutate(aula.id);
-                      }}
-                      disabled={deleteAulaMutation.isPending}
-                    >
-                      <Trash2 className="w-4 h-4 text-destructive" />
-                    </Button>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </motion.div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteAulaMutation.mutate(aula.id);
+                        }}
+                        disabled={deleteAulaMutation.isPending}
+                      >
+                        <Trash2 className="w-3 h-3 text-destructive" />
+                      </Button>
+                    </motion.div>
+                  ))
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
 
       {/* Details Dialog */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
