@@ -47,8 +47,8 @@ export default function Dashboard() {
   // Calculate retention rate (active / total)
   const taxaRetencao = totalAlunos > 0 ? Math.round((alunosAtivos / totalAlunos) * 100) : 0;
 
-  // Get user name from email or profile
-  const userName = user?.email?.split("@")[0] || "Usuário";
+  // Get user name from metadata or email
+  const userName = user?.user_metadata?.nome || user?.email?.split("@")[0] || "Usuário";
 
   if (isLoading) {
     return (
@@ -76,7 +76,7 @@ export default function Dashboard() {
       </motion.div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
         <StatsCard
           title="Total de Alunos"
           value={totalAlunos}
@@ -109,12 +109,12 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+        <div className="lg:col-span-2 space-y-4 lg:space-y-6">
           <UpcomingClasses />
           <RevenueChart />
         </div>
-        <div className="space-y-6">
+        <div className="space-y-4 lg:space-y-6">
           <QuickActions />
           <AIInsights />
         </div>

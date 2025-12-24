@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode, useCallback } from "react";
+import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
 
 interface SidebarContextType {
   collapsed: boolean;
@@ -7,19 +7,38 @@ interface SidebarContextType {
   hoverMode: boolean;
   isHovering: boolean;
   setIsHovering: (hovering: boolean) => void;
+  isMobile: boolean;
+  mobileOpen: boolean;
+  setMobileOpen: (open: boolean) => void;
 }
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
-  const [collapsed, setCollapsed] = useState(true); // Start collapsed
+  const [collapsed, setCollapsed] = useState(true);
   const [isHovering, setIsHovering] = useState(false);
-  const hoverMode = true; // Always use hover mode
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const hoverMode = true;
 
-  const toggleCollapsed = useCallback(() => setCollapsed(prev => !prev), []);
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
-  // In hover mode, sidebar expands when hovering
-  const effectiveCollapsed = hoverMode ? !isHovering : collapsed;
+  const toggleCollapsed = useCallback(() => {
+    if (isMobile) {
+      setMobileOpen(prev => !prev);
+    } else {
+      setCollapsed(prev => !prev);
+    }
+  }, [isMobile]);
+
+  const effectiveCollapsed = hoverMode && !isMobile ? !isHovering : collapsed;
 
   return (
     <SidebarContext.Provider value={{ 
@@ -28,7 +47,10 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
       toggleCollapsed,
       hoverMode,
       isHovering,
-      setIsHovering
+      setIsHovering,
+      isMobile,
+      mobileOpen,
+      setMobileOpen
     }}>
       {children}
     </SidebarContext.Provider>

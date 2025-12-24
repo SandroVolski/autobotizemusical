@@ -14,6 +14,7 @@ import {
   MessageSquare,
   Settings,
   LogOut,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -39,14 +40,13 @@ const menuItems = [
 ];
 
 export function AppSidebar() {
-  const { collapsed, toggleCollapsed } = useSidebar();
+  const { collapsed, toggleCollapsed, isMobile, mobileOpen, setMobileOpen, setIsHovering, hoverMode } = useSidebar();
   const { signOut } = useAuth();
   const location = useLocation();
 
   const { data: alunos } = useAlunos();
   const { data: pagamentos } = usePagamentos();
 
-  // Calculate real badges
   const badgeValues: Record<string, number | undefined> = {
     alunos: alunos?.length,
     financeiro: pagamentos?.filter(p => p.status === "pendente").length,
@@ -56,8 +56,115 @@ export function AppSidebar() {
     await signOut();
   };
 
-  const { setIsHovering, hoverMode } = useSidebar();
+  const handleNavClick = () => {
+    if (isMobile) {
+      setMobileOpen(false);
+    }
+  };
 
+  // Mobile overlay
+  if (isMobile) {
+    return (
+      <>
+        {/* Overlay */}
+        <AnimatePresence>
+          {mobileOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40"
+              onClick={() => setMobileOpen(false)}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Mobile Sidebar */}
+        <AnimatePresence>
+          {mobileOpen && (
+            <motion.aside
+              initial={{ x: -280 }}
+              animate={{ x: 0 }}
+              exit={{ x: -280 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="h-screen w-[280px] bg-sidebar border-r border-sidebar-border flex flex-col fixed left-0 top-0 z-50"
+            >
+              {/* Logo */}
+              <div className="p-4 border-b border-sidebar-border flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center flex-shrink-0">
+                    <Music className="w-5 h-5 text-primary-foreground" />
+                  </div>
+                  <div>
+                    <h1 className="font-bold text-foreground whitespace-nowrap">Sandro Volski</h1>
+                    <p className="text-xs text-muted-foreground whitespace-nowrap">Escola de Música</p>
+                  </div>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)}>
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+
+              {/* Navigation */}
+              <nav className="flex-1 p-3 overflow-y-auto">
+                <ul className="space-y-1">
+                  {menuItems.map((item) => {
+                    const isActive = location.pathname === item.path;
+                    const badgeValue = item.badgeKey ? badgeValues[item.badgeKey] : item.badge;
+                    
+                    return (
+                      <li key={item.path}>
+                        <NavLink
+                          to={item.path}
+                          onClick={handleNavClick}
+                          className={cn(
+                            "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative",
+                            isActive
+                              ? "bg-primary/20 text-primary border border-primary/30"
+                              : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
+                          )}
+                        >
+                          <item.icon className={cn(
+                            "w-5 h-5 flex-shrink-0 transition-colors",
+                            isActive ? "text-primary" : "group-hover:text-secondary"
+                          )} />
+                          <span className="flex-1 whitespace-nowrap text-sm font-medium">
+                            {item.label}
+                          </span>
+                          {badgeValue !== undefined && badgeValue !== 0 && (
+                            <Badge 
+                              variant={typeof badgeValue === "string" ? "glow" : "secondary"}
+                              className="text-xs"
+                            >
+                              {badgeValue}
+                            </Badge>
+                          )}
+                        </NavLink>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </nav>
+
+              {/* Bottom section */}
+              <div className="p-3 border-t border-sidebar-border space-y-2">
+                <Button
+                  variant="ghost"
+                  onClick={handleSignOut}
+                  className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span className="text-sm">Sair</span>
+                </Button>
+              </div>
+            </motion.aside>
+          )}
+        </AnimatePresence>
+      </>
+    );
+  }
+
+  // Desktop sidebar
   return (
     <motion.aside
       initial={false}
