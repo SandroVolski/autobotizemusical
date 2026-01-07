@@ -11,13 +11,11 @@ import { useAuth } from "@/contexts/AuthContext";
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, signUp, user, loading: authLoading } = useAuth();
+  const { signIn, user, loading: authLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [nome, setNome] = useState("");
 
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || "/dashboard";
 
@@ -33,52 +31,27 @@ export default function Login() {
     setIsLoading(true);
     
     try {
-      if (isSignUp) {
-        const { error } = await signUp(email, password, nome);
-        if (error) {
-          if (error.message.includes('already registered')) {
-            toast({
-              title: "Usuário já cadastrado",
-              description: "Este email já está em uso. Tente fazer login.",
-              variant: "destructive",
-            });
-          } else {
-            toast({
-              title: "Erro no cadastro",
-              description: error.message,
-              variant: "destructive",
-            });
-          }
+      const { error } = await signIn(email, password);
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          toast({
+            title: "Credenciais inválidas",
+            description: "Email ou senha incorretos.",
+            variant: "destructive",
+          });
         } else {
           toast({
-            title: "Cadastro realizado!",
-            description: "Verifique seu email para confirmar a conta ou faça login diretamente.",
+            title: "Erro no login",
+            description: error.message,
+            variant: "destructive",
           });
-          setIsSignUp(false);
         }
       } else {
-        const { error } = await signIn(email, password);
-        if (error) {
-          if (error.message.includes('Invalid login credentials')) {
-            toast({
-              title: "Credenciais inválidas",
-              description: "Email ou senha incorretos.",
-              variant: "destructive",
-            });
-          } else {
-            toast({
-              title: "Erro no login",
-              description: error.message,
-              variant: "destructive",
-            });
-          }
-        } else {
-          toast({
-            title: "Login realizado com sucesso!",
-            description: "Bem-vindo à Escola de Música Sandro Volski",
-          });
-          navigate(from, { replace: true });
-        }
+        toast({
+          title: "Login realizado com sucesso!",
+          description: "Bem-vindo à Escola de Música Sandro Volski",
+        });
+        navigate(from, { replace: true });
       }
     } catch (error) {
       toast({
@@ -159,34 +132,12 @@ export default function Login() {
               <h1 className="text-2xl font-bold">Escola de Música</h1>
               <p className="text-lg gradient-text font-semibold">Sandro Volski</p>
               <p className="text-sm text-muted-foreground mt-2">
-                {isSignUp ? "Crie sua conta para acessar" : "Faça login para acessar o sistema"}
+                Faça login para acessar o sistema
               </p>
             </motion.div>
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
-              {isSignUp && (
-                <motion.div
-                  initial={{ x: -20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 0.25 }}
-                >
-                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
-                    Nome
-                  </label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      type="text"
-                      placeholder="Seu nome"
-                      value={nome}
-                      onChange={(e) => setNome(e.target.value)}
-                      className="pl-10"
-                      required={isSignUp}
-                    />
-                  </div>
-                </motion.div>
-              )}
 
               <motion.div
                 initial={{ x: -20, opacity: 0 }}
@@ -238,22 +189,20 @@ export default function Login() {
                 </div>
               </motion.div>
 
-              {!isSignUp && (
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.5 }}
-                  className="flex items-center justify-between text-sm"
-                >
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" className="rounded border-border" />
-                    <span className="text-muted-foreground">Lembrar-me</span>
-                  </label>
-                  <button type="button" className="text-primary hover:underline">
-                    Esqueci a senha
-                  </button>
-                </motion.div>
-              )}
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="flex items-center justify-between text-sm"
+              >
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" className="rounded border-border" />
+                  <span className="text-muted-foreground">Lembrar-me</span>
+                </label>
+                <button type="button" className="text-primary hover:underline">
+                  Esqueci a senha
+                </button>
+              </motion.div>
 
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
@@ -274,7 +223,7 @@ export default function Login() {
                     />
                   ) : (
                     <>
-                      {isSignUp ? "Criar Conta" : "Entrar"}
+                      Entrar
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </>
                   )}
@@ -282,24 +231,6 @@ export default function Login() {
               </motion.div>
             </form>
 
-            {/* Toggle Sign Up / Sign In */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.7 }}
-              className="mt-6 pt-6 border-t border-border text-center"
-            >
-              <p className="text-sm text-muted-foreground">
-                {isSignUp ? "Já tem uma conta?" : "Não tem uma conta?"}{" "}
-                <button 
-                  type="button"
-                  onClick={() => setIsSignUp(!isSignUp)}
-                  className="text-primary hover:underline font-medium"
-                >
-                  {isSignUp ? "Faça login" : "Cadastre-se"}
-                </button>
-              </p>
-            </motion.div>
           </CardContent>
         </Card>
 
