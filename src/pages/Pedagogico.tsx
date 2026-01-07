@@ -302,72 +302,74 @@ export default function Pedagogico() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Card className="glass-card">
-            <CardContent className="py-12 text-center">
-              <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Nenhum plano de aula encontrado</h3>
-              <p className="text-muted-foreground mb-4">
-                {searchTerm ? "Tente outra busca" : "Crie seu primeiro plano de aula"}
-              </p>
-              {!searchTerm && (
-                <Button onClick={() => setIsDialogOpen(true)}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Novo Plano
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredPlanos.map((plano, index) => (
-              <motion.div
-                key={plano.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <Card className="glass-card hover:border-primary/30 transition-all relative group">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-base">{plano.titulo}</CardTitle>
-                        <p className="text-sm text-muted-foreground">{plano.instrumento}</p>
-                      </div>
-                      <Badge variant="outline" className="capitalize">{plano.nivel}</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {plano.duracao && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Duração</span>
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          <span className="font-medium">{plano.duracao}</span>
+          
+          {filteredPlanos.length === 0 ? (
+            <Card className="glass-card">
+              <CardContent className="py-12 text-center">
+                <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Nenhum plano de aula encontrado</h3>
+                <p className="text-muted-foreground mb-4">
+                  {searchTerm ? "Tente outra busca" : "Crie seu primeiro plano de aula"}
+                </p>
+                {!searchTerm && (
+                  <Button onClick={() => setIsDialogOpen(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Novo Plano
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredPlanos.map((plano, index) => (
+                <motion.div
+                  key={plano.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <Card className="glass-card hover:border-primary/30 transition-all relative group">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-base">{plano.titulo}</CardTitle>
+                          <p className="text-sm text-muted-foreground">{plano.instrumento}</p>
                         </div>
+                        <Badge variant="outline" className="capitalize">{plano.nivel}</Badge>
                       </div>
-                    )}
-                    {plano.objetivos && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">{plano.objetivos}</p>
-                    )}
-                    <div className="flex gap-2 pt-2">
-                      <Button variant="outline" className="flex-1">
-                        Ver Detalhes
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => deletePlanoMutation.mutate(plano.id)}
-                        disabled={deletePlanoMutation.isPending}
-                      >
-                        <Trash2 className="w-4 h-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        )}
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {plano.duracao && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Duração</span>
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            <span className="font-medium">{plano.duracao}</span>
+                          </div>
+                        </div>
+                      )}
+                      {plano.objetivos && (
+                        <p className="text-sm text-muted-foreground line-clamp-2">{plano.objetivos}</p>
+                      )}
+                      <div className="flex gap-2 pt-2">
+                        <Button variant="outline" className="flex-1">
+                          Ver Detalhes
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => deletePlanoMutation.mutate(plano.id)}
+                          disabled={deletePlanoMutation.isPending}
+                        >
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="materiais">
@@ -379,7 +381,5 @@ export default function Pedagogico() {
         </TabsContent>
       </Tabs>
     </motion.div>
-  );
-}
   );
 }
