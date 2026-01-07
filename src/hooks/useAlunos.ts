@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { alunoSchema } from "@/lib/validations";
 
 export interface Aluno {
   id: string;
@@ -53,6 +54,12 @@ export function useCreateAluno() {
 
   return useMutation({
     mutationFn: async (aluno: NovoAluno) => {
+      // Validate input before sending to database
+      const result = alunoSchema.safeParse(aluno);
+      if (!result.success) {
+        throw new Error(result.error.errors.map(e => e.message).join(", "));
+      }
+
       const { data, error } = await supabase
         .from("alunos")
         .insert(aluno)
@@ -84,6 +91,12 @@ export function useUpdateAluno() {
 
   return useMutation({
     mutationFn: async ({ id, ...aluno }: Partial<Aluno> & { id: string }) => {
+      // Validate input before sending to database
+      const result = alunoSchema.partial().safeParse(aluno);
+      if (!result.success) {
+        throw new Error(result.error.errors.map(e => e.message).join(", "));
+      }
+
       const { data, error } = await supabase
         .from("alunos")
         .update(aluno)
