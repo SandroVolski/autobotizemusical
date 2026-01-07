@@ -147,7 +147,7 @@ export default function Configuracoes() {
     }
   };
 
-  // Upload logo
+  // Upload logo - unique per user
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -159,9 +159,12 @@ export default function Configuracoes() {
 
     setUploadingLogo(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
       const fileExt = file.name.split(".").pop();
       const fileName = `logo.${fileExt}`;
-      const filePath = `escola/${fileName}`;
+      const filePath = `escola/${user.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from("materiais")
@@ -188,7 +191,16 @@ export default function Configuracoes() {
 
   const handleRemoveLogo = async () => {
     try {
-      await supabase.storage.from("materiais").remove(["escola/logo.png", "escola/logo.jpg", "escola/logo.jpeg", "escola/logo.webp"]);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
+      // Remove all possible logo formats for this user
+      await supabase.storage.from("materiais").remove([
+        `escola/${user.id}/logo.png`,
+        `escola/${user.id}/logo.jpg`,
+        `escola/${user.id}/logo.jpeg`,
+        `escola/${user.id}/logo.webp`
+      ]);
       setLogoUrl(null);
       updateConfiguracoes.mutate({ logo_url: null });
       toast.success("Logo removida");

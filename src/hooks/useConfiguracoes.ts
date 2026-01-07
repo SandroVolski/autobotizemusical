@@ -21,6 +21,7 @@ export interface ConfiguracoesEscola {
   logo_url: string | null;
   descricao: string | null;
   horario_funcionamento: Record<string, HorarioFuncionamento> | null;
+  user_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -34,7 +35,7 @@ export interface AtualizarConfiguracoes {
   cidade?: string;
   estado?: string;
   cep?: string;
-  logo_url?: string;
+  logo_url?: string | null;
   descricao?: string;
   horario_funcionamento?: Json;
 }
@@ -43,12 +44,21 @@ export function useConfiguracoes() {
   return useQuery({
     queryKey: ["configuracoes_escola"],
     queryFn: async () => {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
+      // Fetch user's own config
       const { data, error } = await supabase
         .from("configuracoes_escola")
         .select("*")
-        .single();
+        .eq("user_id", user.id)
+        .maybeSingle();
       
       if (error) throw error;
+      
+      // Return null if no config exists yet (will be created on first save)
+      if (!data) return null;
       
       return {
         ...data,
@@ -63,21 +73,27 @@ export function useUpdateConfiguracoes() {
 
   return useMutation({
     mutationFn: async (configuracoes: AtualizarConfiguracoes) => {
-      // Primeiro, buscar o ID da configuração existente
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
+      // Check if user already has a config
       const { data: existing, error: fetchError } = await supabase
         .from("configuracoes_escola")
         .select("id")
-        .single();
+        .eq("user_id", user.id)
+        .maybeSingle();
       
-      if (fetchError && fetchError.code !== 'PGRST116') {
+      if (fetchError) {
         console.error("Error fetching existing config:", fetchError);
         throw fetchError;
       }
       
       if (!existing) {
-        // Se não existir, criar com nome padrão
+        // Create new config for this user
         const insertData = {
           nome: configuracoes.nome || "Minha Escola de Música",
+          user_id: user.id,
           ...configuracoes,
         };
         
@@ -94,7 +110,7 @@ export function useUpdateConfiguracoes() {
         return data;
       }
       
-      // Atualizar existente
+      // Update existing config
       const { data, error } = await supabase
         .from("configuracoes_escola")
         .update({
@@ -102,6 +118,7 @@ export function useUpdateConfiguracoes() {
           updated_at: new Date().toISOString(),
         })
         .eq("id", existing.id)
+        .eq("user_id", user.id) // Extra safety check
         .select()
         .single();
       
