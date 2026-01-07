@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Settings,
@@ -7,12 +7,10 @@ import {
   Bell,
   Shield,
   Palette,
-  Users,
-  CreditCard,
-  Database,
   Save,
   Moon,
   Sun,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,14 +27,159 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { useConfiguracoes, useUpdateConfiguracoes, HorarioFuncionamento } from "@/hooks/useConfiguracoes";
+import { Json } from "@/integrations/supabase/types";
+
+const diasSemana = [
+  { key: "segunda", label: "Segunda" },
+  { key: "terca", label: "Terça" },
+  { key: "quarta", label: "Quarta" },
+  { key: "quinta", label: "Quinta" },
+  { key: "sexta", label: "Sexta" },
+  { key: "sabado", label: "Sábado" },
+  { key: "domingo", label: "Domingo" },
+];
+
+const estadosBrasileiros = [
+  { value: "AC", label: "Acre" },
+  { value: "AL", label: "Alagoas" },
+  { value: "AP", label: "Amapá" },
+  { value: "AM", label: "Amazonas" },
+  { value: "BA", label: "Bahia" },
+  { value: "CE", label: "Ceará" },
+  { value: "DF", label: "Distrito Federal" },
+  { value: "ES", label: "Espírito Santo" },
+  { value: "GO", label: "Goiás" },
+  { value: "MA", label: "Maranhão" },
+  { value: "MT", label: "Mato Grosso" },
+  { value: "MS", label: "Mato Grosso do Sul" },
+  { value: "MG", label: "Minas Gerais" },
+  { value: "PA", label: "Pará" },
+  { value: "PB", label: "Paraíba" },
+  { value: "PR", label: "Paraná" },
+  { value: "PE", label: "Pernambuco" },
+  { value: "PI", label: "Piauí" },
+  { value: "RJ", label: "Rio de Janeiro" },
+  { value: "RN", label: "Rio Grande do Norte" },
+  { value: "RS", label: "Rio Grande do Sul" },
+  { value: "RO", label: "Rondônia" },
+  { value: "RR", label: "Roraima" },
+  { value: "SC", label: "Santa Catarina" },
+  { value: "SP", label: "São Paulo" },
+  { value: "SE", label: "Sergipe" },
+  { value: "TO", label: "Tocantins" },
+];
 
 export default function Configuracoes() {
+  const { data: configuracoes, isLoading } = useConfiguracoes();
+  const updateConfiguracoes = useUpdateConfiguracoes();
+
+  // Dados da escola
+  const [nomeEscola, setNomeEscola] = useState("");
+  const [cnpj, setCnpj] = useState("");
+  const [email, setEmail] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [endereco, setEndereco] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [estado, setEstado] = useState("");
+  const [cep, setCep] = useState("");
+  const [descricao, setDescricao] = useState("");
+
+  // Horários
+  const [horarios, setHorarios] = useState<Record<string, { inicio: string; fim: string; ativo: boolean }>>({
+    segunda: { inicio: "08:00", fim: "21:00", ativo: true },
+    terca: { inicio: "08:00", fim: "21:00", ativo: true },
+    quarta: { inicio: "08:00", fim: "21:00", ativo: true },
+    quinta: { inicio: "08:00", fim: "21:00", ativo: true },
+    sexta: { inicio: "08:00", fim: "21:00", ativo: true },
+    sabado: { inicio: "08:00", fim: "14:00", ativo: true },
+    domingo: { inicio: "09:00", fim: "12:00", ativo: false },
+  });
+
+  // Notificações
   const [notificacoesEmail, setNotificacoesEmail] = useState(true);
   const [notificacoesWhatsapp, setNotificacoesWhatsapp] = useState(true);
   const [lembreteAula, setLembreteAula] = useState(true);
   const [lembretePagamento, setLembretePagamento] = useState(true);
+  
+  // Aparência
   const [temaEscuro, setTemaEscuro] = useState(true);
   const [autenticacaoDoisFatores, setAutenticacaoDoisFatores] = useState(false);
+
+  // Carregar dados do banco
+  useEffect(() => {
+    if (configuracoes) {
+      setNomeEscola(configuracoes.nome || "");
+      setCnpj(configuracoes.cnpj || "");
+      setEmail(configuracoes.email || "");
+      setTelefone(configuracoes.telefone || "");
+      setEndereco(configuracoes.endereco || "");
+      setCidade(configuracoes.cidade || "");
+      setEstado(configuracoes.estado || "");
+      setCep(configuracoes.cep || "");
+      setDescricao(configuracoes.descricao || "");
+      
+      if (configuracoes.horario_funcionamento) {
+        const horariosDb = configuracoes.horario_funcionamento as Record<string, HorarioFuncionamento>;
+        const novosHorarios = { ...horarios };
+        Object.keys(horariosDb).forEach((dia) => {
+          if (novosHorarios[dia]) {
+            novosHorarios[dia] = {
+              inicio: horariosDb[dia].inicio,
+              fim: horariosDb[dia].fim,
+              ativo: true,
+            };
+          }
+        });
+        setHorarios(novosHorarios);
+      }
+    }
+  }, [configuracoes]);
+
+  const handleSalvarEscola = () => {
+    updateConfiguracoes.mutate({
+      nome: nomeEscola,
+      cnpj,
+      email,
+      telefone,
+      endereco,
+      cidade,
+      estado,
+      cep,
+      descricao,
+    });
+  };
+
+  const handleSalvarHorarios = () => {
+    const horariosFuncionamento: Record<string, { inicio: string; fim: string }> = {};
+    Object.entries(horarios).forEach(([dia, { inicio, fim, ativo }]) => {
+      if (ativo) {
+        horariosFuncionamento[dia] = { inicio, fim };
+      }
+    });
+    
+    updateConfiguracoes.mutate({
+      horario_funcionamento: horariosFuncionamento as Json,
+    });
+  };
+
+  const updateHorario = (dia: string, campo: "inicio" | "fim" | "ativo", valor: string | boolean) => {
+    setHorarios((prev) => ({
+      ...prev,
+      [dia]: {
+        ...prev[dia],
+        [campo]: valor,
+      },
+    }));
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -92,60 +235,100 @@ export default function Configuracoes() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="nomeEscola">Nome da Escola</Label>
-                  <Input id="nomeEscola" defaultValue="Escola de Música Sandro Volski" />
+                  <Input 
+                    id="nomeEscola" 
+                    value={nomeEscola}
+                    onChange={(e) => setNomeEscola(e.target.value)}
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="cnpj">CNPJ</Label>
-                  <Input id="cnpj" defaultValue="12.345.678/0001-90" />
+                  <Input 
+                    id="cnpj" 
+                    value={cnpj}
+                    onChange={(e) => setCnpj(e.target.value)}
+                  />
                 </div>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="email">E-mail</Label>
-                  <Input id="email" type="email" defaultValue="contato@sandrovolski.com.br" />
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="telefone">Telefone</Label>
-                  <Input id="telefone" defaultValue="(47) 3333-3333" />
+                  <Input 
+                    id="telefone" 
+                    value={telefone}
+                    onChange={(e) => setTelefone(e.target.value)}
+                  />
                 </div>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="endereco">Endereço</Label>
-                <Input id="endereco" defaultValue="Rua das Notas Musicais, 123 - Centro" />
+                <Input 
+                  id="endereco" 
+                  value={endereco}
+                  onChange={(e) => setEndereco(e.target.value)}
+                />
               </div>
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="grid gap-2">
                   <Label htmlFor="cidade">Cidade</Label>
-                  <Input id="cidade" defaultValue="Blumenau" />
+                  <Input 
+                    id="cidade" 
+                    value={cidade}
+                    onChange={(e) => setCidade(e.target.value)}
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="estado">Estado</Label>
-                  <Select defaultValue="sc">
+                  <Select value={estado} onValueChange={setEstado}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="sc">Santa Catarina</SelectItem>
-                      <SelectItem value="pr">Paraná</SelectItem>
-                      <SelectItem value="rs">Rio Grande do Sul</SelectItem>
+                      {estadosBrasileiros.map((est) => (
+                        <SelectItem key={est.value} value={est.value}>
+                          {est.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="cep">CEP</Label>
-                  <Input id="cep" defaultValue="89010-000" />
+                  <Input 
+                    id="cep" 
+                    value={cep}
+                    onChange={(e) => setCep(e.target.value)}
+                  />
                 </div>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="descricao">Descrição</Label>
                 <Textarea
                   id="descricao"
-                  defaultValue="Escola de música com mais de 20 anos de tradição, oferecendo ensino de qualidade em diversos instrumentos."
+                  value={descricao}
+                  onChange={(e) => setDescricao(e.target.value)}
                   rows={3}
                 />
               </div>
-              <Button className="gap-2">
-                <Save className="w-4 h-4" />
+              <Button 
+                className="gap-2" 
+                onClick={handleSalvarEscola}
+                disabled={updateConfiguracoes.isPending}
+              >
+                {updateConfiguracoes.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
                 Salvar Alterações
               </Button>
             </CardContent>
@@ -165,44 +348,43 @@ export default function Configuracoes() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4">
-                {["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"].map((dia) => (
-                  <div key={dia} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                    <span className="font-medium w-24">{dia}</span>
+                {diasSemana.map(({ key, label }) => (
+                  <div key={key} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                    <span className="font-medium w-24">{label}</span>
                     <div className="flex items-center gap-2">
-                      <Input type="time" defaultValue="08:00" className="w-28" />
+                      <Input 
+                        type="time" 
+                        value={horarios[key].inicio}
+                        onChange={(e) => updateHorario(key, "inicio", e.target.value)}
+                        className="w-28" 
+                        disabled={!horarios[key].ativo}
+                      />
                       <span className="text-muted-foreground">até</span>
-                      <Input type="time" defaultValue="21:00" className="w-28" />
+                      <Input 
+                        type="time" 
+                        value={horarios[key].fim}
+                        onChange={(e) => updateHorario(key, "fim", e.target.value)}
+                        className="w-28" 
+                        disabled={!horarios[key].ativo}
+                      />
                     </div>
-                    <Switch defaultChecked />
+                    <Switch 
+                      checked={horarios[key].ativo}
+                      onCheckedChange={(checked) => updateHorario(key, "ativo", checked)}
+                    />
                   </div>
                 ))}
-                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                  <span className="font-medium w-24">Domingo</span>
-                  <div className="flex items-center gap-2">
-                    <Input type="time" defaultValue="09:00" className="w-28" />
-                    <span className="text-muted-foreground">até</span>
-                    <Input type="time" defaultValue="12:00" className="w-28" />
-                  </div>
-                  <Switch />
-                </div>
               </div>
-              <Separator />
-              <div className="grid gap-2">
-                <Label>Duração Padrão das Aulas</Label>
-                <Select defaultValue="60">
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="30">30 minutos</SelectItem>
-                    <SelectItem value="45">45 minutos</SelectItem>
-                    <SelectItem value="60">60 minutos</SelectItem>
-                    <SelectItem value="90">90 minutos</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button className="gap-2">
-                <Save className="w-4 h-4" />
+              <Button 
+                className="gap-2"
+                onClick={handleSalvarHorarios}
+                disabled={updateConfiguracoes.isPending}
+              >
+                {updateConfiguracoes.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
                 Salvar Horários
               </Button>
             </CardContent>
@@ -362,7 +544,7 @@ export default function Configuracoes() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium">Chrome - Windows</p>
-                      <p className="text-sm text-muted-foreground">Blumenau, SC • Ativo agora</p>
+                      <p className="text-sm text-muted-foreground">Sessão atual • Ativo agora</p>
                     </div>
                     <Button variant="outline" size="sm">Encerrar</Button>
                   </div>
