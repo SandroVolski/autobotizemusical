@@ -14,7 +14,492 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      alunos: {
+        Row: {
+          created_at: string
+          data_matricula: string | null
+          data_nascimento: string | null
+          email: string | null
+          endereco: string | null
+          id: string
+          nivel: string | null
+          nome: string
+          objetivo: string | null
+          observacoes: string | null
+          responsavel_nome: string | null
+          responsavel_telefone: string | null
+          status: string | null
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data_matricula?: string | null
+          data_nascimento?: string | null
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nivel?: string | null
+          nome: string
+          objetivo?: string | null
+          observacoes?: string | null
+          responsavel_nome?: string | null
+          responsavel_telefone?: string | null
+          status?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data_matricula?: string | null
+          data_nascimento?: string | null
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nivel?: string | null
+          nome?: string
+          objetivo?: string | null
+          observacoes?: string | null
+          responsavel_nome?: string | null
+          responsavel_telefone?: string | null
+          status?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      aulas: {
+        Row: {
+          aluno_id: string | null
+          created_at: string
+          curso_id: string | null
+          data_especifica: string | null
+          data_fim: string | null
+          data_inicio: string | null
+          dia_semana: number | null
+          duracao_minutos: number | null
+          horario: string | null
+          id: string
+          observacoes: string | null
+          professor_id: string | null
+          recorrente: boolean | null
+          sala: string | null
+          status: string | null
+          tipo: string | null
+          updated_at: string
+          valor: number | null
+        }
+        Insert: {
+          aluno_id?: string | null
+          created_at?: string
+          curso_id?: string | null
+          data_especifica?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
+          dia_semana?: number | null
+          duracao_minutos?: number | null
+          horario?: string | null
+          id?: string
+          observacoes?: string | null
+          professor_id?: string | null
+          recorrente?: boolean | null
+          sala?: string | null
+          status?: string | null
+          tipo?: string | null
+          updated_at?: string
+          valor?: number | null
+        }
+        Update: {
+          aluno_id?: string | null
+          created_at?: string
+          curso_id?: string | null
+          data_especifica?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
+          dia_semana?: number | null
+          duracao_minutos?: number | null
+          horario?: string | null
+          id?: string
+          observacoes?: string | null
+          professor_id?: string | null
+          recorrente?: boolean | null
+          sala?: string | null
+          status?: string | null
+          tipo?: string | null
+          updated_at?: string
+          valor?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aulas_aluno_id_fkey"
+            columns: ["aluno_id"]
+            isOneToOne: false
+            referencedRelation: "alunos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aulas_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aulas_professor_id_fkey"
+            columns: ["professor_id"]
+            isOneToOne: false
+            referencedRelation: "professores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avisos: {
+        Row: {
+          ativo: boolean | null
+          conteudo: string | null
+          created_at: string
+          data_expiracao: string | null
+          data_publicacao: string | null
+          id: string
+          prioridade: string | null
+          tipo: string | null
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          conteudo?: string | null
+          created_at?: string
+          data_expiracao?: string | null
+          data_publicacao?: string | null
+          id?: string
+          prioridade?: string | null
+          tipo?: string | null
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean | null
+          conteudo?: string | null
+          created_at?: string
+          data_expiracao?: string | null
+          data_publicacao?: string | null
+          id?: string
+          prioridade?: string | null
+          tipo?: string | null
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cursos: {
+        Row: {
+          carga_horaria: string | null
+          created_at: string
+          descricao: string | null
+          duracao: string | null
+          id: string
+          instrumento: string | null
+          nivel: string | null
+          nome: string
+          status: string | null
+          updated_at: string
+          valor_mensal: number | null
+        }
+        Insert: {
+          carga_horaria?: string | null
+          created_at?: string
+          descricao?: string | null
+          duracao?: string | null
+          id?: string
+          instrumento?: string | null
+          nivel?: string | null
+          nome: string
+          status?: string | null
+          updated_at?: string
+          valor_mensal?: number | null
+        }
+        Update: {
+          carga_horaria?: string | null
+          created_at?: string
+          descricao?: string | null
+          duracao?: string | null
+          id?: string
+          instrumento?: string | null
+          nivel?: string | null
+          nome?: string
+          status?: string | null
+          updated_at?: string
+          valor_mensal?: number | null
+        }
+        Relationships: []
+      }
+      instrumentos: {
+        Row: {
+          created_at: string
+          data_aquisicao: string | null
+          data_emprestimo: string | null
+          data_manutencao: string | null
+          emprestado_para: string | null
+          id: string
+          localizacao: string | null
+          marca: string | null
+          modelo: string | null
+          nome: string
+          numero_serie: string | null
+          observacoes: string | null
+          status: string | null
+          tipo: string | null
+          updated_at: string
+          valor_patrimonio: number | null
+        }
+        Insert: {
+          created_at?: string
+          data_aquisicao?: string | null
+          data_emprestimo?: string | null
+          data_manutencao?: string | null
+          emprestado_para?: string | null
+          id?: string
+          localizacao?: string | null
+          marca?: string | null
+          modelo?: string | null
+          nome: string
+          numero_serie?: string | null
+          observacoes?: string | null
+          status?: string | null
+          tipo?: string | null
+          updated_at?: string
+          valor_patrimonio?: number | null
+        }
+        Update: {
+          created_at?: string
+          data_aquisicao?: string | null
+          data_emprestimo?: string | null
+          data_manutencao?: string | null
+          emprestado_para?: string | null
+          id?: string
+          localizacao?: string | null
+          marca?: string | null
+          modelo?: string | null
+          nome?: string
+          numero_serie?: string | null
+          observacoes?: string | null
+          status?: string | null
+          tipo?: string | null
+          updated_at?: string
+          valor_patrimonio?: number | null
+        }
+        Relationships: []
+      }
+      notificacoes: {
+        Row: {
+          created_at: string
+          id: string
+          lida: boolean | null
+          link: string | null
+          mensagem: string | null
+          tipo: string | null
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lida?: boolean | null
+          link?: string | null
+          mensagem?: string | null
+          tipo?: string | null
+          titulo: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lida?: boolean | null
+          link?: string | null
+          mensagem?: string | null
+          tipo?: string | null
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pagamentos: {
+        Row: {
+          aluno_id: string | null
+          created_at: string
+          data_pagamento: string | null
+          data_vencimento: string | null
+          id: string
+          metodo_pagamento: string | null
+          observacoes: string | null
+          referencia: string | null
+          status: string | null
+          tipo: string | null
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          aluno_id?: string | null
+          created_at?: string
+          data_pagamento?: string | null
+          data_vencimento?: string | null
+          id?: string
+          metodo_pagamento?: string | null
+          observacoes?: string | null
+          referencia?: string | null
+          status?: string | null
+          tipo?: string | null
+          updated_at?: string
+          valor: number
+        }
+        Update: {
+          aluno_id?: string | null
+          created_at?: string
+          data_pagamento?: string | null
+          data_vencimento?: string | null
+          id?: string
+          metodo_pagamento?: string | null
+          observacoes?: string | null
+          referencia?: string | null
+          status?: string | null
+          tipo?: string | null
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagamentos_aluno_id_fkey"
+            columns: ["aluno_id"]
+            isOneToOne: false
+            referencedRelation: "alunos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planos_aula: {
+        Row: {
+          conteudo: string | null
+          created_at: string
+          duracao: string | null
+          id: string
+          instrumento: string | null
+          materiais: string | null
+          nivel: string | null
+          objetivos: string | null
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          conteudo?: string | null
+          created_at?: string
+          duracao?: string | null
+          id?: string
+          instrumento?: string | null
+          materiais?: string | null
+          nivel?: string | null
+          objetivos?: string | null
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          conteudo?: string | null
+          created_at?: string
+          duracao?: string | null
+          id?: string
+          instrumento?: string | null
+          materiais?: string | null
+          nivel?: string | null
+          objetivos?: string | null
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      professores: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          data_contratacao: string | null
+          email: string | null
+          especialidade: string | null
+          id: string
+          instrumentos: string[] | null
+          nome: string
+          salario: number | null
+          status: string | null
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          data_contratacao?: string | null
+          email?: string | null
+          especialidade?: string | null
+          id?: string
+          instrumentos?: string[] | null
+          nome: string
+          salario?: number | null
+          status?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          data_contratacao?: string | null
+          email?: string | null
+          especialidade?: string | null
+          id?: string
+          instrumentos?: string[] | null
+          nome?: string
+          salario?: number | null
+          status?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          cargo: string | null
+          created_at: string
+          email: string | null
+          id: string
+          nome: string
+          telefone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          cargo?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome: string
+          telefone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          cargo?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome?: string
+          telefone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

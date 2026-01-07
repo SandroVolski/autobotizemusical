@@ -424,9 +424,9 @@ export default function Relatorios() {
                     <div key={prof.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
                       <span className="font-medium">{prof.nome}</span>
                       <div className="flex gap-1">
-                        {prof.especialidades?.slice(0, 2).map((esp) => (
-                          <Badge key={esp} variant="outline" className="text-xs">
-                            {esp}
+                        {prof.instrumentos?.slice(0, 2).map((inst) => (
+                          <Badge key={inst} variant="outline" className="text-xs">
+                            {inst}
                           </Badge>
                         ))}
                       </div>
