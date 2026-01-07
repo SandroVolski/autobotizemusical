@@ -37,6 +37,7 @@ import { useConfiguracoes, useUpdateConfiguracoes, HorarioFuncionamento } from "
 import { Json } from "@/integrations/supabase/types";
 import { UserManagement } from "@/components/configuracoes/UserManagement";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useAuth } from "@/contexts/AuthContext";
 
 const diasSemana = [
   { key: "segunda", label: "Segunda" },
@@ -79,20 +80,17 @@ const estadosBrasileiros = [
 ];
 
 export default function Configuracoes() {
+  const { user } = useAuth();
   const { data: configuracoes, isLoading } = useConfiguracoes();
   const updateConfiguracoes = useUpdateConfiguracoes();
   const { isAdmin, isLoading: isLoadingRole } = useUserRole();
-  
-  // Check if current user is the platform owner
+
+  // Check if current user is the platform owner (updates when user changes)
   const [isPlatformOwner, setIsPlatformOwner] = useState(false);
-  
+
   useEffect(() => {
-    const checkPlatformOwner = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setIsPlatformOwner(user?.email === "sandroeduardopradovolski@gmail.com");
-    };
-    checkPlatformOwner();
-  }, []);
+    setIsPlatformOwner(user?.email === "sandroeduardopradovolski@gmail.com");
+  }, [user?.email]);
 
   // Dados da escola
   const [nomeEscola, setNomeEscola] = useState("");
