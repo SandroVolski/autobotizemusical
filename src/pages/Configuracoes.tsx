@@ -14,6 +14,7 @@ import {
   Image,
   Upload,
   Trash2,
+  Users,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -34,6 +35,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useConfiguracoes, useUpdateConfiguracoes, HorarioFuncionamento } from "@/hooks/useConfiguracoes";
 import { Json } from "@/integrations/supabase/types";
+import { UserManagement } from "@/components/configuracoes/UserManagement";
 
 const diasSemana = [
   { key: "segunda", label: "Segunda" },
@@ -298,6 +300,10 @@ export default function Configuracoes() {
           <TabsTrigger value="seguranca" className="gap-2">
             <Shield className="w-4 h-4" />
             <span className="hidden sm:inline">Segurança</span>
+          </TabsTrigger>
+          <TabsTrigger value="usuarios" className="gap-2">
+            <Users className="w-4 h-4" />
+            <span className="hidden sm:inline">Usuários</span>
           </TabsTrigger>
         </TabsList>
 
@@ -692,6 +698,10 @@ export default function Configuracoes() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="usuarios" className="space-y-4">
+          <UserManagement />
         </TabsContent>
       </Tabs>
     </motion.div>
