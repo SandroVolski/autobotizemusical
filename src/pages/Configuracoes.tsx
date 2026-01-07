@@ -36,6 +36,7 @@ import { Separator } from "@/components/ui/separator";
 import { useConfiguracoes, useUpdateConfiguracoes, HorarioFuncionamento } from "@/hooks/useConfiguracoes";
 import { Json } from "@/integrations/supabase/types";
 import { UserManagement } from "@/components/configuracoes/UserManagement";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const diasSemana = [
   { key: "segunda", label: "Segunda" },
@@ -80,6 +81,7 @@ const estadosBrasileiros = [
 export default function Configuracoes() {
   const { data: configuracoes, isLoading } = useConfiguracoes();
   const updateConfiguracoes = useUpdateConfiguracoes();
+  const { isAdmin, isLoading: isLoadingRole } = useUserRole();
 
   // Dados da escola
   const [nomeEscola, setNomeEscola] = useState("");
@@ -252,7 +254,7 @@ export default function Configuracoes() {
     }));
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingRole) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -301,10 +303,12 @@ export default function Configuracoes() {
             <Shield className="w-4 h-4" />
             <span className="hidden sm:inline">Segurança</span>
           </TabsTrigger>
-          <TabsTrigger value="usuarios" className="gap-2">
-            <Users className="w-4 h-4" />
-            <span className="hidden sm:inline">Usuários</span>
-          </TabsTrigger>
+          {isAdmin && (
+            <TabsTrigger value="usuarios" className="gap-2">
+              <Users className="w-4 h-4" />
+              <span className="hidden sm:inline">Usuários</span>
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="escola" className="space-y-4">
@@ -700,9 +704,11 @@ export default function Configuracoes() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="usuarios" className="space-y-4">
-          <UserManagement />
-        </TabsContent>
+        {isAdmin && (
+          <TabsContent value="usuarios" className="space-y-4">
+            <UserManagement />
+          </TabsContent>
+        )}
       </Tabs>
     </motion.div>
   );
