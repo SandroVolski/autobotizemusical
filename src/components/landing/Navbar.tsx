@@ -42,7 +42,7 @@ export const Navbar = () => {
             <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
               <Music className="w-6 h-6 text-primary-foreground" />
             </div>
-            <span className="font-bold text-xl">MusicaEdu</span>
+            <span className="font-bold text-xl">Autobotize</span>
           </a>
 
           {/* Desktop Navigation */}
