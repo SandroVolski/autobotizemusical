@@ -82,6 +82,17 @@ export default function Configuracoes() {
   const { data: configuracoes, isLoading } = useConfiguracoes();
   const updateConfiguracoes = useUpdateConfiguracoes();
   const { isAdmin, isLoading: isLoadingRole } = useUserRole();
+  
+  // Check if current user is the platform owner
+  const [isPlatformOwner, setIsPlatformOwner] = useState(false);
+  
+  useEffect(() => {
+    const checkPlatformOwner = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsPlatformOwner(user?.email === "sandroeduardopradovolski@gmail.com");
+    };
+    checkPlatformOwner();
+  }, []);
 
   // Dados da escola
   const [nomeEscola, setNomeEscola] = useState("");
@@ -303,7 +314,7 @@ export default function Configuracoes() {
             <Shield className="w-4 h-4" />
             <span className="hidden sm:inline">Segurança</span>
           </TabsTrigger>
-          {isAdmin && (
+          {isPlatformOwner && (
             <TabsTrigger value="usuarios" className="gap-2">
               <Users className="w-4 h-4" />
               <span className="hidden sm:inline">Usuários</span>
@@ -704,7 +715,7 @@ export default function Configuracoes() {
           </Card>
         </TabsContent>
 
-        {isAdmin && (
+        {isPlatformOwner && (
           <TabsContent value="usuarios" className="space-y-4">
             <UserManagement />
           </TabsContent>
