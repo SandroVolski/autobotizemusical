@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Check, Sparkles } from "lucide-react";
 
 const WHATSAPP_NUMBER = "5542998005326";
-const WHATSAPP_MESSAGE = "Olá! Gostaria de saber mais sobre os planos do Autobotize.";
+const WHATSAPP_MESSAGE = "Olá! Gostaria de saber mais sobre os planos do Autobotize - Gestão Musical.";
 
 const plans = [
   {
@@ -68,7 +68,7 @@ export const PricingSection = () => {
     <section id="precos" className="py-24 relative">
       {/* Background */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(270,100%,50%,0.05),transparent_70%)]" />
-      
+
       <div className="container mx-auto px-4 relative z-10">
         {/* Section Header */}
         <motion.div
@@ -78,16 +78,12 @@ export const PricingSection = () => {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <span className="text-primary font-medium text-sm uppercase tracking-wider">
-            Preços
-          </span>
+          <span className="text-primary font-medium text-sm uppercase tracking-wider">Preços</span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mt-4 mb-6">
-            Planos que cabem no seu{" "}
-            <span className="gradient-text">orçamento</span>
+            Planos que cabem no seu <span className="gradient-text">orçamento</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Escolha o plano ideal para o tamanho da sua escola. 
-            Todos incluem 14 dias grátis para testar.
+            Escolha o plano ideal para o tamanho da sua escola. Todos incluem 14 dias grátis para testar.
           </p>
         </motion.div>
 
@@ -103,7 +99,9 @@ export const PricingSection = () => {
               whileHover={{ y: -8, transition: { duration: 0.3 } }}
               className={plan.popular ? "md:-mt-4 md:mb-4" : ""}
             >
-              <Card className={`h-full relative transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/50 ${plan.popular ? "border-primary glow-primary" : "glass"}`}>
+              <Card
+                className={`h-full relative transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/50 ${plan.popular ? "border-primary glow-primary" : "glass"}`}
+              >
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                     <span className="inline-flex items-center gap-1 px-4 py-1 rounded-full bg-primary text-primary-foreground text-sm font-medium">
@@ -112,7 +110,7 @@ export const PricingSection = () => {
                     </span>
                   </div>
                 )}
-                
+
                 <CardHeader className="text-center pb-4 pt-8">
                   <h3 className="text-xl font-bold">{plan.name}</h3>
                   <p className="text-muted-foreground text-sm mt-1">{plan.description}</p>
@@ -121,7 +119,7 @@ export const PricingSection = () => {
                     <span className="text-muted-foreground">{plan.period}</span>
                   </div>
                 </CardHeader>
-                
+
                 <CardContent className="pt-4">
                   <ul className="space-y-3 mb-8">
                     {plan.features.map((feature) => (
@@ -133,7 +131,7 @@ export const PricingSection = () => {
                       </li>
                     ))}
                   </ul>
-                  
+
                   <Button
                     className={`w-full transition-all duration-300 hover:scale-105 ${plan.popular ? "hover:shadow-lg hover:shadow-primary/30" : ""}`}
                     variant={plan.popular ? "default" : "outline"}
