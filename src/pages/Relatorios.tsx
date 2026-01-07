@@ -45,6 +45,8 @@ import { useProfessores } from "@/hooks/useProfessores";
 import { useAulas } from "@/hooks/useAulas";
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "@/hooks/use-toast";
+import { exportAlunos, exportPagamentos, exportCursos } from "@/lib/csv-export";
 
 export default function Relatorios() {
   const [periodo, setPeriodo] = useState("mensal");
@@ -153,6 +155,66 @@ export default function Relatorios() {
     return months;
   }, [pagamentos]);
 
+  // Handle export for each report type
+  const handleExportReport = (tipo: string) => {
+    switch (tipo) {
+      case "Operacional":
+        if (alunos && alunos.length > 0) {
+          exportAlunos(alunos);
+          toast({ title: "Relatório de alunos exportado" });
+        }
+        break;
+      case "Financeiro":
+        if (pagamentos && pagamentos.length > 0) {
+          const exportData = pagamentos.map(p => ({
+            ...p,
+            aluno_nome: alunos?.find(a => a.id === p.aluno_id)?.nome || "N/A",
+          }));
+          exportPagamentos(exportData);
+          toast({ title: "Relatório financeiro exportado" });
+        }
+        break;
+      case "Pedagógico":
+        if (cursos && cursos.length > 0) {
+          exportCursos(cursos);
+          toast({ title: "Relatório de cursos exportado" });
+        }
+        break;
+      default:
+        toast({ title: "Tipo de relatório não suportado", variant: "destructive" });
+    }
+  };
+
+  // Export all data
+  const handleExportAll = () => {
+    let exported = 0;
+    
+    if (alunos && alunos.length > 0) {
+      exportAlunos(alunos);
+      exported++;
+    }
+    
+    if (pagamentos && pagamentos.length > 0) {
+      const exportData = pagamentos.map(p => ({
+        ...p,
+        aluno_nome: alunos?.find(a => a.id === p.aluno_id)?.nome || "N/A",
+      }));
+      exportPagamentos(exportData);
+      exported++;
+    }
+    
+    if (cursos && cursos.length > 0) {
+      exportCursos(cursos);
+      exported++;
+    }
+    
+    if (exported > 0) {
+      toast({ title: `${exported} relatório(s) exportado(s)` });
+    } else {
+      toast({ title: "Nenhum dado para exportar", variant: "destructive" });
+    }
+  };
+
   // Recent reports based on real data
   const relatoriosDisponiveis = useMemo(() => {
     const reports = [];
@@ -232,9 +294,9 @@ export default function Relatorios() {
               <SelectItem value="anual">Anual</SelectItem>
             </SelectContent>
           </Select>
-          <Button className="gap-2">
+          <Button className="gap-2" onClick={handleExportAll}>
             <Download className="w-4 h-4" />
-            Exportar
+            Exportar Tudo
           </Button>
         </div>
       </div>
@@ -503,7 +565,11 @@ export default function Relatorios() {
                   </div>
                   <div className="flex items-center gap-3">
                     <Badge variant="outline">{relatorio.tipo}</Badge>
-                    <Button variant="ghost" size="icon">
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => handleExportReport(relatorio.tipo)}
+                    >
                       <Download className="w-4 h-4" />
                     </Button>
                   </div>
