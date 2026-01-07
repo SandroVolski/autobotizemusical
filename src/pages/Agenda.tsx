@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { 
   ChevronLeft, 
@@ -11,7 +11,10 @@ import {
   Trash2,
   User,
   GraduationCap,
-  X
+  X,
+  ClipboardCheck,
+  AlertTriangle,
+  Calendar
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,11 +35,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { useAulas, useCreateAula, useDeleteAula, type NovaAula, type Aula } from "@/hooks/useAulas";
 import { useAlunos } from "@/hooks/useAlunos";
 import { useProfessores } from "@/hooks/useProfessores";
 import { useCursos } from "@/hooks/useCursos";
 import { toast } from "@/hooks/use-toast";
+import { AttendanceDialog } from "@/components/agenda/AttendanceDialog";
 
 const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 // Generate 30-minute intervals from 8:00 to 20:00
@@ -55,11 +65,25 @@ const getClassHeight = (duration: number) => {
   return (duration / 30) * 40; // 40px per 30-min slot
 };
 
+// Generate color for each professor
+const professorColors = [
+  "bg-blue-500/20 border-blue-500/40 hover:bg-blue-500/30",
+  "bg-green-500/20 border-green-500/40 hover:bg-green-500/30",
+  "bg-purple-500/20 border-purple-500/40 hover:bg-purple-500/30",
+  "bg-orange-500/20 border-orange-500/40 hover:bg-orange-500/30",
+  "bg-pink-500/20 border-pink-500/40 hover:bg-pink-500/30",
+  "bg-cyan-500/20 border-cyan-500/40 hover:bg-cyan-500/30",
+  "bg-yellow-500/20 border-yellow-500/40 hover:bg-yellow-500/30",
+  "bg-red-500/20 border-red-500/40 hover:bg-red-500/30",
+];
+
 export default function Agenda() {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedAula, setSelectedAula] = useState<Aula | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"week" | "month">("week");
   const [newAula, setNewAula] = useState<NovaAula>({
     aluno_id: "",
     professor_id: "",
@@ -69,6 +93,8 @@ export default function Agenda() {
     duracao_minutos: 60,
     sala: "",
   });
+
+  const todayStr = new Date().toISOString().split("T")[0];
 
   const openCreateDialog = (dayIndex: number, time: string) => {
     setNewAula({
@@ -110,6 +136,44 @@ export default function Agenda() {
 
   const weekDates = getWeekDates();
 
+  // Create professor color map
+  const professorColorMap = useMemo(() => {
+    const map = new Map<string, string>();
+    professores?.forEach((prof, idx) => {
+      map.set(prof.id, professorColors[idx % professorColors.length]);
+    });
+    return map;
+  }, [professores]);
+
+  const getAulaColor = (aula: Aula) => {
+    if (aula.professor_id && professorColorMap.has(aula.professor_id)) {
+      return professorColorMap.get(aula.professor_id)!;
+    }
+    return "bg-primary/20 border-primary/30 hover:bg-primary/30";
+  };
+
+  // Check for time conflicts
+  const checkConflict = (dayIndex: number, horario: string, duracao: number, excludeId?: string) => {
+    const [hours, mins] = horario.split(":").map(Number);
+    const startMins = hours * 60 + mins;
+    const endMins = startMins + duracao;
+
+    const dayClasses = aulas?.filter(a => a.dia_semana === dayIndex && a.id !== excludeId) || [];
+    
+    return dayClasses.some(aula => {
+      if (!aula.horario) return false;
+      const [aH, aM] = aula.horario.split(":").map(Number);
+      const aStart = aH * 60 + aM;
+      const aEnd = aStart + (aula.duracao_minutos || 60);
+      return (startMins < aEnd && endMins > aStart);
+    });
+  };
+
+  const hasConflict = useMemo(() => {
+    if (!newAula.horario || newAula.dia_semana === undefined) return false;
+    return checkConflict(newAula.dia_semana, newAula.horario, newAula.duracao_minutos || 60);
+  }, [newAula.dia_semana, newAula.horario, newAula.duracao_minutos, aulas]);
+
   const handleCreateAula = () => {
     if (!newAula.horario) {
       toast({
@@ -118,6 +182,14 @@ export default function Agenda() {
         variant: "destructive",
       });
       return;
+    }
+
+    if (hasConflict) {
+      toast({
+        title: "Conflito de Horário",
+        description: "Já existe uma aula neste horário. Deseja continuar mesmo assim?",
+        variant: "destructive",
+      });
     }
 
     createAulaMutation.mutate({
@@ -144,6 +216,22 @@ export default function Agenda() {
   // Get classes for a specific day of week
   const getClassesForDay = (dayIndex: number) => {
     return aulas?.filter(aula => aula.dia_semana === dayIndex) || [];
+  };
+
+  // Generate month calendar dates
+  const getMonthDates = () => {
+    const year = currentWeek.getFullYear();
+    const month = currentWeek.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startPadding = firstDay.getDay();
+    
+    const dates: (Date | null)[] = [];
+    for (let i = 0; i < startPadding; i++) dates.push(null);
+    for (let d = 1; d <= lastDay.getDate(); d++) {
+      dates.push(new Date(year, month, d));
+    }
+    return dates;
   };
 
   // Get today's classes (Monday = 1 in our system)
@@ -292,6 +380,12 @@ export default function Agenda() {
                   />
                 </div>
               </div>
+              {hasConflict && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-warning/20 border border-warning/40">
+                  <AlertTriangle className="w-4 h-4 text-warning" />
+                  <p className="text-sm text-warning">Já existe aula neste horário!</p>
+                </div>
+              )}
               <Button 
                 className="w-full mt-2" 
                 onClick={handleCreateAula}
@@ -414,11 +508,7 @@ export default function Agenda() {
                                 e.stopPropagation();
                                 openDetailsDialog(aula);
                               }}
-                              className={`absolute left-1 right-1 rounded-lg p-1.5 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg z-10 overflow-hidden ${
-                                aula.status === "ativo"
-                                  ? "bg-primary/20 border border-primary/30 hover:bg-primary/30"
-                                  : "bg-warning/20 border border-warning/30 hover:bg-warning/30"
-                              }`}
+                              className={`absolute left-1 right-1 rounded-lg p-1.5 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg z-10 overflow-hidden border ${getAulaColor(aula)}`}
                               style={{
                                 top: getClassPosition(aula.horario),
                                 height: Math.max(getClassHeight(aula.duracao_minutos || 60), 36),
@@ -575,8 +665,19 @@ export default function Agenda() {
 
               <div className="flex gap-2 pt-2">
                 <Button
-                  variant="destructive"
+                  variant="default"
                   className="flex-1"
+                  onClick={() => {
+                    setIsDetailsOpen(false);
+                    setIsAttendanceOpen(true);
+                  }}
+                >
+                  <ClipboardCheck className="w-4 h-4 mr-2" />
+                  Registrar Presença
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="icon"
                   onClick={() => {
                     deleteAulaMutation.mutate(selectedAula.id, {
                       onSuccess: () => setIsDetailsOpen(false)
@@ -585,20 +686,23 @@ export default function Agenda() {
                   disabled={deleteAulaMutation.isPending}
                 >
                   {deleteAulaMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    <Trash2 className="w-4 h-4 mr-2" />
+                    <Trash2 className="w-4 h-4" />
                   )}
-                  Excluir Aula
-                </Button>
-                <Button variant="outline" className="flex-1" onClick={() => setIsDetailsOpen(false)}>
-                  Fechar
                 </Button>
               </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
+      {/* Attendance Dialog */}
+      <AttendanceDialog
+        aula={selectedAula}
+        open={isAttendanceOpen}
+        onOpenChange={setIsAttendanceOpen}
+        date={todayStr}
+      />
     </div>
   );
 }

@@ -13,7 +13,8 @@ import {
   Eye,
   Edit,
   Trash2,
-  Loader2
+  Loader2,
+  GraduationCap
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,11 +44,14 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useAlunos, useCreateAluno, useUpdateAluno, useDeleteAluno, type NovoAluno } from "@/hooks/useAlunos";
 import { toast } from "@/hooks/use-toast";
+import { EnrollmentDialog } from "@/components/alunos/EnrollmentDialog";
+import { StudentEnrollments } from "@/components/alunos/StudentEnrollments";
 
 export default function Alunos() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAluno, setEditingAluno] = useState<string | null>(null);
+  const [enrollmentAluno, setEnrollmentAluno] = useState<{ id: string; nome: string } | null>(null);
   const [newAluno, setNewAluno] = useState<NovoAluno>({
     nome: "",
     email: "",
@@ -466,6 +470,10 @@ export default function Alunos() {
                           <Eye className="w-4 h-4 mr-2" />
                           Ver Perfil
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setEnrollmentAluno({ id: aluno.id, nome: aluno.nome })}>
+                          <GraduationCap className="w-4 h-4 mr-2" />
+                          Matricular em Curso
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleEdit(aluno)}>
                           <Edit className="w-4 h-4 mr-2" />
                           Editar
@@ -491,6 +499,16 @@ export default function Alunos() {
           ))
         )}
       </motion.div>
+
+      {/* Enrollment Dialog */}
+      {enrollmentAluno && (
+        <EnrollmentDialog
+          alunoId={enrollmentAluno.id}
+          alunoNome={enrollmentAluno.nome}
+          open={!!enrollmentAluno}
+          onOpenChange={(open) => !open && setEnrollmentAluno(null)}
+        />
+      )}
     </div>
   );
 }

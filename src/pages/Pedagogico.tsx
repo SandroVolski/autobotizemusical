@@ -13,6 +13,7 @@ import {
   Clock,
   Loader2,
   Trash2,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +38,8 @@ import {
 } from "@/components/ui/select";
 import { usePlanosAula, useCreatePlanoAula, useDeletePlanoAula, type NovoPlanoAula } from "@/hooks/usePlanosAula";
 import { toast } from "@/hooks/use-toast";
+import { MaterialsManager } from "@/components/pedagogico/MaterialsManager";
+import { EvaluationsManager } from "@/components/pedagogico/EvaluationsManager";
 
 export default function Pedagogico() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -272,19 +275,33 @@ export default function Pedagogico() {
         </Card>
       </div>
 
-      {/* Content */}
-      <div className="space-y-4">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar planos de aula..."
-            className="pl-10"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+      {/* Tabs Content */}
+      <Tabs defaultValue="planos" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="planos">
+            <BookOpen className="w-4 h-4 mr-2" />
+            Planos de Aula
+          </TabsTrigger>
+          <TabsTrigger value="materiais">
+            <FileText className="w-4 h-4 mr-2" />
+            Materiais
+          </TabsTrigger>
+          <TabsTrigger value="avaliacoes">
+            <Star className="w-4 h-4 mr-2" />
+            Avaliações
+          </TabsTrigger>
+        </TabsList>
 
-        {filteredPlanos.length === 0 ? (
+        <TabsContent value="planos" className="space-y-4">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar planos de aula..."
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
           <Card className="glass-card">
             <CardContent className="py-12 text-center">
               <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
@@ -351,7 +368,18 @@ export default function Pedagogico() {
             ))}
           </div>
         )}
-      </div>
+        </TabsContent>
+
+        <TabsContent value="materiais">
+          <MaterialsManager />
+        </TabsContent>
+
+        <TabsContent value="avaliacoes">
+          <EvaluationsManager />
+        </TabsContent>
+      </Tabs>
     </motion.div>
+  );
+}
   );
 }
