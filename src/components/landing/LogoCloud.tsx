@@ -1,27 +1,24 @@
 import { motion } from "framer-motion";
 
 const logos = [
-  "Conservatório SP",
+  "Escola de Música Sandro Volski",
   "Escola Harmonia",
   "Instituto Musical",
   "Academia de Música",
   "Centro Musical",
-  "Escola de Artes",
 ];
 
 export const LogoCloud = () => {
   return (
     <section className="py-12 border-y border-border/50 overflow-hidden">
       <div className="container mx-auto px-4">
-        <p className="text-center text-muted-foreground text-sm mb-8">
-          Empresas que confiam no Autobotize
-        </p>
-        
+        <p className="text-center text-muted-foreground text-sm mb-8">Empresas que confiam no Autobotize</p>
+
         {/* Infinite scroll animation */}
         <div className="relative">
           <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-background to-transparent z-10" />
           <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent z-10" />
-          
+
           <motion.div
             className="flex gap-12"
             animate={{ x: [0, -1000] }}
@@ -35,13 +32,8 @@ export const LogoCloud = () => {
             }}
           >
             {[...logos, ...logos, ...logos].map((logo, index) => (
-              <div
-                key={index}
-                className="flex-shrink-0 px-8 py-4 rounded-xl bg-muted/30 border border-border/50"
-              >
-                <span className="text-muted-foreground font-medium whitespace-nowrap">
-                  {logo}
-                </span>
+              <div key={index} className="flex-shrink-0 px-8 py-4 rounded-xl bg-muted/30 border border-border/50">
+                <span className="text-muted-foreground font-medium whitespace-nowrap">{logo}</span>
               </div>
             ))}
           </motion.div>
