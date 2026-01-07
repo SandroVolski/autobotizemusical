@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { avisoSchema } from "@/lib/validations";
 
 export interface Aviso {
   id: string;
@@ -44,6 +45,12 @@ export function useCreateAviso() {
 
   return useMutation({
     mutationFn: async (aviso: NovoAviso) => {
+      // Validate input before sending to database
+      const result = avisoSchema.safeParse(aviso);
+      if (!result.success) {
+        throw new Error(result.error.errors.map(e => e.message).join(", "));
+      }
+
       const { data, error } = await supabase
         .from("avisos")
         .insert(aviso)

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { cursoSchema } from "@/lib/validations";
 
 export interface Curso {
   id: string;
@@ -47,6 +48,12 @@ export function useCreateCurso() {
 
   return useMutation({
     mutationFn: async (curso: NovoCurso) => {
+      // Validate input before sending to database
+      const result = cursoSchema.safeParse(curso);
+      if (!result.success) {
+        throw new Error(result.error.errors.map(e => e.message).join(", "));
+      }
+
       const { data, error } = await supabase
         .from("cursos")
         .insert(curso)
@@ -78,6 +85,12 @@ export function useUpdateCurso() {
 
   return useMutation({
     mutationFn: async ({ id, ...curso }: Partial<Curso> & { id: string }) => {
+      // Validate input before sending to database
+      const result = cursoSchema.partial().safeParse(curso);
+      if (!result.success) {
+        throw new Error(result.error.errors.map(e => e.message).join(", "));
+      }
+
       const { data, error } = await supabase
         .from("cursos")
         .update(curso)
