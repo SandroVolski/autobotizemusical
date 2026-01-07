@@ -71,6 +71,67 @@
     --shadow-elevated: 0 8px 32px hsl(0, 0%, 0%, 0.5);
   }
 
+  .light {
+    --background: 0 0% 98%;
+    --foreground: 0 0% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+
+    --primary: 270 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 270 100% 60%;
+
+    --secondary: 158 100% 40%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 0 0% 92%;
+    --muted-foreground: 0 0% 45%;
+
+    --accent: 270 50% 95%;
+    --accent-foreground: 270 50% 30%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 5%;
+
+    --info: 199 89% 48%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 0 0% 85%;
+    --input: 0 0% 85%;
+    --ring: 270 100% 50%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 10%;
+    --sidebar-primary: 270 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 92%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 270 100% 50%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(270, 100%, 50%), hsl(270, 100%, 65%));
+    --gradient-secondary: linear-gradient(135deg, hsl(158, 100%, 40%), hsl(158, 100%, 30%));
+    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(0, 0%, 98%));
+    --gradient-glow: radial-gradient(ellipse at center, hsl(270, 100%, 50%, 0.1), transparent 70%);
+    --gradient-hero: linear-gradient(135deg, hsl(270, 100%, 50%, 0.1), hsl(158, 100%, 50%, 0.05));
+
+    /* Shadows */
+    --shadow-glow: 0 0 40px hsl(270, 100%, 50%, 0.2);
+    --shadow-card: 0 4px 24px hsl(0, 0%, 0%, 0.08);
+    --shadow-elevated: 0 8px 32px hsl(0, 0%, 0%, 0.12);
+  }
+
   .dark {
     --background: 0 0% 5%;
     --foreground: 0 0% 94%;

@@ -23,6 +23,7 @@ import { useSidebar } from "@/contexts/SidebarContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAlunos } from "@/hooks/useAlunos";
 import { usePagamentos } from "@/hooks/usePagamentos";
+import { useConfiguracoes } from "@/hooks/useConfiguracoes";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -46,6 +47,7 @@ export function AppSidebar() {
 
   const { data: alunos } = useAlunos();
   const { data: pagamentos } = usePagamentos();
+  const { data: configuracoes } = useConfiguracoes();
 
   const badgeValues: Record<string, number | undefined> = {
     alunos: alunos?.length,
@@ -92,12 +94,18 @@ export function AppSidebar() {
               {/* Logo */}
               <div className="p-4 border-b border-sidebar-border flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center flex-shrink-0">
-                    <Music className="w-5 h-5 text-primary-foreground" />
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {configuracoes?.logo_url ? (
+                      <img src={configuracoes.logo_url} alt="Logo" className="w-full h-full object-cover" />
+                    ) : (
+                      <Music className="w-5 h-5 text-primary-foreground" />
+                    )}
                   </div>
                   <div>
-                    <h1 className="font-bold text-foreground whitespace-nowrap">Sandro Volski</h1>
-                    <p className="text-xs text-muted-foreground whitespace-nowrap">Escola de Música</p>
+                    <h1 className="font-bold text-foreground whitespace-nowrap">
+                      {configuracoes?.nome || "Escola de Música"}
+                    </h1>
+                    <p className="text-xs text-muted-foreground whitespace-nowrap">Gestão Musical</p>
                   </div>
                 </div>
                 <Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)}>
@@ -177,8 +185,12 @@ export function AppSidebar() {
       {/* Logo */}
       <div className="p-4 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center flex-shrink-0">
-            <Music className="w-5 h-5 text-primary-foreground" />
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center flex-shrink-0 overflow-hidden">
+            {configuracoes?.logo_url ? (
+              <img src={configuracoes.logo_url} alt="Logo" className="w-full h-full object-cover" />
+            ) : (
+              <Music className="w-5 h-5 text-primary-foreground" />
+            )}
           </div>
           <AnimatePresence>
             {!collapsed && (
@@ -188,8 +200,10 @@ export function AppSidebar() {
                 exit={{ opacity: 0, width: 0 }}
                 className="overflow-hidden"
               >
-                <h1 className="font-bold text-foreground whitespace-nowrap">Sandro Volski</h1>
-                <p className="text-xs text-muted-foreground whitespace-nowrap">Escola de Música</p>
+                <h1 className="font-bold text-foreground whitespace-nowrap">
+                  {configuracoes?.nome || "Escola de Música"}
+                </h1>
+                <p className="text-xs text-muted-foreground whitespace-nowrap">Gestão Musical</p>
               </motion.div>
             )}
           </AnimatePresence>

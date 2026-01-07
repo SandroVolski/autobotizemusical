@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   Settings,
@@ -11,7 +11,12 @@ import {
   Moon,
   Sun,
   Loader2,
+  Image,
+  Upload,
+  Trash2,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -103,8 +108,79 @@ export default function Configuracoes() {
   const [lembretePagamento, setLembretePagamento] = useState(true);
   
   // Aparência
-  const [temaEscuro, setTemaEscuro] = useState(true);
+  const [temaEscuro, setTemaEscuro] = useState(() => {
+    return !document.documentElement.classList.contains("light");
+  });
   const [autenticacaoDoisFatores, setAutenticacaoDoisFatores] = useState(false);
+
+  // Logo
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Toggle tema escuro/claro
+  const handleThemeToggle = (checked: boolean) => {
+    setTemaEscuro(checked);
+    if (checked) {
+      document.documentElement.classList.remove("light");
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.add("light");
+      localStorage.setItem("theme", "light");
+    }
+  };
+
+  // Upload logo
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Por favor, selecione uma imagem");
+      return;
+    }
+
+    setUploadingLogo(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `logo.${fileExt}`;
+      const filePath = `escola/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("materiais")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("materiais")
+        .getPublicUrl(filePath);
+
+      setLogoUrl(publicUrl);
+      
+      // Salvar URL no banco
+      updateConfiguracoes.mutate({ logo_url: publicUrl });
+      toast.success("Logo atualizada com sucesso!");
+    } catch (error) {
+      console.error("Erro ao fazer upload:", error);
+      toast.error("Erro ao fazer upload da logo");
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleRemoveLogo = async () => {
+    try {
+      await supabase.storage.from("materiais").remove(["escola/logo.png", "escola/logo.jpg", "escola/logo.jpeg", "escola/logo.webp"]);
+      setLogoUrl(null);
+      updateConfiguracoes.mutate({ logo_url: null });
+      toast.success("Logo removida");
+    } catch (error) {
+      console.error("Erro ao remover logo:", error);
+    }
+  };
 
   // Carregar dados do banco
   useEffect(() => {
@@ -118,6 +194,7 @@ export default function Configuracoes() {
       setEstado(configuracoes.estado || "");
       setCep(configuracoes.cep || "");
       setDescricao(configuracoes.descricao || "");
+      setLogoUrl(configuracoes.logo_url || null);
       
       if (configuracoes.horario_funcionamento) {
         const horariosDb = configuracoes.horario_funcionamento as Record<string, HorarioFuncionamento>;
@@ -209,6 +286,10 @@ export default function Configuracoes() {
           <TabsTrigger value="notificacoes" className="gap-2">
             <Bell className="w-4 h-4" />
             <span className="hidden sm:inline">Notificações</span>
+          </TabsTrigger>
+          <TabsTrigger value="logo" className="gap-2">
+            <Image className="w-4 h-4" />
+            <span className="hidden sm:inline">Logo</span>
           </TabsTrigger>
           <TabsTrigger value="aparencia" className="gap-2">
             <Palette className="w-4 h-4" />
@@ -449,6 +530,73 @@ export default function Configuracoes() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="logo" className="space-y-4">
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Image className="w-5 h-5 text-primary" />
+                Logo da Escola
+              </CardTitle>
+              <CardDescription>
+                Adicione a logo da sua escola de música. Ela será exibida no menu lateral.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex flex-col items-center gap-6">
+                {/* Preview da logo */}
+                <div className="w-32 h-32 rounded-xl bg-muted/50 border-2 border-dashed border-border flex items-center justify-center overflow-hidden">
+                  {logoUrl ? (
+                    <img 
+                      src={logoUrl} 
+                      alt="Logo da escola" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Image className="w-12 h-12 text-muted-foreground" />
+                  )}
+                </div>
+
+                {/* Botões de ação */}
+                <div className="flex gap-3">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleLogoUpload}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <Button
+                    variant="outline"
+                    className="gap-2"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingLogo}
+                  >
+                    {uploadingLogo ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Upload className="w-4 h-4" />
+                    )}
+                    {logoUrl ? "Trocar Logo" : "Enviar Logo"}
+                  </Button>
+                  {logoUrl && (
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      onClick={handleRemoveLogo}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+
+                <p className="text-sm text-muted-foreground text-center">
+                  Recomendado: Imagem quadrada (PNG ou JPG) com pelo menos 200x200 pixels
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="aparencia" className="space-y-4">
           <Card className="glass-card">
             <CardHeader>
@@ -461,36 +609,28 @@ export default function Configuracoes() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                <div className="flex items-center gap-3">
-                  {temaEscuro ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+              <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30">
+                <div className="flex items-center gap-4">
+                  <div className={`p-3 rounded-xl ${temaEscuro ? 'bg-primary/20' : 'bg-warning/20'}`}>
+                    {temaEscuro ? (
+                      <Moon className="w-6 h-6 text-primary" />
+                    ) : (
+                      <Sun className="w-6 h-6 text-warning" />
+                    )}
+                  </div>
                   <div>
-                    <p className="font-medium">Tema Escuro</p>
-                    <p className="text-sm text-muted-foreground">Usar tema escuro no sistema</p>
+                    <p className="font-medium text-lg">
+                      {temaEscuro ? "Modo Escuro" : "Modo Claro"}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {temaEscuro 
+                        ? "Interface escura para reduzir a fadiga visual" 
+                        : "Interface clara para ambientes iluminados"}
+                    </p>
                   </div>
                 </div>
-                <Switch checked={temaEscuro} onCheckedChange={setTemaEscuro} />
+                <Switch checked={temaEscuro} onCheckedChange={handleThemeToggle} />
               </div>
-
-              <Separator />
-
-              <div className="grid gap-4">
-                <Label>Cor Principal</Label>
-                <div className="flex gap-3">
-                  {["#8000FF", "#00ffa3", "#ff6b6b", "#4ecdc4", "#45b7d1"].map((cor) => (
-                    <button
-                      key={cor}
-                      className="w-10 h-10 rounded-full border-2 border-transparent hover:border-foreground transition-all"
-                      style={{ backgroundColor: cor }}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <Button className="gap-2">
-                <Save className="w-4 h-4" />
-                Salvar Preferências
-              </Button>
             </CardContent>
           </Card>
         </TabsContent>
