@@ -239,9 +239,7 @@ export default function Login() {
         opacity: 1
       }} transition={{
         delay: 0.8
-      }} className="text-center text-xs text-muted-foreground mt-4">
-          © 2024 Escola de Música Sandro Volski. Todos os direitos reservados.
-        </motion.p>
+      }} className="text-center text-xs text-muted-foreground mt-4">© 2026 Autobotize Gestão Musical. Todos os direitos reservados.</motion.p>
       </motion.div>
     </div>;
 }
