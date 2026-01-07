@@ -259,6 +259,7 @@ export type Database = {
           nome: string
           telefone: string | null
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           cep?: string | null
@@ -275,6 +276,7 @@ export type Database = {
           nome?: string
           telefone?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           cep?: string | null
@@ -291,6 +293,7 @@ export type Database = {
           nome?: string
           telefone?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
