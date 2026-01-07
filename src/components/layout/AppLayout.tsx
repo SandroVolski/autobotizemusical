@@ -6,13 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { NotificationsDropdown } from "@/components/notifications/NotificationsDropdown";
-
+import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 interface AppLayoutProps {
   children: ReactNode;
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
   const { collapsed, toggleCollapsed, isMobile, setMobileOpen } = useSidebar();
+  
+  // Enable realtime notifications
+  useRealtimeNotifications();
 
   const sidebarWidth = isMobile ? 0 : (collapsed ? 72 : 280);
 

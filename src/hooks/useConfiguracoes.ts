@@ -64,32 +64,52 @@ export function useUpdateConfiguracoes() {
   return useMutation({
     mutationFn: async (configuracoes: AtualizarConfiguracoes) => {
       // Primeiro, buscar o ID da configuração existente
-      const { data: existing } = await supabase
+      const { data: existing, error: fetchError } = await supabase
         .from("configuracoes_escola")
         .select("id")
         .single();
       
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error("Error fetching existing config:", fetchError);
+        throw fetchError;
+      }
+      
       if (!existing) {
-        // Se não existir, criar
+        // Se não existir, criar com nome padrão
+        const insertData = {
+          nome: configuracoes.nome || "Minha Escola de Música",
+          ...configuracoes,
+        };
+        
         const { data, error } = await supabase
           .from("configuracoes_escola")
-          .insert([configuracoes])
+          .insert([insertData])
           .select()
           .single();
         
-        if (error) throw error;
+        if (error) {
+          console.error("Error inserting config:", error);
+          throw error;
+        }
         return data;
       }
       
       // Atualizar existente
       const { data, error } = await supabase
         .from("configuracoes_escola")
-        .update(configuracoes)
+        .update({
+          ...configuracoes,
+          updated_at: new Date().toISOString(),
+        })
         .eq("id", existing.id)
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating config:", error);
+        throw error;
+      }
+      
       return data;
     },
     onSuccess: () => {
@@ -100,6 +120,7 @@ export function useUpdateConfiguracoes() {
       });
     },
     onError: (error) => {
+      console.error("Mutation error:", error);
       toast({
         title: "Erro ao salvar configurações",
         description: error.message,

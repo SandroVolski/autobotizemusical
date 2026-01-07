@@ -14,6 +14,7 @@ import {
   Loader2,
   Trash2,
   Star,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +41,7 @@ import { usePlanosAula, useCreatePlanoAula, useDeletePlanoAula, type NovoPlanoAu
 import { toast } from "@/hooks/use-toast";
 import { MaterialsManager } from "@/components/pedagogico/MaterialsManager";
 import { EvaluationsManager } from "@/components/pedagogico/EvaluationsManager";
+import { AIAssistant } from "@/components/pedagogico/AIAssistant";
 
 export default function Pedagogico() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -111,13 +113,15 @@ export default function Pedagogico() {
             Planos de aula e material didático
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="w-4 h-4" />
-              Novo Plano de Aula
-            </Button>
-          </DialogTrigger>
+        <div className="flex flex-wrap gap-2">
+          <AIAssistant type="lesson-plan" />
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="w-4 h-4" />
+                Novo Plano de Aula
+              </Button>
+            </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>Criar Plano de Aula</DialogTitle>
@@ -217,8 +221,8 @@ export default function Pedagogico() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
-
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="glass-card">
