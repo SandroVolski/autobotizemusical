@@ -1,17 +1,19 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Music, Mail, Lock, Eye, EyeOff, ArrowRight, User } from "lucide-react";
+import { Music, Mail, Lock, Eye, EyeOff, ArrowRight, User, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const {
     signIn,
+    resetPassword,
     user,
     loading: authLoading
   } = useAuth();
@@ -19,6 +21,9 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [isSendingReset, setIsSendingReset] = useState(false);
   const from = (location.state as {
     from?: {
       pathname: string;
@@ -33,6 +38,7 @@ export default function Login() {
       });
     }
   }, [user, authLoading, navigate, from]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -71,6 +77,45 @@ export default function Login() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail.trim()) {
+      toast({
+        title: "Email obrigatório",
+        description: "Por favor, digite seu email.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSendingReset(true);
+    try {
+      const { error } = await resetPassword(forgotEmail);
+      if (error) {
+        toast({
+          title: "Erro ao enviar email",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Email enviado!",
+          description: "Verifique sua caixa de entrada para redefinir sua senha.",
+        });
+        setShowForgotPassword(false);
+        setForgotEmail("");
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro inesperado. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSendingReset(false);
     }
   };
   if (authLoading) {
@@ -145,89 +190,156 @@ export default function Login() {
               </p>
             </motion.div>
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Login Form */}
+            {!showForgotPassword ? (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <motion.div initial={{
+                x: -20,
+                opacity: 0
+              }} animate={{
+                x: 0,
+                opacity: 1
+              }} transition={{
+                delay: 0.3
+              }}>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                    E-mail
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} className="pl-10" required />
+                  </div>
+                </motion.div>
 
-              <motion.div initial={{
-              x: -20,
-              opacity: 0
-            }} animate={{
-              x: 0,
-              opacity: 1
-            }} transition={{
-              delay: 0.3
-            }}>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block">
-                  E-mail
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} className="pl-10" required />
-                </div>
-              </motion.div>
+                <motion.div initial={{
+                x: -20,
+                opacity: 0
+              }} animate={{
+                x: 0,
+                opacity: 1
+              }} transition={{
+                delay: 0.4
+              }}>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                    Senha
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} className="pl-10 pr-10" required minLength={6} />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </motion.div>
 
-              <motion.div initial={{
-              x: -20,
-              opacity: 0
-            }} animate={{
-              x: 0,
-              opacity: 1
-            }} transition={{
-              delay: 0.4
-            }}>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block">
-                  Senha
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} className="pl-10 pr-10" required minLength={6} />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                <motion.div initial={{
+                y: 20,
+                opacity: 0
+              }} animate={{
+                y: 0,
+                opacity: 1
+              }} transition={{
+                delay: 0.5
+              }} className="flex items-center justify-between text-sm">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" className="rounded border-border" />
+                    <span className="text-muted-foreground">Lembrar-me</span>
+                  </label>
+                  <button 
+                    type="button" 
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-primary hover:underline"
+                  >
+                    Esqueci a senha
                   </button>
-                </div>
-              </motion.div>
+                </motion.div>
 
-              <motion.div initial={{
-              y: 20,
-              opacity: 0
-            }} animate={{
-              y: 0,
-              opacity: 1
-            }} transition={{
-              delay: 0.5
-            }} className="flex items-center justify-between text-sm">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="rounded border-border" />
-                  <span className="text-muted-foreground">Lembrar-me</span>
-                </label>
-                <button type="button" className="text-primary hover:underline">
-                  Esqueci a senha
-                </button>
-              </motion.div>
+                <motion.div initial={{
+                y: 20,
+                opacity: 0
+              }} animate={{
+                y: 0,
+                opacity: 1
+              }} transition={{
+                delay: 0.6
+              }}>
+                  <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
+                    {isLoading ? <motion.div animate={{
+                    rotate: 360
+                  }} transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                    ease: "linear"
+                  }} className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full" /> : <>
+                        Entrar
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </>}
+                  </Button>
+                </motion.div>
+              </form>
+            ) : (
+              /* Forgot Password Form */
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(false)}
+                    className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Voltar ao login
+                  </button>
+                </motion.div>
 
-              <motion.div initial={{
-              y: 20,
-              opacity: 0
-            }} animate={{
-              y: 0,
-              opacity: 1
-            }} transition={{
-              delay: 0.6
-            }}>
-                <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
-                  {isLoading ? <motion.div animate={{
-                  rotate: 360
-                }} transition={{
-                  duration: 1,
-                  repeat: Infinity,
-                  ease: "linear"
-                }} className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full" /> : <>
-                      Entrar
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </>}
-                </Button>
-              </motion.div>
-            </form>
+                <motion.div
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Digite seu e-mail abaixo e enviaremos um link para redefinir sua senha.
+                  </p>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                    E-mail
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      type="email"
+                      placeholder="seu@email.com"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <Button type="submit" size="lg" className="w-full" disabled={isSendingReset}>
+                    {isSendingReset ? (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full"
+                      />
+                    ) : (
+                      <>
+                        Enviar Link de Recuperação
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </>
+                    )}
+                  </Button>
+                </motion.div>
+              </form>
+            )}
 
           </CardContent>
         </Card>
