@@ -2,7 +2,9 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Check, Sparkles } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+
+const WHATSAPP_NUMBER = "5542998005326";
+const WHATSAPP_MESSAGE = "Olá! Gostaria de saber mais sobre os planos do Autobotize.";
 
 const plans = [
   {
@@ -56,9 +58,12 @@ const plans = [
   },
 ];
 
-export const PricingSection = () => {
-  const navigate = useNavigate();
+const getWhatsAppLink = (planName: string) => {
+  const message = encodeURIComponent(`${WHATSAPP_MESSAGE} Tenho interesse no plano ${planName}.`);
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
+};
 
+export const PricingSection = () => {
   return (
     <section id="precos" className="py-24 relative">
       {/* Background */}
@@ -95,9 +100,10 @@ export const PricingSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
+              whileHover={{ y: -8, transition: { duration: 0.3 } }}
               className={plan.popular ? "md:-mt-4 md:mb-4" : ""}
             >
-              <Card className={`h-full relative ${plan.popular ? "border-primary glow-primary" : "glass"}`}>
+              <Card className={`h-full relative transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/50 ${plan.popular ? "border-primary glow-primary" : "glass"}`}>
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                     <span className="inline-flex items-center gap-1 px-4 py-1 rounded-full bg-primary text-primary-foreground text-sm font-medium">
@@ -129,11 +135,13 @@ export const PricingSection = () => {
                   </ul>
                   
                   <Button
-                    className={`w-full ${plan.popular ? "" : "variant-outline"}`}
+                    className={`w-full transition-all duration-300 hover:scale-105 ${plan.popular ? "hover:shadow-lg hover:shadow-primary/30" : ""}`}
                     variant={plan.popular ? "default" : "outline"}
-                    onClick={() => navigate("/login")}
+                    asChild
                   >
-                    Começar agora
+                    <a href={getWhatsAppLink(plan.name)} target="_blank" rel="noopener noreferrer">
+                      Começar agora
+                    </a>
                   </Button>
                 </CardContent>
               </Card>
