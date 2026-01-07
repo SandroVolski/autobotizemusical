@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Loader2, Plus, FileText, Music, Video, Image, Link, Trash2, ExternalLink } from "lucide-react";
+import { Loader2, Plus, FileText, Music, Video, Image, Link, Trash2, ExternalLink, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { useMateriais, useCreateMaterial, useDeleteMaterial } from "@/hooks/useMateriais";
 import { useCursos } from "@/hooks/useCursos";
+import { AIAssistant } from "./AIAssistant";
 
 const typeConfig: Record<string, { icon: React.ReactNode; label: string; color: string }> = {
   pdf: { icon: <FileText className="w-4 h-4" />, label: "PDF", color: "text-red-500" },
@@ -93,7 +94,16 @@ export function MaterialsManager() {
           </Select>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <div className="flex gap-2">
+          <AIAssistant type="material" />
+          
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Material
+              </Button>
+            </DialogTrigger>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
@@ -187,6 +197,7 @@ export function MaterialsManager() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Materials Grid */}
