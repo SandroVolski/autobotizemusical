@@ -50,24 +50,21 @@ export default function Professores() {
     nome: "",
     email: "",
     telefone: "",
-    especialidades: "",
-    valor_hora: "",
-    biografia: "",
+    especialidade: "",
+    instrumentos: "",
+    salario: "",
+    bio: "",
   });
 
   const { data: professores, isLoading } = useProfessores();
   const createProfessorMutation = useCreateProfessor();
   const deleteProfessorMutation = useDeleteProfessor();
 
-  const totalHoras = professores?.reduce((acc, p) => acc + (Number(p.valor_hora) || 0) * 30, 0) || 0;
-  const mediaAvaliacao = professores?.length 
-    ? (professores.reduce((acc, p) => acc + (Number(p.avaliacao) || 0), 0) / professores.length).toFixed(1) 
-    : "0.0";
-
   const filteredProfessores = professores?.filter(
     (professor) =>
       professor.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      professor.especialidades?.some((e) => e.toLowerCase().includes(searchTerm.toLowerCase()))
+      professor.especialidade?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      professor.instrumentos?.some((i) => i.toLowerCase().includes(searchTerm.toLowerCase()))
   ) || [];
 
   const handleCreateProfessor = () => {
@@ -84,13 +81,14 @@ export default function Professores() {
       nome: newProfessor.nome,
       email: newProfessor.email || undefined,
       telefone: newProfessor.telefone || undefined,
-      especialidades: newProfessor.especialidades ? newProfessor.especialidades.split(",").map(e => e.trim()) : [],
-      valor_hora: newProfessor.valor_hora ? parseFloat(newProfessor.valor_hora) : undefined,
-      biografia: newProfessor.biografia || undefined,
+      especialidade: newProfessor.especialidade || undefined,
+      instrumentos: newProfessor.instrumentos ? newProfessor.instrumentos.split(",").map(e => e.trim()) : [],
+      salario: newProfessor.salario ? parseFloat(newProfessor.salario) : undefined,
+      bio: newProfessor.bio || undefined,
       status: "ativo",
     });
 
-    setNewProfessor({ nome: "", email: "", telefone: "", especialidades: "", valor_hora: "", biografia: "" });
+    setNewProfessor({ nome: "", email: "", telefone: "", especialidade: "", instrumentos: "", salario: "", bio: "" });
     setIsDialogOpen(false);
   };
 
@@ -159,30 +157,38 @@ export default function Professores() {
                 </div>
               </div>
               <div className="grid gap-2">
-                <Label>Especialidades</Label>
+                <Label>Especialidade</Label>
+                <Input 
+                  placeholder="Ex: Piano Clássico"
+                  value={newProfessor.especialidade}
+                  onChange={(e) => setNewProfessor(prev => ({ ...prev, especialidade: e.target.value }))}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Instrumentos</Label>
                 <Input 
                   placeholder="Piano, Violão, Teoria (separar por vírgula)"
-                  value={newProfessor.especialidades}
-                  onChange={(e) => setNewProfessor(prev => ({ ...prev, especialidades: e.target.value }))}
+                  value={newProfessor.instrumentos}
+                  onChange={(e) => setNewProfessor(prev => ({ ...prev, instrumentos: e.target.value }))}
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="valor">Valor por Hora (R$)</Label>
+                <Label htmlFor="salario">Salário (R$)</Label>
                 <Input 
-                  id="valor" 
+                  id="salario" 
                   type="number" 
-                  placeholder="Ex: 80"
-                  value={newProfessor.valor_hora}
-                  onChange={(e) => setNewProfessor(prev => ({ ...prev, valor_hora: e.target.value }))}
+                  placeholder="Ex: 3000"
+                  value={newProfessor.salario}
+                  onChange={(e) => setNewProfessor(prev => ({ ...prev, salario: e.target.value }))}
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="biografia">Biografia</Label>
+                <Label htmlFor="bio">Biografia</Label>
                 <Textarea 
-                  id="biografia" 
+                  id="bio" 
                   placeholder="Breve descrição do professor..."
-                  value={newProfessor.biografia}
-                  onChange={(e) => setNewProfessor(prev => ({ ...prev, biografia: e.target.value }))}
+                  value={newProfessor.bio}
+                  onChange={(e) => setNewProfessor(prev => ({ ...prev, bio: e.target.value }))}
                 />
               </div>
               <Button 
@@ -234,9 +240,9 @@ export default function Professores() {
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {professores?.reduce((acc, p) => acc + (p.especialidades?.length || 0), 0) || 0}
+                  {professores?.reduce((acc, p) => acc + (p.instrumentos?.length || 0), 0) || 0}
                 </p>
-                <p className="text-xs text-muted-foreground">Especialidades</p>
+                <p className="text-xs text-muted-foreground">Instrumentos</p>
               </div>
             </div>
           </CardContent>
@@ -248,8 +254,8 @@ export default function Professores() {
                 <Star className="w-5 h-5 text-warning" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{mediaAvaliacao}</p>
-                <p className="text-xs text-muted-foreground">Avaliação Média</p>
+                <p className="text-2xl font-bold">{professores?.filter(p => p.status === "ferias").length || 0}</p>
+                <p className="text-xs text-muted-foreground">De Férias</p>
               </div>
             </div>
           </CardContent>
@@ -310,12 +316,9 @@ export default function Professores() {
                       </Avatar>
                       <div>
                         <CardTitle className="text-base">{professor.nome}</CardTitle>
-                        <div className="flex items-center gap-1 mt-1">
-                          <Star className="w-3 h-3 text-warning fill-warning" />
-                          <span className="text-sm text-muted-foreground">
-                            {Number(professor.avaliacao || 5).toFixed(1)}
-                          </span>
-                        </div>
+                        {professor.especialidade && (
+                          <p className="text-sm text-muted-foreground">{professor.especialidade}</p>
+                        )}
                       </div>
                     </div>
                     <DropdownMenu>
@@ -342,11 +345,11 @@ export default function Professores() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {professor.especialidades && professor.especialidades.length > 0 && (
+                  {professor.instrumentos && professor.instrumentos.length > 0 && (
                     <div className="flex flex-wrap gap-1">
-                      {professor.especialidades.map((esp) => (
-                        <Badge key={esp} variant="outline" className="text-xs">
-                          {esp}
+                      {professor.instrumentos.map((inst) => (
+                        <Badge key={inst} variant="outline" className="text-xs">
+                          {inst}
                         </Badge>
                       ))}
                     </div>
@@ -366,9 +369,9 @@ export default function Professores() {
                     )}
                   </div>
                   <div className="flex items-center justify-between pt-2 border-t border-border">
-                    {professor.valor_hora && (
+                    {professor.salario && (
                       <span className="text-sm font-medium">
-                        R$ {Number(professor.valor_hora).toFixed(2)}/h
+                        R$ {Number(professor.salario).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </span>
                     )}
                     <Badge className={statusConfig[professor.status as keyof typeof statusConfig]?.color || statusConfig.ativo.color}>

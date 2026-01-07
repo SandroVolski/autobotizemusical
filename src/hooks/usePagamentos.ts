@@ -8,7 +8,7 @@ export interface Pagamento {
   valor: number;
   tipo: string;
   referencia: string | null;
-  data_vencimento: string;
+  data_vencimento: string | null;
   data_pagamento: string | null;
   metodo_pagamento: string | null;
   status: string;
@@ -23,7 +23,7 @@ export interface NovoPagamento {
   valor: number;
   tipo?: string;
   referencia?: string;
-  data_vencimento: string;
+  data_vencimento?: string;
   data_pagamento?: string;
   metodo_pagamento?: string;
   status?: string;
@@ -83,7 +83,7 @@ export function useUpdatePagamento() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, ...pagamento }: Partial<Pagamento> & { id: string }) => {
+    mutationFn: async ({ id, alunos, ...pagamento }: Partial<Pagamento> & { id: string }) => {
       const { data, error } = await supabase
         .from("pagamentos")
         .update(pagamento)

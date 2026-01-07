@@ -5,27 +5,24 @@ import { toast } from "@/hooks/use-toast";
 export interface PlanoAula {
   id: string;
   titulo: string;
-  instrumento: string;
-  nivel: string;
+  instrumento: string | null;
+  nivel: string | null;
   duracao: string | null;
   conteudo: string | null;
   objetivos: string | null;
   materiais: string | null;
-  professor_id: string | null;
   created_at: string;
   updated_at: string;
-  professores?: { nome: string } | null;
 }
 
 export interface NovoPlanoAula {
   titulo: string;
-  instrumento: string;
+  instrumento?: string;
   nivel?: string;
   duracao?: string;
   conteudo?: string;
   objetivos?: string;
   materiais?: string;
-  professor_id?: string;
 }
 
 export function usePlanosAula() {
@@ -34,10 +31,7 @@ export function usePlanosAula() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("planos_aula")
-        .select(`
-          *,
-          professores(nome)
-        `)
+        .select("*")
         .order("titulo");
       
       if (error) throw error;

@@ -5,7 +5,7 @@ import { toast } from "@/hooks/use-toast";
 export interface Instrumento {
   id: string;
   nome: string;
-  tipo: string;
+  tipo: string | null;
   marca: string | null;
   modelo: string | null;
   numero_serie: string | null;
@@ -14,16 +14,16 @@ export interface Instrumento {
   status: string;
   emprestado_para: string | null;
   data_emprestimo: string | null;
-  ultima_manutencao: string | null;
-  proxima_manutencao: string | null;
   observacoes: string | null;
+  data_aquisicao: string | null;
+  data_manutencao: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export interface NovoInstrumento {
   nome: string;
-  tipo: string;
+  tipo?: string;
   marca?: string;
   modelo?: string;
   numero_serie?: string;

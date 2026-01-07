@@ -5,7 +5,7 @@ import { toast } from "@/hooks/use-toast";
 export interface Curso {
   id: string;
   nome: string;
-  instrumento: string;
+  instrumento: string | null;
   nivel: string;
   descricao: string | null;
   duracao: string | null;
@@ -18,7 +18,7 @@ export interface Curso {
 
 export interface NovoCurso {
   nome: string;
-  instrumento: string;
+  instrumento?: string;
   nivel?: string;
   descricao?: string;
   duracao?: string;

@@ -9,14 +9,16 @@ export interface Aula {
   curso_id: string | null;
   tipo: string;
   dia_semana: number | null;
-  horario: string;
+  horario: string | null;
   duracao_minutos: number;
   sala: string | null;
   data_especifica: string | null;
   data_inicio: string | null;
   data_fim: string | null;
+  recorrente: boolean;
   status: string;
   observacoes: string | null;
+  valor: number | null;
   created_at: string;
   updated_at: string;
   alunos?: { nome: string } | null;
@@ -30,13 +32,15 @@ export interface NovaAula {
   curso_id?: string;
   tipo?: string;
   dia_semana?: number;
-  horario: string;
+  horario?: string;
   duracao_minutos?: number;
   sala?: string;
   data_especifica?: string;
   data_inicio?: string;
   data_fim?: string;
+  recorrente?: boolean;
   observacoes?: string;
+  valor?: number;
 }
 
 export function useAulas() {
@@ -94,7 +98,7 @@ export function useUpdateAula() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, ...aula }: Partial<Aula> & { id: string }) => {
+    mutationFn: async ({ id, alunos, professores, cursos, ...aula }: Partial<Aula> & { id: string }) => {
       const { data, error } = await supabase
         .from("aulas")
         .update(aula)

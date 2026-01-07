@@ -35,7 +35,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useAvisos, useCreateAviso, useDeleteAviso, type NovoAviso } from "@/hooks/useAvisos";
 import { useNotificacoes, useNotificacoesNaoLidas, useMarcarComoLida, useMarcarTodasComoLidas } from "@/hooks/useNotificacoes";
 import { toast } from "@/hooks/use-toast";
@@ -45,10 +44,9 @@ export default function Comunicacao() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newAviso, setNewAviso] = useState<NovoAviso>({
     titulo: "",
-    mensagem: "",
-    destinatarios: "todos",
-    enviado_email: false,
-    enviado_whatsapp: false,
+    conteudo: "",
+    tipo: "geral",
+    prioridade: "normal",
   });
 
   const { data: avisos, isLoading: loadingAvisos } = useAvisos();
@@ -60,10 +58,10 @@ export default function Comunicacao() {
   const marcarTodasComoLidasMutation = useMarcarTodasComoLidas();
 
   const handleCreateAviso = () => {
-    if (!newAviso.titulo || !newAviso.mensagem) {
+    if (!newAviso.titulo || !newAviso.conteudo) {
       toast({
         title: "Erro",
-        description: "Título e mensagem são obrigatórios",
+        description: "Título e conteúdo são obrigatórios",
         variant: "destructive",
       });
       return;
@@ -74,10 +72,9 @@ export default function Comunicacao() {
         setIsDialogOpen(false);
         setNewAviso({
           titulo: "",
-          mensagem: "",
-          destinatarios: "todos",
-          enviado_email: false,
-          enviado_whatsapp: false,
+          conteudo: "",
+          tipo: "geral",
+          prioridade: "normal",
         });
       }
     });
@@ -85,7 +82,7 @@ export default function Comunicacao() {
 
   const filteredAvisos = avisos?.filter(aviso =>
     aviso.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    aviso.mensagem.toLowerCase().includes(searchTerm.toLowerCase())
+    (aviso.conteudo?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   ) || [];
 
   if (loadingAvisos || loadingNotificacoes) {
@@ -131,55 +128,50 @@ export default function Comunicacao() {
                   onChange={(e) => setNewAviso(prev => ({ ...prev, titulo: e.target.value }))}
                 />
               </div>
-              <div className="grid gap-2">
-                <Label>Destinatários</Label>
-                <Select
-                  value={newAviso.destinatarios}
-                  onValueChange={(value) => setNewAviso(prev => ({ ...prev, destinatarios: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos</SelectItem>
-                    <SelectItem value="alunos">Apenas Alunos</SelectItem>
-                    <SelectItem value="professores">Apenas Professores</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Tipo</Label>
+                  <Select
+                    value={newAviso.tipo}
+                    onValueChange={(value) => setNewAviso(prev => ({ ...prev, tipo: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="geral">Geral</SelectItem>
+                      <SelectItem value="alunos">Alunos</SelectItem>
+                      <SelectItem value="professores">Professores</SelectItem>
+                      <SelectItem value="urgente">Urgente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label>Prioridade</Label>
+                  <Select
+                    value={newAviso.prioridade}
+                    onValueChange={(value) => setNewAviso(prev => ({ ...prev, prioridade: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="baixa">Baixa</SelectItem>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="alta">Alta</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="mensagem">Mensagem *</Label>
+                <Label htmlFor="conteudo">Conteúdo *</Label>
                 <Textarea 
-                  id="mensagem" 
+                  id="conteudo" 
                   placeholder="Digite a mensagem..." 
                   rows={4}
-                  value={newAviso.mensagem}
-                  onChange={(e) => setNewAviso(prev => ({ ...prev, mensagem: e.target.value }))}
+                  value={newAviso.conteudo}
+                  onChange={(e) => setNewAviso(prev => ({ ...prev, conteudo: e.target.value }))}
                 />
-              </div>
-              <div className="flex gap-4">
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="email"
-                    checked={newAviso.enviado_email}
-                    onCheckedChange={(checked) => setNewAviso(prev => ({ ...prev, enviado_email: checked as boolean }))}
-                  />
-                  <Label htmlFor="email" className="flex items-center gap-2 cursor-pointer">
-                    <Mail className="w-4 h-4" />
-                    Enviar por E-mail
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="whatsapp"
-                    checked={newAviso.enviado_whatsapp}
-                    onCheckedChange={(checked) => setNewAviso(prev => ({ ...prev, enviado_whatsapp: checked as boolean }))}
-                  />
-                  <Label htmlFor="whatsapp" className="flex items-center gap-2 cursor-pointer">
-                    <Phone className="w-4 h-4" />
-                    Enviar por WhatsApp
-                  </Label>
-                </div>
               </div>
               <Button 
                 className="w-full" 
@@ -217,7 +209,7 @@ export default function Comunicacao() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{avisos?.length || 0}</p>
-                <p className="text-xs text-muted-foreground">Avisos Enviados</p>
+                <p className="text-xs text-muted-foreground">Avisos Ativos</p>
               </div>
             </div>
           </CardContent>
@@ -229,8 +221,8 @@ export default function Comunicacao() {
                 <Mail className="w-5 h-5 text-success" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{avisos?.filter(a => a.enviado_email).length || 0}</p>
-                <p className="text-xs text-muted-foreground">Por E-mail</p>
+                <p className="text-2xl font-bold">{avisos?.filter(a => a.prioridade === "alta").length || 0}</p>
+                <p className="text-xs text-muted-foreground">Alta Prioridade</p>
               </div>
             </div>
           </CardContent>
@@ -242,8 +234,8 @@ export default function Comunicacao() {
                 <Phone className="w-5 h-5 text-warning" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{avisos?.filter(a => a.enviado_whatsapp).length || 0}</p>
-                <p className="text-xs text-muted-foreground">Por WhatsApp</p>
+                <p className="text-2xl font-bold">{avisos?.filter(a => a.tipo === "urgente").length || 0}</p>
+                <p className="text-xs text-muted-foreground">Urgentes</p>
               </div>
             </div>
           </CardContent>
@@ -305,30 +297,31 @@ export default function Comunicacao() {
                     <CardContent className="pt-6">
                       <div className="flex items-start justify-between">
                         <div className="flex items-start gap-4">
-                          <div className="p-3 rounded-lg bg-primary/20">
-                            <Bell className="w-5 h-5 text-primary" />
+                          <div className={`p-3 rounded-lg ${
+                            aviso.prioridade === "alta" ? "bg-destructive/20" :
+                            aviso.tipo === "urgente" ? "bg-warning/20" :
+                            "bg-primary/20"
+                          }`}>
+                            <Bell className={`w-5 h-5 ${
+                              aviso.prioridade === "alta" ? "text-destructive" :
+                              aviso.tipo === "urgente" ? "text-warning" :
+                              "text-primary"
+                            }`} />
                           </div>
                           <div>
                             <h3 className="font-semibold">{aviso.titulo}</h3>
-                            <p className="text-muted-foreground mt-1">{aviso.mensagem}</p>
-                            <div className="flex items-center gap-4 mt-3">
+                            <p className="text-muted-foreground mt-1">{aviso.conteudo}</p>
+                            <div className="flex items-center gap-4 mt-3 flex-wrap">
                               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                 <Clock className="w-3 h-3" />
                                 {new Date(aviso.created_at).toLocaleDateString("pt-BR")}
                               </div>
-                              <Badge variant="outline">{aviso.destinatarios}</Badge>
-                              {aviso.enviado_email && (
-                                <Badge variant="secondary" className="gap-1">
-                                  <Mail className="w-3 h-3" />
-                                  E-mail
-                                </Badge>
-                              )}
-                              {aviso.enviado_whatsapp && (
-                                <Badge variant="secondary" className="gap-1">
-                                  <Phone className="w-3 h-3" />
-                                  WhatsApp
-                                </Badge>
-                              )}
+                              <Badge variant="outline">{aviso.tipo}</Badge>
+                              <Badge 
+                                variant={aviso.prioridade === "alta" ? "destructive" : "secondary"}
+                              >
+                                {aviso.prioridade}
+                              </Badge>
                             </div>
                           </div>
                         </div>

@@ -7,12 +7,13 @@ export interface Professor {
   nome: string;
   email: string | null;
   telefone: string | null;
-  especialidades: string[];
-  biografia: string | null;
-  valor_hora: number | null;
-  disponibilidade: unknown | null;
+  especialidade: string | null;
+  instrumentos: string[] | null;
+  bio: string | null;
   status: string;
-  avaliacao: number | null;
+  data_contratacao: string | null;
+  salario: number | null;
+  avatar_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -21,9 +22,10 @@ export interface NovoProfessor {
   nome: string;
   email?: string;
   telefone?: string;
-  especialidades?: string[];
-  biografia?: string;
-  valor_hora?: number;
+  especialidade?: string;
+  instrumentos?: string[];
+  bio?: string;
+  salario?: number;
   status?: string;
 }
 
@@ -77,14 +79,10 @@ export function useUpdateProfessor() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, disponibilidade, ...professor }: Partial<Professor> & { id: string }) => {
-      const updateData = { ...professor } as Record<string, unknown>;
-      if (disponibilidade !== undefined) {
-        updateData.disponibilidade = disponibilidade as object;
-      }
+    mutationFn: async ({ id, ...professor }: Partial<Professor> & { id: string }) => {
       const { data, error } = await supabase
         .from("professores")
-        .update(updateData)
+        .update(professor)
         .eq("id", id)
         .select()
         .single();

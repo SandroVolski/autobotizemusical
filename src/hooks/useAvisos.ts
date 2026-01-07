@@ -5,21 +5,23 @@ import { toast } from "@/hooks/use-toast";
 export interface Aviso {
   id: string;
   titulo: string;
-  mensagem: string;
-  destinatarios: string;
-  turma_id: string | null;
-  enviado_email: boolean;
-  enviado_whatsapp: boolean;
+  conteudo: string | null;
+  tipo: string;
+  prioridade: string;
+  data_publicacao: string | null;
+  data_expiracao: string | null;
+  ativo: boolean;
   created_at: string;
+  updated_at: string;
 }
 
 export interface NovoAviso {
   titulo: string;
-  mensagem: string;
-  destinatarios?: string;
-  turma_id?: string;
-  enviado_email?: boolean;
-  enviado_whatsapp?: boolean;
+  conteudo?: string;
+  tipo?: string;
+  prioridade?: string;
+  data_expiracao?: string;
+  ativo?: boolean;
 }
 
 export function useAvisos() {
