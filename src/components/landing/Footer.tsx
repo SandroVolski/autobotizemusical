@@ -37,7 +37,7 @@ export const Footer = () => {
               <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
                 <Music className="w-6 h-6 text-primary-foreground" />
               </div>
-              <span className="font-bold text-lg">MusicaEdu</span>
+              <span className="font-bold text-lg">Autobotize</span>
             </div>
             <p className="text-muted-foreground text-sm">
               A plataforma completa para gestão de escolas de música.
@@ -113,7 +113,7 @@ export const Footer = () => {
         {/* Bottom */}
         <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-muted-foreground text-sm">
-            © {new Date().getFullYear()} MusicaEdu. Todos os direitos reservados.
+            © {new Date().getFullYear()} Autobotize. Todos os direitos reservados.
           </p>
           <div className="flex items-center gap-6">
             <a href="#" className="text-muted-foreground hover:text-foreground text-sm transition-colors">
