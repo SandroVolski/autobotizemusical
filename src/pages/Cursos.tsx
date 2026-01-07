@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   BookOpen,
   Plus,
   Search,
-  Filter,
   Clock,
   Users,
   MoreVertical,
@@ -13,6 +12,7 @@ import {
   DollarSign,
   Loader2,
   Trash2,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,6 +42,8 @@ import {
 } from "@/components/ui/select";
 import { useCursos, useCreateCurso, useDeleteCurso } from "@/hooks/useCursos";
 import { toast } from "@/hooks/use-toast";
+import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
+import { exportCursos } from "@/lib/csv-export";
 
 const nivelConfig = {
   iniciante: "bg-success/20 text-success border-success/30",
@@ -49,9 +51,45 @@ const nivelConfig = {
   avancado: "bg-primary/20 text-primary border-primary/30",
 };
 
+const filterOptions: FilterOption[] = [
+  {
+    id: "nivel",
+    label: "Nível",
+    type: "select",
+    options: [
+      { value: "iniciante", label: "Iniciante" },
+      { value: "intermediario", label: "Intermediário" },
+      { value: "avancado", label: "Avançado" },
+    ],
+  },
+  {
+    id: "instrumento",
+    label: "Instrumento",
+    type: "select",
+    options: [
+      { value: "Piano", label: "Piano" },
+      { value: "Violão", label: "Violão" },
+      { value: "Guitarra", label: "Guitarra" },
+      { value: "Bateria", label: "Bateria" },
+      { value: "Canto", label: "Canto" },
+      { value: "Violino", label: "Violino" },
+    ],
+  },
+  {
+    id: "status",
+    label: "Status",
+    type: "select",
+    options: [
+      { value: "ativo", label: "Ativo" },
+      { value: "inativo", label: "Inativo" },
+    ],
+  },
+];
+
 export default function Cursos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [filterValues, setFilterValues] = useState<FilterValues>({});
   const [newCurso, setNewCurso] = useState({
     nome: "",
     instrumento: "",
@@ -69,11 +107,21 @@ export default function Cursos() {
   const totalAlunos = 0; // TODO: Calculate from aulas table
   const receitaMensal = cursos?.reduce((acc, curso) => acc + (Number(curso.valor_mensal) || 0), 0) || 0;
 
-  const filteredCursos = cursos?.filter(
-    (curso) =>
-      curso.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      curso.instrumento.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const filteredCursos = useMemo(() => {
+    if (!cursos) return [];
+    return cursos.filter((curso) => {
+      // Text search
+      const matchesSearch = curso.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (curso.instrumento?.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      // Filters
+      if (filterValues.nivel && curso.nivel !== filterValues.nivel) return false;
+      if (filterValues.instrumento && curso.instrumento !== filterValues.instrumento) return false;
+      if (filterValues.status && curso.status !== filterValues.status) return false;
+      
+      return matchesSearch;
+    });
+  }, [cursos, searchTerm, filterValues]);
 
   const handleCreateCurso = () => {
     if (!newCurso.nome || !newCurso.instrumento) {
@@ -100,6 +148,22 @@ export default function Cursos() {
     setIsDialogOpen(false);
   };
 
+  const handleExport = () => {
+    if (!filteredCursos || filteredCursos.length === 0) {
+      toast({
+        title: "Nenhum dado para exportar",
+        description: "Adicione cursos antes de exportar",
+        variant: "destructive",
+      });
+      return;
+    }
+    exportCursos(filteredCursos);
+    toast({
+      title: "Exportação concluída",
+      description: `${filteredCursos.length} cursos exportados`,
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -122,115 +186,121 @@ export default function Cursos() {
             Gerencie cursos, workshops e aulas avulsas
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="w-4 h-4" />
-              Novo Curso
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Criar Novo Curso</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="nome">Nome do Curso *</Label>
-                <Input 
-                  id="nome" 
-                  placeholder="Ex: Piano Intermediário"
-                  value={newCurso.nome}
-                  onChange={(e) => setNewCurso(prev => ({ ...prev, nome: e.target.value }))}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="instrumento">Instrumento *</Label>
-                  <Select
-                    value={newCurso.instrumento}
-                    onValueChange={(value) => setNewCurso(prev => ({ ...prev, instrumento: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Piano">Piano</SelectItem>
-                      <SelectItem value="Violão">Violão</SelectItem>
-                      <SelectItem value="Guitarra">Guitarra</SelectItem>
-                      <SelectItem value="Bateria">Bateria</SelectItem>
-                      <SelectItem value="Canto">Canto</SelectItem>
-                      <SelectItem value="Violino">Violino</SelectItem>
-                      <SelectItem value="Teoria Musical">Teoria Musical</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="nivel">Nível</Label>
-                  <Select
-                    value={newCurso.nivel}
-                    onValueChange={(value) => setNewCurso(prev => ({ ...prev, nivel: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="iniciante">Iniciante</SelectItem>
-                      <SelectItem value="intermediario">Intermediário</SelectItem>
-                      <SelectItem value="avancado">Avançado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="duracao">Duração</Label>
-                  <Input 
-                    id="duracao" 
-                    placeholder="Ex: 6 meses"
-                    value={newCurso.duracao}
-                    onChange={(e) => setNewCurso(prev => ({ ...prev, duracao: e.target.value }))}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="carga">Carga Horária</Label>
-                  <Input 
-                    id="carga" 
-                    placeholder="Ex: 2h/semana"
-                    value={newCurso.carga_horaria}
-                    onChange={(e) => setNewCurso(prev => ({ ...prev, carga_horaria: e.target.value }))}
-                  />
-                </div>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="valor">Valor Mensal (R$)</Label>
-                <Input 
-                  id="valor" 
-                  type="number" 
-                  placeholder="0,00"
-                  value={newCurso.valor_mensal}
-                  onChange={(e) => setNewCurso(prev => ({ ...prev, valor_mensal: e.target.value }))}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="descricao">Descrição</Label>
-                <Textarea 
-                  id="descricao" 
-                  placeholder="Descreva o conteúdo programático..."
-                  value={newCurso.descricao}
-                  onChange={(e) => setNewCurso(prev => ({ ...prev, descricao: e.target.value }))}
-                />
-              </div>
-              <Button 
-                className="w-full mt-2" 
-                onClick={handleCreateCurso}
-                disabled={createCursoMutation.isPending}
-              >
-                {createCursoMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                Criar Curso
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExport}>
+            <Download className="w-4 h-4 mr-2" />
+            Exportar
+          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="w-4 h-4" />
+                Novo Curso
               </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Criar Novo Curso</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="nome">Nome do Curso *</Label>
+                  <Input 
+                    id="nome" 
+                    placeholder="Ex: Piano Intermediário"
+                    value={newCurso.nome}
+                    onChange={(e) => setNewCurso(prev => ({ ...prev, nome: e.target.value }))}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="instrumento">Instrumento *</Label>
+                    <Select
+                      value={newCurso.instrumento}
+                      onValueChange={(value) => setNewCurso(prev => ({ ...prev, instrumento: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Piano">Piano</SelectItem>
+                        <SelectItem value="Violão">Violão</SelectItem>
+                        <SelectItem value="Guitarra">Guitarra</SelectItem>
+                        <SelectItem value="Bateria">Bateria</SelectItem>
+                        <SelectItem value="Canto">Canto</SelectItem>
+                        <SelectItem value="Violino">Violino</SelectItem>
+                        <SelectItem value="Teoria Musical">Teoria Musical</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="nivel">Nível</Label>
+                    <Select
+                      value={newCurso.nivel}
+                      onValueChange={(value) => setNewCurso(prev => ({ ...prev, nivel: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="iniciante">Iniciante</SelectItem>
+                        <SelectItem value="intermediario">Intermediário</SelectItem>
+                        <SelectItem value="avancado">Avançado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="duracao">Duração</Label>
+                    <Input 
+                      id="duracao" 
+                      placeholder="Ex: 6 meses"
+                      value={newCurso.duracao}
+                      onChange={(e) => setNewCurso(prev => ({ ...prev, duracao: e.target.value }))}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="carga">Carga Horária</Label>
+                    <Input 
+                      id="carga" 
+                      placeholder="Ex: 2h/semana"
+                      value={newCurso.carga_horaria}
+                      onChange={(e) => setNewCurso(prev => ({ ...prev, carga_horaria: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="valor">Valor Mensal (R$)</Label>
+                  <Input 
+                    id="valor" 
+                    type="number" 
+                    placeholder="0,00"
+                    value={newCurso.valor_mensal}
+                    onChange={(e) => setNewCurso(prev => ({ ...prev, valor_mensal: e.target.value }))}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="descricao">Descrição</Label>
+                  <Textarea 
+                    id="descricao" 
+                    placeholder="Descreva o conteúdo programático..."
+                    value={newCurso.descricao}
+                    onChange={(e) => setNewCurso(prev => ({ ...prev, descricao: e.target.value }))}
+                  />
+                </div>
+                <Button 
+                  className="w-full mt-2" 
+                  onClick={handleCreateCurso}
+                  disabled={createCursoMutation.isPending}
+                >
+                  {createCursoMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  Criar Curso
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Stats */}
@@ -302,10 +372,11 @@ export default function Cursos() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button variant="outline" className="gap-2">
-          <Filter className="w-4 h-4" />
-          Filtros
-        </Button>
+        <FilterPopover 
+          filters={filterOptions} 
+          values={filterValues} 
+          onChange={setFilterValues} 
+        />
       </div>
 
       {/* Courses Grid */}

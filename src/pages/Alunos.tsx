@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { 
   Search, 
   Plus, 
-  Filter, 
   Download,
   MoreVertical,
   Phone,
@@ -14,7 +13,9 @@ import {
   Edit,
   Trash2,
   Loader2,
-  GraduationCap
+  GraduationCap,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,16 +43,47 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { useAlunos, useCreateAluno, useUpdateAluno, useDeleteAluno, type NovoAluno } from "@/hooks/useAlunos";
 import { toast } from "@/hooks/use-toast";
 import { EnrollmentDialog } from "@/components/alunos/EnrollmentDialog";
 import { StudentEnrollments } from "@/components/alunos/StudentEnrollments";
+import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
+import { exportAlunos } from "@/lib/csv-export";
+
+const filterOptions: FilterOption[] = [
+  {
+    id: "status",
+    label: "Status",
+    type: "select",
+    options: [
+      { value: "ativo", label: "Ativo" },
+      { value: "inativo", label: "Inativo" },
+    ],
+  },
+  {
+    id: "nivel",
+    label: "Nível",
+    type: "select",
+    options: [
+      { value: "iniciante", label: "Iniciante" },
+      { value: "intermediario", label: "Intermediário" },
+      { value: "avancado", label: "Avançado" },
+    ],
+  },
+];
 
 export default function Alunos() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAluno, setEditingAluno] = useState<string | null>(null);
   const [enrollmentAluno, setEnrollmentAluno] = useState<{ id: string; nome: string } | null>(null);
+  const [filterValues, setFilterValues] = useState<FilterValues>({});
+  const [expandedAluno, setExpandedAluno] = useState<string | null>(null);
   const [newAluno, setNewAluno] = useState<NovoAluno>({
     nome: "",
     email: "",
@@ -70,10 +102,17 @@ export default function Alunos() {
   const updateAlunoMutation = useUpdateAluno();
   const deleteAlunoMutation = useDeleteAluno();
 
-  const filteredAlunos = alunos?.filter(aluno =>
-    aluno.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (aluno.email?.toLowerCase().includes(searchQuery.toLowerCase()))
-  ) || [];
+  const filteredAlunos = alunos?.filter(aluno => {
+    // Text search
+    const matchesSearch = aluno.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (aluno.email?.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    // Filters
+    if (filterValues.status && aluno.status !== filterValues.status) return false;
+    if (filterValues.nivel && aluno.nivel !== filterValues.nivel) return false;
+    
+    return matchesSearch;
+  }) || [];
 
   const totalAlunos = alunos?.length || 0;
   const alunosAtivos = alunos?.filter(a => a.status === "ativo").length || 0;
@@ -143,6 +182,22 @@ export default function Alunos() {
       observacoes: aluno.observacoes || "",
     });
     setIsDialogOpen(true);
+  };
+
+  const handleExport = () => {
+    if (!filteredAlunos || filteredAlunos.length === 0) {
+      toast({
+        title: "Nenhum dado para exportar",
+        description: "Adicione alunos antes de exportar",
+        variant: "destructive",
+      });
+      return;
+    }
+    exportAlunos(filteredAlunos);
+    toast({
+      title: "Exportação concluída",
+      description: `${filteredAlunos.length} alunos exportados`,
+    });
   };
 
   const getInitials = (name: string) => {
@@ -360,11 +415,12 @@ export default function Alunos() {
                 />
               </div>
               <div className="flex gap-2">
-                <Button variant="outline">
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filtros
-                </Button>
-                <Button variant="outline">
+                <FilterPopover 
+                  filters={filterOptions} 
+                  values={filterValues} 
+                  onChange={setFilterValues} 
+                />
+                <Button variant="outline" onClick={handleExport}>
                   <Download className="w-4 h-4 mr-2" />
                   Exportar
                 </Button>
@@ -405,96 +461,131 @@ export default function Alunos() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.05 * index }}
             >
-              <Card variant="interactive">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    {/* Avatar */}
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-semibold">
-                      {getInitials(aluno.nome)}
-                    </div>
-
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold truncate">{aluno.nome}</h3>
-                        <Badge variant={aluno.status === "ativo" ? "success" : "outline"}>
-                          {aluno.status}
-                        </Badge>
+              <Collapsible
+                open={expandedAluno === aluno.id}
+                onOpenChange={(open) => setExpandedAluno(open ? aluno.id : null)}
+              >
+                <Card variant="interactive">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-4">
+                      {/* Avatar */}
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-semibold">
+                        {getInitials(aluno.nome)}
                       </div>
-                      <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Music className="w-3 h-3" />
-                          {aluno.nivel || "Iniciante"}
-                        </span>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold truncate">{aluno.nome}</h3>
+                          <Badge variant={aluno.status === "ativo" ? "success" : "outline"}>
+                            {aluno.status}
+                          </Badge>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Music className="w-3 h-3" />
+                            {aluno.nivel || "Iniciante"}
+                          </span>
+                          {aluno.email && (
+                            <>
+                              <span>•</span>
+                              <span className="truncate">{aluno.email}</span>
+                            </>
+                          )}
+                          {aluno.data_matricula && (
+                            <>
+                              <span className="hidden sm:inline">•</span>
+                              <span className="hidden sm:flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                Desde {new Date(aluno.data_matricula).toLocaleDateString("pt-BR")}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Contact */}
+                      <div className="hidden md:flex items-center gap-4">
+                        {aluno.telefone && (
+                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+                            <Phone className="w-4 h-4" />
+                          </Button>
+                        )}
                         {aluno.email && (
-                          <>
-                            <span>•</span>
-                            <span className="truncate">{aluno.email}</span>
-                          </>
-                        )}
-                        {aluno.data_matricula && (
-                          <>
-                            <span className="hidden sm:inline">•</span>
-                            <span className="hidden sm:flex items-center gap-1">
-                              <Calendar className="w-3 h-3" />
-                              Desde {new Date(aluno.data_matricula).toLocaleDateString("pt-BR")}
-                            </span>
-                          </>
+                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+                            <Mail className="w-4 h-4" />
+                          </Button>
                         )}
                       </div>
-                    </div>
 
-                    {/* Contact */}
-                    <div className="hidden md:flex items-center gap-4">
-                      {aluno.telefone && (
-                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                          <Phone className="w-4 h-4" />
+                      {/* Expand Enrollments */}
+                      <CollapsibleTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-muted-foreground">
+                          {expandedAluno === aluno.id ? (
+                            <ChevronUp className="w-4 h-4" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4" />
+                          )}
                         </Button>
-                      )}
-                      {aluno.email && (
-                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                          <Mail className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
+                      </CollapsibleTrigger>
 
-                    {/* Actions */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <Eye className="w-4 h-4 mr-2" />
-                          Ver Perfil
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setEnrollmentAluno({ id: aluno.id, nome: aluno.nome })}>
-                          <GraduationCap className="w-4 h-4 mr-2" />
-                          Matricular em Curso
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEdit(aluno)}>
-                          <Edit className="w-4 h-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Calendar className="w-4 h-4 mr-2" />
-                          Agendar Aula
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          className="text-destructive"
-                          onClick={() => deleteAlunoMutation.mutate(aluno.id)}
-                          disabled={deleteAlunoMutation.isPending}
+                      {/* Actions */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>
+                            <Eye className="w-4 h-4 mr-2" />
+                            Ver Perfil
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setEnrollmentAluno({ id: aluno.id, nome: aluno.nome })}>
+                            <GraduationCap className="w-4 h-4 mr-2" />
+                            Matricular em Curso
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEdit(aluno)}>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Calendar className="w-4 h-4 mr-2" />
+                            Agendar Aula
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="text-destructive"
+                            onClick={() => deleteAlunoMutation.mutate(aluno.id)}
+                            disabled={deleteAlunoMutation.isPending}
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                    
+                    {/* Enrollments Section */}
+                    <CollapsibleContent className="mt-4 pt-4 border-t border-border">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-medium flex items-center gap-2">
+                          <GraduationCap className="w-4 h-4 text-primary" />
+                          Matrículas
+                        </h4>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setEnrollmentAluno({ id: aluno.id, nome: aluno.nome })}
                         >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </CardContent>
-              </Card>
+                          <Plus className="w-3 h-3 mr-1" />
+                          Nova Matrícula
+                        </Button>
+                      </div>
+                      <StudentEnrollments alunoId={aluno.id} />
+                    </CollapsibleContent>
+                  </CardContent>
+                </Card>
+              </Collapsible>
             </motion.div>
           ))
         )}

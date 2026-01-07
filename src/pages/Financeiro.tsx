@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { 
   DollarSign, 
@@ -8,11 +8,9 @@ import {
   CheckCircle2,
   Clock,
   Download,
-  Filter,
   Plus,
   Loader2,
   Trash2,
-  Edit
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,9 +35,47 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { usePagamentos, useCreatePagamento, useDeletePagamento, type NovoPagamento } from "@/hooks/usePagamentos";
 import { useAlunos } from "@/hooks/useAlunos";
 import { toast } from "@/hooks/use-toast";
+import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
+import { exportPagamentos } from "@/lib/csv-export";
+
+const filterOptions: FilterOption[] = [
+  {
+    id: "status",
+    label: "Status",
+    type: "select",
+    options: [
+      { value: "pago", label: "Pago" },
+      { value: "pendente", label: "Pendente" },
+      { value: "atrasado", label: "Atrasado" },
+    ],
+  },
+  {
+    id: "tipo",
+    label: "Tipo",
+    type: "select",
+    options: [
+      { value: "mensalidade", label: "Mensalidade" },
+      { value: "matricula", label: "Matrícula" },
+      { value: "material", label: "Material" },
+      { value: "outro", label: "Outro" },
+    ],
+  },
+  {
+    id: "metodo",
+    label: "Método",
+    type: "select",
+    options: [
+      { value: "pix", label: "PIX" },
+      { value: "cartao", label: "Cartão" },
+      { value: "boleto", label: "Boleto" },
+      { value: "dinheiro", label: "Dinheiro" },
+    ],
+  },
+];
 
 export default function Financeiro() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [filterValues, setFilterValues] = useState<FilterValues>({});
   const [newPagamento, setNewPagamento] = useState<NovoPagamento>({
     aluno_id: "",
     valor: 0,
@@ -54,6 +90,17 @@ export default function Financeiro() {
   const { data: alunos } = useAlunos();
   const createPagamentoMutation = useCreatePagamento();
   const deletePagamentoMutation = useDeletePagamento();
+
+  // Apply filters
+  const filteredPagamentos = useMemo(() => {
+    if (!pagamentos) return [];
+    return pagamentos.filter(p => {
+      if (filterValues.status && p.status !== filterValues.status) return false;
+      if (filterValues.tipo && p.tipo !== filterValues.tipo) return false;
+      if (filterValues.metodo && p.metodo_pagamento !== filterValues.metodo) return false;
+      return true;
+    });
+  }, [pagamentos, filterValues]);
 
   // Calculate stats
   const totalRecebido = pagamentos?.filter(p => p.status === "pago").reduce((acc, p) => acc + Number(p.valor), 0) || 0;
@@ -91,7 +138,7 @@ export default function Financeiro() {
     { name: "Atrasados", value: Math.round((atrasados / total) * 100), color: "hsl(0, 84%, 60%)" },
   ];
 
-  const recentPayments = pagamentos?.slice(0, 5) || [];
+  const recentPayments = filteredPagamentos?.slice(0, 10) || [];
 
   const getAlunoName = (alunoId: string | null) => {
     if (!alunoId) return "Sem aluno";
@@ -128,6 +175,28 @@ export default function Financeiro() {
     });
   };
 
+  const handleExport = () => {
+    if (!filteredPagamentos || filteredPagamentos.length === 0) {
+      toast({
+        title: "Nenhum dado para exportar",
+        description: "Adicione pagamentos antes de exportar",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const exportData = filteredPagamentos.map(p => ({
+      ...p,
+      aluno_nome: getAlunoName(p.aluno_id),
+    }));
+    
+    exportPagamentos(exportData);
+    toast({
+      title: "Exportação concluída",
+      description: `${filteredPagamentos.length} pagamentos exportados`,
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -151,9 +220,9 @@ export default function Financeiro() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleExport}>
             <Download className="w-4 h-4 mr-2" />
-            Relatório
+            Exportar
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -493,10 +562,11 @@ export default function Financeiro() {
         <Card variant="glass">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">Últimos Pagamentos</CardTitle>
-            <Button variant="outline" size="sm">
-              <Filter className="w-4 h-4 mr-2" />
-              Filtrar
-            </Button>
+            <FilterPopover 
+              filters={filterOptions} 
+              values={filterValues} 
+              onChange={setFilterValues} 
+            />
           </CardHeader>
           <CardContent>
             {recentPayments.length === 0 ? (
