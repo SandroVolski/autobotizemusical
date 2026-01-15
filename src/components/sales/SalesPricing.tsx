@@ -66,32 +66,33 @@ export const SalesPricing = () => {
   const cardsRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
-    // Header animation - toggleActions para manter visível
+    // Header animation - rápida
     gsap.from(headerRef.current, {
       opacity: 0,
-      y: 40,
-      duration: 0.8,
-      ease: "power3.out",
+      y: 20,
+      duration: 0.4,
+      ease: "power2.out",
       scrollTrigger: {
         trigger: headerRef.current,
-        start: "top 85%",
+        start: "top 90%",
         toggleActions: "play none none none",
       },
     });
 
-    // Cards scale up animation - toggleActions para manter visível
+    // Cards animation - mais rápida
     const cards = cardsRef.current?.querySelectorAll(".pricing-card");
-    if (cards) {
+    if (cards && cards.length > 0) {
+      gsap.set(cards, { opacity: 1, y: 0, scale: 1 }); // Estado inicial garantido
       gsap.from(cards, {
         opacity: 0,
-        y: 60,
-        scale: 0.9,
-        stagger: 0.15,
-        duration: 0.7,
-        ease: "power3.out",
+        y: 40,
+        scale: 0.95,
+        stagger: 0.1,
+        duration: 0.4,
+        ease: "power2.out",
         scrollTrigger: {
           trigger: cardsRef.current,
-          start: "top 85%",
+          start: "top 90%",
           toggleActions: "play none none none",
         },
       });

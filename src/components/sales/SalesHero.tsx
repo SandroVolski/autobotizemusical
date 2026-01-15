@@ -20,35 +20,35 @@ export const SalesHero = () => {
   useGSAP(() => {
     const tl = gsap.timeline();
 
-    // Initial animations - faster durations
+    // Initial animations - muito mais rápidas
     tl.from(headingRef.current, {
       opacity: 0,
-      y: 60,
-      duration: 0.8,
-      ease: "power3.out",
+      y: 40,
+      duration: 0.5,
+      ease: "power2.out",
     })
     .from(subRef.current, {
       opacity: 0,
-      y: 30,
-      duration: 0.6,
-      ease: "power3.out",
-    }, "-=0.4")
+      y: 20,
+      duration: 0.4,
+      ease: "power2.out",
+    }, "-=0.3")
     .from(ctaRef.current, {
       opacity: 0,
-      scale: 0.9,
-      duration: 0.5,
-      ease: "back.out(1.7)",
-    }, "-=0.3")
+      scale: 0.95,
+      duration: 0.3,
+      ease: "power2.out",
+    }, "-=0.2")
     .from(statsRef.current, {
       opacity: 0,
-      y: 20,
-      duration: 0.5,
-      ease: "power3.out",
-    }, "-=0.2");
+      y: 15,
+      duration: 0.3,
+      ease: "power2.out",
+    }, "-=0.1");
 
-    // Parallax effect on scroll - only background moves
+    // Parallax effect apenas no background
     gsap.to(bgRef.current, {
-      yPercent: 30,
+      yPercent: 20,
       ease: "none",
       scrollTrigger: {
         trigger: containerRef.current,
