@@ -14,51 +14,45 @@ export const SalesHero = () => {
   const subRef = useRef<HTMLParagraphElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   useGSAP(() => {
     const tl = gsap.timeline();
 
-    // Initial animations
+    // Initial animations - faster durations
     tl.from(headingRef.current, {
       opacity: 0,
-      y: 100,
-      duration: 1.2,
-      ease: "power4.out",
+      y: 60,
+      duration: 0.8,
+      ease: "power3.out",
     })
     .from(subRef.current, {
       opacity: 0,
-      y: 50,
-      duration: 1,
+      y: 30,
+      duration: 0.6,
       ease: "power3.out",
-    }, "-=0.5")
+    }, "-=0.4")
     .from(ctaRef.current, {
       opacity: 0,
-      scale: 0.8,
-      duration: 0.8,
+      scale: 0.9,
+      duration: 0.5,
       ease: "back.out(1.7)",
-    }, "-=0.3");
+    }, "-=0.3")
+    .from(statsRef.current, {
+      opacity: 0,
+      y: 20,
+      duration: 0.5,
+      ease: "power3.out",
+    }, "-=0.2");
 
-    // Parallax effect on scroll
+    // Parallax effect on scroll - only background moves
     gsap.to(bgRef.current, {
-      yPercent: 50,
+      yPercent: 30,
       ease: "none",
       scrollTrigger: {
         trigger: containerRef.current,
         start: "top top",
-        end: "bottom top",
-        scrub: true,
-      },
-    });
-
-    // Zoom out effect on scroll
-    gsap.to(headingRef.current, {
-      scale: 0.8,
-      opacity: 0,
-      filter: "blur(10px)",
-      scrollTrigger: {
-        trigger: containerRef.current,
-        start: "center center",
         end: "bottom top",
         scrub: true,
       },
@@ -134,12 +128,12 @@ export const SalesHero = () => {
         </div>
 
         {/* Stats */}
-        <div className="mt-20 grid grid-cols-3 gap-8 max-w-2xl mx-auto">
+        <div ref={statsRef} className="mt-20 grid grid-cols-3 gap-8 max-w-2xl mx-auto">
           {[
             { value: "500+", label: "Escolas" },
             { value: "25k+", label: "Alunos" },
             { value: "98%", label: "Satisfação" },
-          ].map((stat, index) => (
+          ].map((stat) => (
             <div key={stat.label} className="text-center">
               <div className="text-3xl md:text-4xl font-bold text-primary mb-1">
                 {stat.value}

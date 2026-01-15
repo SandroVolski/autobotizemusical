@@ -2,7 +2,8 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import { Quote, Star } from "lucide-react";
+import { Quote, Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState } from "react";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -28,48 +29,77 @@ const testimonials = [
     avatar: "AO",
     rating: 5,
   },
+  {
+    quote: "Minha escola cresceu 150% em um ano usando o Autobotize. Os relatórios de IA me ajudam a tomar decisões estratégicas que antes eram impossíveis sem dados concretos.",
+    author: "Roberto Lima",
+    role: "Proprietário, Academia de Música RL",
+    avatar: "RL",
+    rating: 5,
+  },
+  {
+    quote: "Os pais dos alunos adoram o portal! Eles acompanham o progresso, veem as aulas e pagam tudo pelo celular. A satisfação dos clientes aumentou drasticamente.",
+    author: "Fernanda Costa",
+    role: "Coordenadora Pedagógica",
+    avatar: "FC",
+    rating: 5,
+  },
 ];
 
 export const SalesTestimonials = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
-  const cardsRef = useRef<HTMLDivElement>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useGSAP(() => {
     // Header animation
     gsap.from(headerRef.current, {
       opacity: 0,
-      y: 60,
-      filter: "blur(15px)",
+      y: 40,
+      duration: 0.8,
+      ease: "power3.out",
       scrollTrigger: {
         trigger: headerRef.current,
-        start: "top 80%",
-        end: "top 50%",
-        scrub: 1,
+        start: "top 85%",
+        toggleActions: "play none none none",
       },
     });
 
-    // Cards horizontal reveal
-    const cards = cardsRef.current?.querySelectorAll(".testimonial-card");
-    if (cards) {
-      cards.forEach((card, index) => {
-        const direction = index === 0 ? -1 : index === 2 ? 1 : 0;
-        gsap.from(card, {
-          opacity: 0,
-          x: direction * 100,
-          y: direction === 0 ? 50 : 0,
-          scale: 0.9,
-          filter: "blur(10px)",
-          scrollTrigger: {
-            trigger: cardsRef.current,
-            start: "top 75%",
-            end: "top 40%",
-            scrub: 1,
-          },
-        });
-      });
-    }
+    // Horizontal slider animation
+    gsap.from(sliderRef.current, {
+      x: 200,
+      opacity: 0,
+      duration: 1,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: sliderRef.current,
+        start: "top 80%",
+        toggleActions: "play none none none",
+      },
+    });
   }, { scope: containerRef });
+
+  const scrollToIndex = (index: number) => {
+    if (sliderRef.current) {
+      const cardWidth = sliderRef.current.scrollWidth / testimonials.length;
+      gsap.to(sliderRef.current, {
+        scrollLeft: cardWidth * index,
+        duration: 0.5,
+        ease: "power3.out",
+      });
+      setCurrentIndex(index);
+    }
+  };
+
+  const handlePrev = () => {
+    const newIndex = currentIndex > 0 ? currentIndex - 1 : testimonials.length - 1;
+    scrollToIndex(newIndex);
+  };
+
+  const handleNext = () => {
+    const newIndex = currentIndex < testimonials.length - 1 ? currentIndex + 1 : 0;
+    scrollToIndex(newIndex);
+  };
 
   return (
     <section 
@@ -95,17 +125,39 @@ export const SalesTestimonials = () => {
               dizem
             </span>
           </h2>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Mais de 500 escolas de música confiam no Autobotize
+          </p>
         </div>
 
-        {/* Testimonials Grid */}
+        {/* Navigation Buttons */}
+        <div className="flex justify-center gap-4 mb-8">
+          <button
+            onClick={handlePrev}
+            className="p-3 rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+            aria-label="Anterior"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          <button
+            onClick={handleNext}
+            className="p-3 rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+            aria-label="Próximo"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Horizontal Slider */}
         <div 
-          ref={cardsRef}
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto"
+          ref={sliderRef}
+          className="flex gap-6 overflow-x-auto pb-8 snap-x snap-mandatory scrollbar-hide"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {testimonials.map((testimonial, index) => (
             <div
               key={testimonial.author}
-              className="testimonial-card relative p-8 rounded-3xl bg-card/80 backdrop-blur-sm border border-primary/10 hover:border-primary/30 transition-all duration-500 group"
+              className="testimonial-card flex-shrink-0 w-[350px] md:w-[400px] snap-center relative p-8 rounded-3xl bg-card/80 backdrop-blur-sm border border-primary/10 hover:border-primary/30 transition-all duration-500 group hover:scale-105"
             >
               {/* Quote icon */}
               <Quote className="w-12 h-12 text-primary/20 mb-6 group-hover:text-primary/40 transition-colors" />
@@ -118,7 +170,7 @@ export const SalesTestimonials = () => {
               </div>
 
               {/* Quote */}
-              <p className="text-foreground leading-relaxed mb-8">
+              <p className="text-foreground leading-relaxed mb-8 line-clamp-5">
                 "{testimonial.quote}"
               </p>
 
@@ -138,6 +190,22 @@ export const SalesTestimonials = () => {
               {/* Decorative gradient */}
               <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
             </div>
+          ))}
+        </div>
+
+        {/* Pagination dots */}
+        <div className="flex justify-center gap-2 mt-6">
+          {testimonials.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => scrollToIndex(index)}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                index === currentIndex 
+                  ? "bg-primary w-8" 
+                  : "bg-primary/30 hover:bg-primary/50"
+              }`}
+              aria-label={`Ir para depoimento ${index + 1}`}
+            />
           ))}
         </div>
       </div>

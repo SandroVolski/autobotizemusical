@@ -51,35 +51,34 @@ export const SalesProblem = () => {
   const cardsRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
-    // Heading reveal with blur
+    // Heading animation - usando toggleActions para manter visível
     gsap.from(headingRef.current, {
       opacity: 0,
-      y: 100,
-      filter: "blur(20px)",
-      duration: 1.2,
+      y: 50,
+      filter: "blur(10px)",
+      duration: 0.8,
+      ease: "power3.out",
       scrollTrigger: {
         trigger: headingRef.current,
-        start: "top 80%",
-        end: "top 50%",
-        scrub: 1,
+        start: "top 85%",
+        toggleActions: "play none none none",
       },
     });
 
-    // Cards stagger animation
+    // Cards stagger animation - usando toggleActions
     const cards = cardsRef.current?.querySelectorAll(".problem-card");
     if (cards) {
       gsap.from(cards, {
         opacity: 0,
-        y: 80,
-        scale: 0.9,
-        filter: "blur(10px)",
-        stagger: 0.15,
-        duration: 1,
+        y: 40,
+        scale: 0.95,
+        stagger: 0.1,
+        duration: 0.6,
+        ease: "power3.out",
         scrollTrigger: {
           trigger: cardsRef.current,
-          start: "top 70%",
-          end: "center center",
-          scrub: 1,
+          start: "top 80%",
+          toggleActions: "play none none none",
         },
       });
     }
@@ -128,7 +127,7 @@ export const SalesProblem = () => {
           ref={cardsRef}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto"
         >
-          {problems.map((problem, index) => (
+          {problems.map((problem) => (
             <div
               key={problem.title}
               className="problem-card group p-6 rounded-2xl bg-card/50 border border-destructive/10 hover:border-destructive/30 transition-all duration-500 hover:shadow-lg hover:shadow-destructive/5"
