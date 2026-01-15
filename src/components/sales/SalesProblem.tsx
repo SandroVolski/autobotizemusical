@@ -51,49 +51,36 @@ export const SalesProblem = () => {
   const cardsRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
-    // Heading animation - usando toggleActions para manter visível
+    // Heading animation - rápida
     gsap.from(headingRef.current, {
       opacity: 0,
-      y: 50,
-      filter: "blur(10px)",
-      duration: 0.8,
-      ease: "power3.out",
+      y: 30,
+      duration: 0.5,
+      ease: "power2.out",
       scrollTrigger: {
         trigger: headingRef.current,
-        start: "top 85%",
+        start: "top 90%",
         toggleActions: "play none none none",
       },
     });
 
-    // Cards stagger animation - usando toggleActions
+    // Cards stagger animation - mais rápida
     const cards = cardsRef.current?.querySelectorAll(".problem-card");
-    if (cards) {
+    if (cards && cards.length > 0) {
+      gsap.set(cards, { opacity: 1, y: 0 }); // Garantir estado inicial
       gsap.from(cards, {
         opacity: 0,
-        y: 40,
-        scale: 0.95,
-        stagger: 0.1,
-        duration: 0.6,
-        ease: "power3.out",
+        y: 30,
+        stagger: 0.08,
+        duration: 0.4,
+        ease: "power2.out",
         scrollTrigger: {
           trigger: cardsRef.current,
-          start: "top 80%",
+          start: "top 90%",
           toggleActions: "play none none none",
         },
       });
     }
-
-    // Parallax background
-    gsap.to(".problem-bg", {
-      yPercent: -20,
-      ease: "none",
-      scrollTrigger: {
-        trigger: containerRef.current,
-        start: "top bottom",
-        end: "bottom top",
-        scrub: true,
-      },
-    });
   }, { scope: containerRef });
 
   return (

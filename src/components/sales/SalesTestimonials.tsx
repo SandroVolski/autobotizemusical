@@ -52,31 +52,36 @@ export const SalesTestimonials = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useGSAP(() => {
-    // Header animation
+    // Header animation - rápida
     gsap.from(headerRef.current, {
       opacity: 0,
-      y: 40,
-      duration: 0.8,
-      ease: "power3.out",
+      y: 20,
+      duration: 0.4,
+      ease: "power2.out",
       scrollTrigger: {
         trigger: headerRef.current,
-        start: "top 85%",
+        start: "top 90%",
         toggleActions: "play none none none",
       },
     });
 
-    // Horizontal slider animation
-    gsap.from(sliderRef.current, {
-      x: 200,
-      opacity: 0,
-      duration: 1,
-      ease: "power3.out",
-      scrollTrigger: {
-        trigger: sliderRef.current,
-        start: "top 80%",
-        toggleActions: "play none none none",
-      },
-    });
+    // Cards horizontal scroll animation
+    const cards = sliderRef.current?.querySelectorAll(".testimonial-card");
+    if (cards && cards.length > 0) {
+      gsap.set(cards, { opacity: 1, x: 0 }); // Estado inicial
+      gsap.from(cards, {
+        opacity: 0,
+        x: 100,
+        stagger: 0.1,
+        duration: 0.5,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: sliderRef.current,
+          start: "top 85%",
+          toggleActions: "play none none none",
+        },
+      });
+    }
   }, { scope: containerRef });
 
   const scrollToIndex = (index: number) => {
