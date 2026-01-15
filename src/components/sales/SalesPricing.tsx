@@ -66,33 +66,33 @@ export const SalesPricing = () => {
   const cardsRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
-    // Header animation
+    // Header animation - toggleActions para manter visível
     gsap.from(headerRef.current, {
       opacity: 0,
-      y: 80,
-      filter: "blur(20px)",
+      y: 40,
+      duration: 0.8,
+      ease: "power3.out",
       scrollTrigger: {
         trigger: headerRef.current,
-        start: "top 80%",
-        end: "top 50%",
-        scrub: 1,
+        start: "top 85%",
+        toggleActions: "play none none none",
       },
     });
 
-    // Cards scale up animation
+    // Cards scale up animation - toggleActions para manter visível
     const cards = cardsRef.current?.querySelectorAll(".pricing-card");
     if (cards) {
       gsap.from(cards, {
         opacity: 0,
-        y: 100,
-        scale: 0.8,
-        filter: "blur(15px)",
+        y: 60,
+        scale: 0.9,
         stagger: 0.15,
+        duration: 0.7,
+        ease: "power3.out",
         scrollTrigger: {
           trigger: cardsRef.current,
-          start: "top 75%",
-          end: "top 40%",
-          scrub: 1,
+          start: "top 85%",
+          toggleActions: "play none none none",
         },
       });
     }
@@ -131,12 +131,12 @@ export const SalesPricing = () => {
           ref={cardsRef}
           className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto"
         >
-          {plans.map((plan, index) => (
+          {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`pricing-card relative p-8 rounded-3xl transition-all duration-500 ${
+              className={`pricing-card relative p-8 rounded-3xl transition-all duration-500 hover:scale-105 ${
                 plan.popular
-                  ? "bg-gradient-to-b from-primary/20 via-card to-card border-2 border-primary shadow-2xl shadow-primary/20 scale-105"
+                  ? "bg-gradient-to-b from-primary/20 via-card to-card border-2 border-primary shadow-2xl shadow-primary/20 md:scale-105"
                   : "bg-card/80 border border-border hover:border-primary/30"
               }`}
             >
