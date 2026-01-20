@@ -7,7 +7,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 const originalText =
   "Ferramentas poderosas projetadas especificamente para escolas de música, integrando gestão, pedagogia e tecnologia.";
-const highlightPhrases = ["ferramentas", "poderosas", "escolas de", "música", "tecnologia"];
+const highlightPhrases = ["ferramentas", "poderosas", "escolas", "de", "música", "tecnologia"];
 
 export const ScrollRevealText = () => {
   const containerRef = useRef<HTMLDivElement>(null);
