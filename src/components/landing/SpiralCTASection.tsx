@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Zap } from "lucide-react";
-import spiralImage from "@/assets/espiral.webp";
+import spiralImage from "@/assets/espiral.gif";
 
 export const SpiralCTASection = () => {
   const [libsLoaded, setLibsLoaded] = useState(false);
