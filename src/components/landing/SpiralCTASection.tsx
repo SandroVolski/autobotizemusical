@@ -84,9 +84,9 @@ export const SpiralCTASection = () => {
   }, [libsLoaded]);
 
   return (
-    <div ref={containerRef} className="relative bg-zinc-950">
+    <div ref={containerRef} className="relative bg-black">
       {/* Seção 1: CTASection */}
-      <section className="relative py-32 sm:py-40 bg-zinc-950 overflow-hidden">
+      <section className="relative py-32 sm:py-40 bg-black overflow-hidden">
         {/* Fade Superior */}
         <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-background via-background/80 to-transparent z-10 pointer-events-none" />
 
@@ -98,7 +98,7 @@ export const SpiralCTASection = () => {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.6)_100%)] pointer-events-none" />
 
         {/* Fade Inferior */}
-        <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-zinc-950 to-transparent z-10 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none" />
 
         <div className="container mx-auto px-4 relative z-20">
           <div ref={ctaContentRef} className="text-center max-w-4xl mx-auto space-y-8">
@@ -158,6 +158,9 @@ export const SpiralCTASection = () => {
             }}
           />
         </div>
+
+        {/* Vinheta profunda focada no centro */}
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_20%,rgba(0,0,0,0.7)_70%,rgba(0,0,0,1)_100%)]" />
       </div>
 
       <style dangerouslySetInnerHTML={{
