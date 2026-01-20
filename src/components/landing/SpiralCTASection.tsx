@@ -86,24 +86,27 @@ export const SpiralCTASection = () => {
   return (
     <div ref={containerRef} className="relative bg-black">
       {/* Seção 1: CTASection */}
-      <section className="relative py-32 sm:py-40 bg-black overflow-hidden">
-        {/* Fade Superior */}
-        <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-background via-background/80 to-transparent z-10 pointer-events-none" />
-
-        {/* Efeitos de Fundo Misturados */}
+      <section className="relative min-h-screen bg-black overflow-hidden flex items-center justify-center">
+        {/* Efeitos de Fundo Misturados (Roxo e Verde) */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[radial-gradient(circle,rgba(128,0,255,0.08)_0%,transparent_70%)] blur-3xl opacity-50 animate-pulse" />
+          <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(128,0,255,0.12)_0%,transparent_60%)] blur-3xl" />
         </div>
 
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.6)_100%)] pointer-events-none" />
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/3 right-1/4 translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(0,208,132,0.08)_0%,transparent_60%)] blur-3xl" />
+        </div>
 
-        {/* Fade Inferior */}
-        <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.7)_100%)] pointer-events-none" />
+
+        {/* Fades de Vinheta (Topo e Base) */}
+        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
+
+        <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none" />
 
         <div className="container mx-auto px-4 relative z-20">
           <div ref={ctaContentRef} className="text-center max-w-4xl mx-auto space-y-8">
             {/* Tag Profissional: "3 dias grátis" com Shimmer e Glassmorphism */}
-            <div className="relative inline-flex justify-center group cursor-default">
+            <div className="relative inline-flex justify-center group cursor-default animate-fade-in-up">
               {/* Brilho externo sutil que aparece no hover */}
               <div className="absolute -inset-1.5 bg-gradient-to-r from-[#8B5CF6]/30 to-[#00D084]/30 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
@@ -127,7 +130,7 @@ export const SpiralCTASection = () => {
               </div>
             </div>
 
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight animate-fade-in-up delay-150">
               Pronto para transformar sua{" "}
               <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-[#8B5CF6] to-[#00D084]">
                 escola de música
@@ -137,7 +140,7 @@ export const SpiralCTASection = () => {
               ?
             </h2>
 
-            <p className="text-lg sm:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed font-light">
+            <p className="text-lg sm:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed font-light animate-fade-in-up delay-300">
               Junte-se a centenas de escolas que já automatizaram sua gestão e
               potencializaram o aprendizado dos alunos com nossa plataforma.
             </p>
@@ -170,6 +173,24 @@ export const SpiralCTASection = () => {
             50% { transform: translateX(100%); }
             100% { transform: translateX(100%); }
           }
+          
+          @keyframes fadeInUp {
+            from {
+              opacity: 0;
+              transform: translateY(20px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          
+          .animate-fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+          }
+          
+          .delay-150 { animation-delay: 0.15s; }
+          .delay-300 { animation-delay: 0.3s; }
         `
       }} />
     </div>
