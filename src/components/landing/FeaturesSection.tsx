@@ -1,4 +1,8 @@
 import { motion } from "framer-motion";
+import { useRef } from "react";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { 
   Users, 
   Calendar, 
@@ -10,6 +14,8 @@ import {
   Music2
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const features = [
   {
@@ -71,29 +77,62 @@ const features = [
 ];
 
 export const FeaturesSection = () => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const revealTextRef = useRef<HTMLDivElement>(null);
+  const maskRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    if (!revealTextRef.current || !maskRef.current) return;
+
+    // Scroll reveal effect - left to right
+    gsap.to(maskRef.current, {
+      width: "0%",
+      ease: "none",
+      scrollTrigger: {
+        trigger: revealTextRef.current,
+        start: "top 80%",
+        end: "top 30%",
+        scrub: 1,
+      },
+    });
+  }, { scope: sectionRef });
+
   return (
-    <section id="recursos" className="py-24 relative">
+    <section id="recursos" className="py-24 relative" ref={sectionRef}>
       <div className="container mx-auto px-4">
-        {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-16"
-        >
-          <span className="text-primary font-medium text-sm uppercase tracking-wider">
+        {/* Section Header with Scroll Reveal */}
+        <div className="text-center mb-16">
+          <motion.span
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-primary font-medium text-sm uppercase tracking-wider"
+          >
             Recursos
-          </span>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mt-4 mb-6">
-            Tudo que você precisa em{" "}
-            <span className="gradient-text">um só lugar</span>
-          </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Ferramentas poderosas projetadas especificamente para escolas de música,
-            integrando gestão, pedagogia e tecnologia.
-          </p>
-        </motion.div>
+          </motion.span>
+          
+          {/* Scroll Reveal Container */}
+          <div ref={revealTextRef} className="relative mt-4 mb-6 overflow-hidden">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold">
+              Tudo o que precisa em{" "}
+              <span className="gradient-text">um só lugar</span>
+            </h2>
+            {/* Mask overlay that shrinks from right to left */}
+            <div 
+              ref={maskRef}
+              className="absolute top-0 right-0 h-full w-full bg-background pointer-events-none"
+              style={{ width: "100%" }}
+            />
+          </div>
+          
+          <div className="relative overflow-hidden">
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Ferramentas poderosas projetadas especificamente para escolas de música,
+              integrando gestão, pedagogia e tecnologia.
+            </p>
+          </div>
+        </div>
 
         {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
