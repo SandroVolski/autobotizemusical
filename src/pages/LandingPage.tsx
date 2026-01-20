@@ -6,7 +6,6 @@ import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import { Footer } from "@/components/landing/Footer";
 import { FloatingElements } from "@/components/landing/FloatingElements";
-import { PricingCTASection } from "@/components/landing/PricingCTASection";
 
 const LandingPage = () => {
   return (
@@ -18,7 +17,6 @@ const LandingPage = () => {
       <StatsSection />
       <FeaturesSection />
       <TestimonialsSection />
-      <PricingCTASection />
       <Footer />
     </div>
   );
