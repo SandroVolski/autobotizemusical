@@ -158,9 +158,6 @@ export const SpiralCTASection = () => {
             }}
           />
         </div>
-
-        {/* Vinheta profunda focada no centro */}
-        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_20%,rgba(9,9,11,0.7)_70%,rgba(9,9,11,1)_100%)]" />
       </div>
 
       <style dangerouslySetInnerHTML={{
