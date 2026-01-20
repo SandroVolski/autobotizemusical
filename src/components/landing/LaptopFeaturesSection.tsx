@@ -138,110 +138,115 @@ export const LaptopFeaturesSection = () => {
   }, []);
 
   return (
-    <div ref={containerRef} className="relative h-screen overflow-hidden bg-zinc-950">
+    <div className="bg-zinc-950 text-white font-sans selection:bg-[#8000FF] selection:text-white antialiased overflow-x-hidden">
       
-      {/* Rótulo Superior Fixo */}
-      <div className="absolute top-0 left-0 w-full pt-[5vh] z-50 pointer-events-none flex justify-center">
-        <span className="text-primary font-black tracking-[0.6em] uppercase text-[10px] sm:text-[12px] opacity-90 block text-center bg-zinc-950/20 py-2 px-4 backdrop-blur-sm rounded-full">
-          Funcionalidades
-        </span>
-      </div>
+      {/* Contentor Pinned - pt-24 adicionado para compensar o header (aprox 96px) */}
+      <div ref={containerRef} className="relative h-screen overflow-hidden bg-zinc-950 pt-24 sm:pt-28">
+        
+        {/* Rótulo Superior Fixo - Ajustado para ficar logo abaixo do header do site */}
+        <div className="absolute top-0 left-0 w-full pt-[110px] z-50 pointer-events-none flex justify-center">
+          <span className="text-[#8000FF] font-black tracking-[0.6em] uppercase text-[9px] sm:text-[11px] opacity-90 block text-center bg-zinc-950/40 py-2 px-6 backdrop-blur-md rounded-full border border-white/5">
+            Funcionalidades
+          </span>
+        </div>
 
-      {/* Portátil Centralizado */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 px-4">
-        <div className="relative w-full max-w-[320px] sm:max-w-lg md:max-w-xl lg:max-w-2xl flex flex-col items-center" style={{ perspective: '2000px' }}>
-          
-          <div 
-            ref={lidRef}
-            className="relative w-full bg-gradient-to-b from-zinc-300 to-zinc-500 p-[2px] sm:p-[4px] rounded-t-xl sm:rounded-t-2xl shadow-[0_0_120px_rgba(128,0,255,0.08)] border border-white/5 will-change-transform z-10"
-            style={{ 
-              transformOrigin: 'bottom',
-              transform: 'rotateX(-95deg)',
-              backfaceVisibility: 'hidden'
-            }}
-          >
-            <div className="relative bg-[#050505] rounded-lg sm:rounded-xl overflow-hidden aspect-video border-[4px] sm:border-[8px] md:border-[12px] border-[#0a0a0a]">
-              {features.map((item, idx) => (
-                <div 
-                  key={idx}
-                  className={`absolute inset-0 transition-all duration-700 ease-in-out ${activeIndex === idx ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
-                >
-                  <img 
-                    src={item.img} 
-                    alt={item.title} 
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/30"></div>
-                </div>
-              ))}
-              <div className="absolute inset-0 bg-gradient-to-tr from-white/5 via-transparent to-white/5 pointer-events-none"></div>
+        {/* Portátil Centralizado - Escala levemente reduzida para caber no novo layout */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 px-4 mt-8">
+          <div className="relative w-full max-w-[280px] sm:max-w-md md:max-w-lg lg:max-w-xl flex flex-col items-center" style={{ perspective: '2000px' }}>
+            
+            <div 
+              ref={lidRef}
+              className="relative w-full bg-gradient-to-b from-zinc-300 to-zinc-500 p-[2px] sm:p-[3px] rounded-t-xl sm:rounded-t-2xl shadow-[0_0_120px_rgba(128,0,255,0.08)] border border-white/5 will-change-transform z-10"
+              style={{ 
+                transformOrigin: 'bottom',
+                transform: 'rotateX(-95deg)',
+                backfaceVisibility: 'hidden'
+              }}
+            >
+              <div className="relative bg-[#050505] rounded-lg sm:rounded-xl overflow-hidden aspect-video border-[4px] sm:border-[8px] md:border-[10px] border-[#0a0a0a]">
+                {features.map((item, idx) => (
+                  <div 
+                    key={idx}
+                    className={`absolute inset-0 transition-all duration-700 ease-in-out ${activeIndex === idx ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
+                  >
+                    <img 
+                      src={item.img} 
+                      alt={item.title} 
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/30"></div>
+                  </div>
+                ))}
+                <div className="absolute inset-0 bg-gradient-to-tr from-white/5 via-transparent to-white/5 pointer-events-none"></div>
+              </div>
+              <div className="absolute top-[4px] sm:top-[6px] left-1/2 -translate-x-1/2 w-1 sm:w-1.5 h-1 sm:h-1.5 bg-zinc-900 rounded-full border border-zinc-800"></div>
             </div>
-            <div className="absolute top-[4px] sm:top-[8px] left-1/2 -translate-x-1/2 w-1 sm:w-1.5 h-1 sm:h-1.5 bg-zinc-900 rounded-full border border-zinc-800"></div>
-          </div>
 
-          <div className="relative w-[112%] h-4 sm:h-8 -mt-[1px] z-0">
-            <div className="absolute inset-0 bg-gradient-to-b from-zinc-400 to-zinc-700 rounded-b-lg sm:rounded-b-3xl shadow-2xl border-t border-zinc-300/40">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-16 sm:w-32 h-1.5 sm:h-2.5 bg-zinc-800/20 rounded-b-md border-x border-b border-zinc-500/10"></div>
+            <div className="relative w-[112%] h-3 sm:h-6 -mt-[1px] z-0">
+              <div className="absolute inset-0 bg-gradient-to-b from-zinc-400 to-zinc-700 rounded-b-lg sm:rounded-b-2xl shadow-2xl border-t border-zinc-300/40">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-16 sm:w-28 h-1 sm:h-2 bg-zinc-800/20 rounded-b-md border-x border-b border-zinc-500/10"></div>
+              </div>
+              <div className="absolute -bottom-3 sm:-bottom-6 left-1/2 -translate-x-1/2 w-[96%] h-6 sm:h-10 bg-black/90 blur-xl sm:blur-3xl rounded-full opacity-70"></div>
             </div>
-            <div className="absolute -bottom-3 sm:-bottom-6 left-1/2 -translate-x-1/2 w-[96%] h-6 sm:h-10 bg-black/90 blur-xl sm:blur-3xl rounded-full opacity-70"></div>
           </div>
         </div>
-      </div>
 
-      {/* Indicadores Visuais de Progresso */}
-      <div className="absolute bottom-8 left-0 w-full z-40 pointer-events-none">
-        <div className="flex justify-center items-center gap-3">
-          {features.map((_, i) => (
+        {/* Indicadores Visuais de Progresso */}
+        <div className="absolute bottom-8 left-0 w-full z-40 pointer-events-none">
+          <div className="flex justify-center items-center gap-3">
+            {features.map((_, i) => (
+              <div 
+                key={i} 
+                className={`h-1.5 rounded-full transition-all duration-700 ${activeIndex === i ? 'w-16 bg-[#8000FF] shadow-[0_0_15px_rgba(128,0,255,0.4)]' : 'w-3 bg-zinc-800'}`}
+              ></div>
+            ))}
+          </div>
+        </div>
+
+        {/* Painéis Horizontais - h-full aqui respeita o pt-24 do pai */}
+        <div 
+          ref={horizontalRef} 
+          className="flex h-full will-change-transform relative z-20"
+          style={{ width: `${features.length * 100}vw` }}
+        >
+          {features.map((item, index) => (
             <div 
-              key={i} 
-              className={`h-1.5 rounded-full transition-all duration-700 ${activeIndex === i ? 'w-16 bg-primary shadow-[0_0_15px_rgba(128,0,255,0.4)]' : 'w-3 bg-zinc-800'}`}
-            ></div>
+              key={index} 
+              className="w-screen h-full flex flex-col items-center flex-shrink-0 relative overflow-hidden"
+            >
+              {/* Área do Título - Reduzida para h-[25vh] para dar ar ao header */}
+              <div className="h-[25vh] w-full flex flex-col items-center justify-center px-4">
+                <div className={`transition-all duration-1000 ease-out ${activeIndex === index ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-4 scale-95'}`}>
+                  <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black tracking-tighter uppercase italic leading-none drop-shadow-2xl text-center whitespace-nowrap bg-gradient-to-r from-[#8000FF] to-[#00D084] bg-clip-text text-transparent">
+                    {item.title}
+                  </h3>
+                </div>
+              </div>
+
+              {/* Espaço do Portátil - h-[45vh] centralizado */}
+              <div className="h-[45vh] w-full pointer-events-none"></div>
+
+              {/* Descrição Inferior - h-[30vh] */}
+              <div className="h-[30vh] w-full flex flex-col items-center justify-start pt-4 px-8">
+                <div className={`transition-all duration-1000 delay-200 ease-out ${activeIndex === index ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+                  <p className="text-zinc-400 text-xs sm:text-sm md:text-lg lg:text-xl leading-relaxed font-medium max-w-2xl text-center drop-shadow-lg px-4">
+                    {item.desc}
+                  </p>
+                </div>
+              </div>
+
+              {/* Texto de Fundo */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0">
+                <h4 
+                  className="text-[22vw] font-black uppercase leading-none transform -rotate-12 transition-all duration-1000 text-transparent opacity-60"
+                  style={{ WebkitTextStroke: '1px rgba(255, 255, 255, 0.05)' }}
+                >
+                  {item.bgText}
+                </h4>
+              </div>
+            </div>
           ))}
         </div>
-      </div>
-
-      {/* Painéis Horizontais */}
-      <div 
-        ref={horizontalRef} 
-        className="flex h-full will-change-transform relative z-20"
-        style={{ width: `${features.length * 100}vw` }}
-      >
-        {features.map((item, index) => (
-          <div 
-            key={index} 
-            className="w-screen h-full flex flex-col items-center flex-shrink-0 relative overflow-hidden"
-          >
-            {/* Área do Título */}
-            <div className="h-[30vh] w-full flex flex-col items-center justify-center px-4">
-              <div className={`transition-all duration-1000 ease-out ${activeIndex === index ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-6 scale-95'}`}>
-                <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black tracking-tighter uppercase italic leading-none drop-shadow-2xl text-center whitespace-nowrap bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  {item.title}
-                </h3>
-              </div>
-            </div>
-
-            <div className="h-[40vh] w-full pointer-events-none"></div>
-
-            {/* Descrição Inferior */}
-            <div className="h-[30vh] w-full flex flex-col items-center justify-center px-8">
-              <div className={`transition-all duration-1000 delay-200 ease-out ${activeIndex === index ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-                <p className="text-zinc-300 text-sm sm:text-base md:text-xl lg:text-2xl leading-relaxed font-medium max-w-3xl text-center drop-shadow-lg px-4">
-                  {item.desc}
-                </p>
-              </div>
-            </div>
-
-            {/* Texto de Fundo (GIGANTE e VAZADO) */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0">
-              <h4 
-                className="text-[25vw] font-black uppercase leading-none transform -rotate-12 transition-all duration-1000 text-transparent"
-                style={{ WebkitTextStroke: '1px rgba(255, 255, 255, 0.08)' }}
-              >
-                {item.bgText}
-              </h4>
-            </div>
-          </div>
-        ))}
       </div>
     </div>
   );
