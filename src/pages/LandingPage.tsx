@@ -3,11 +3,9 @@ import { HeroSection } from "@/components/landing/HeroSection";
 import { LogoCloud } from "@/components/landing/LogoCloud";
 import { StatsSection } from "@/components/landing/StatsSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
-import { PricingSection } from "@/components/landing/PricingSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import { Footer } from "@/components/landing/Footer";
 import { FloatingElements } from "@/components/landing/FloatingElements";
-import { SpiralCTASection } from "@/components/landing/SpiralCTASection";
 
 const LandingPage = () => {
   return (
@@ -19,8 +17,6 @@ const LandingPage = () => {
       <StatsSection />
       <FeaturesSection />
       <TestimonialsSection />
-      <SpiralCTASection />
-      <PricingSection />
       <Footer />
     </div>
   );
