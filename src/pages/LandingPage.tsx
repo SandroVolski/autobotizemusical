@@ -8,6 +8,7 @@ import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import { CTASection } from "@/components/landing/CTASection";
 import { Footer } from "@/components/landing/Footer";
 import { FloatingElements } from "@/components/landing/FloatingElements";
+import { SpiralCTASection } from "@/components/landing/SpiralCTASection";
 
 const LandingPage = () => {
   return (
@@ -19,6 +20,7 @@ const LandingPage = () => {
       <StatsSection />
       <FeaturesSection />
       <TestimonialsSection />
+      <SpiralCTASection />
       <PricingSection />
       <CTASection />
       <Footer />
