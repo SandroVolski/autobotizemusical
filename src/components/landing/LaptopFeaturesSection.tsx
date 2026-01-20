@@ -133,7 +133,6 @@ export const LaptopFeaturesSection = () => {
 
     return () => {
       tl.kill();
-      ScrollTrigger.getAll().forEach(t => t.kill());
     };
   }, []);
 
