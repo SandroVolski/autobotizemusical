@@ -146,7 +146,7 @@ export const SpiralCTASection = () => {
       </section>
 
       {/* Seção 2: O Efeito de Pinning da Espiral */}
-      <div ref={triggerRef} className="relative h-screen w-full bg-zinc-950 overflow-hidden">
+      <div ref={triggerRef} className="relative h-screen w-full bg-black overflow-hidden">
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <img
             ref={imageRef}
