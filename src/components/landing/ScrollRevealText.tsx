@@ -72,9 +72,8 @@ export const ScrollRevealText = () => {
           wordSpan.innerText = wordText;
           wordSpan.style.cssText = `
             display: inline-block;
-            color: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.15);
             margin-right: 0.4em;
-            transition: color 0.4s ease;
             position: relative;
             z-index: 5;
           `;
@@ -126,13 +125,13 @@ export const ScrollRevealText = () => {
       tl.to(allWords, {
         color: (i, target) => {
           return (target as HTMLElement).dataset.highlight === "true" 
-            ? "hsl(var(--primary))" 
+            ? "#8B5CF6" 
             : "#FFFFFF";
         },
-        duration: 0.4,
-        stagger: 0.03,
+        duration: 0.5,
+        stagger: 0.04,
         ease: "power2.out"
-      }, 0.2);
+      }, 0.3);
 
       // 5. Scroll Trigger
       ScrollTrigger.create({
