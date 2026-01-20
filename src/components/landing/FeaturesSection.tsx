@@ -10,6 +10,7 @@ import {
   Music2
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { ScrollRevealText } from "./ScrollRevealText";
 
 const features = [
   {
@@ -74,26 +75,30 @@ export const FeaturesSection = () => {
   return (
     <section id="recursos" className="py-24 relative">
       <div className="container mx-auto px-4">
-        {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-16"
-        >
-          <span className="text-primary font-medium text-sm uppercase tracking-wider">
-            Recursos
-          </span>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mt-4 mb-6">
-            Tudo que você precisa em{" "}
-            <span className="gradient-text">um só lugar</span>
-          </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Ferramentas poderosas projetadas especificamente para escolas de música,
-            integrando gestão, pedagogia e tecnologia.
-          </p>
-        </motion.div>
+        {/* Section Header with Scroll Reveal */}
+        <div className="text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <span className="text-primary font-medium text-sm uppercase tracking-wider">
+              Recursos
+            </span>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mt-4 mb-8">
+              Tudo o que precisa em{" "}
+              <br className="hidden md:block" />
+              <span className="gradient-text">um só lugar</span>
+            </h2>
+          </motion.div>
+          
+          <ScrollRevealText 
+            text="Ferramentas poderosas projetadas especificamente para escolas de música, integrando gestão, pedagogia e tecnologia."
+            highlightWords={["ferramentas", "poderosas", "escolas", "música", "tecnologia"]}
+            className="mt-4"
+          />
+        </div>
 
         {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
