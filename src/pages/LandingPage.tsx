@@ -5,7 +5,6 @@ import { StatsSection } from "@/components/landing/StatsSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
-import { CTASection } from "@/components/landing/CTASection";
 import { Footer } from "@/components/landing/Footer";
 import { FloatingElements } from "@/components/landing/FloatingElements";
 import { SpiralCTASection } from "@/components/landing/SpiralCTASection";
@@ -22,7 +21,6 @@ const LandingPage = () => {
       <TestimonialsSection />
       <SpiralCTASection />
       <PricingSection />
-      <CTASection />
       <Footer />
     </div>
   );
