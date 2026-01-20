@@ -22,11 +22,11 @@ export const CTASection = () => {
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/10 border border-secondary/20 mb-8">
             <Zap className="w-4 h-4 text-secondary" />
-            <span className="text-sm font-medium text-secondary">14 dias grátis • Sem compromisso</span>
+            <span className="text-sm font-medium text-secondary">15 dias grátis • Sem compromisso</span>
           </div>
 
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
-            Prssonto para transformar sua <span className="gradient-text-secondary">escola de música</span>?
+            Pronto para transformar sua <span className="gradient-text-secondary">escola de música</span>?
           </h2>
 
           <p className="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">
