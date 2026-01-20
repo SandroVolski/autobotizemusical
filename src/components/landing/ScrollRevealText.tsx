@@ -6,7 +6,7 @@ import { Music2 } from "lucide-react";
 gsap.registerPlugin(ScrollTrigger);
 
 const originalText = "Ferramentas poderosas projetadas especificamente para escolas de música, integrando gestão, pedagogia e tecnologia.";
-const highlightWords = ["ferramentas", "poderosas", "escolas", "de", "música", "tecnologia"];
+const highlightPhrases = ["ferramentas", "poderosas", "escolas", "música", "tecnologia"];
 
 export const ScrollRevealText = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -81,7 +81,7 @@ export const ScrollRevealText = () => {
 
           // Highlight logic
           const clean = wordText.toLowerCase().replace(/[.,!?;:]/g, "").trim();
-          if (highlightWords.includes(clean)) {
+          if (highlightPhrases.includes(clean)) {
             wordSpan.dataset.highlight = "true";
           }
           lineWrapper.appendChild(wordSpan);
@@ -122,12 +122,12 @@ export const ScrollRevealText = () => {
         ease: "expo.inOut"
       });
 
-      // Color appearance - white or purple
+      // Color appearance - white for all, purple for highlighted
       tl.to(allWords, {
         color: (i, target) => {
           return (target as HTMLElement).dataset.highlight === "true" 
             ? "hsl(var(--primary))" 
-            : "hsl(var(--foreground))";
+            : "#FFFFFF";
         },
         duration: 0.4,
         stagger: 0.03,
