@@ -1,7 +1,7 @@
 import { useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Music2 } from "lucide-react";
+import IconeEscolaMusica from "@/assets/IconeEscolaMusica.png";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -174,8 +174,8 @@ export const ScrollRevealText = () => {
   return (
     <section ref={sectionRef} className="py-20 flex flex-col items-center justify-center px-6 text-center">
       {/* Music Icon */}
-      <div className="w-24 h-24 mb-8 flex items-center justify-center rounded-2xl bg-primary/10">
-        <Music2 className="w-12 h-12 text-primary" />
+      <div className="w-24 h-24 mb-8 flex items-center justify-center">
+        <img src={IconeEscolaMusica} alt="Ícone Escola de Música" className="w-full h-full object-contain" />
       </div>
 
       {/* Heading */}
