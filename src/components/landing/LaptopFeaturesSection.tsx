@@ -138,11 +138,11 @@ export const LaptopFeaturesSection = () => {
   }, []);
 
   return (
-    <section id="recursos" className="bg-background text-foreground font-sans selection:bg-primary selection:text-primary-foreground antialiased overflow-x-hidden">
+    <section className="bg-background text-foreground font-sans selection:bg-primary selection:text-primary-foreground antialiased overflow-x-hidden">
       <div ref={containerRef} className="relative h-screen overflow-hidden bg-background">
         
         {/* Rótulo Superior */}
-        <div className="absolute top-[5vh] left-0 w-full z-40 pointer-events-none flex justify-center">
+        <div className="absolute top-[12vh] left-0 w-full z-40 pointer-events-none flex justify-center">
           <span className="text-primary font-black tracking-[0.6em] uppercase text-[10px] sm:text-[12px] opacity-80 block text-center">
             Funcionalidades
           </span>

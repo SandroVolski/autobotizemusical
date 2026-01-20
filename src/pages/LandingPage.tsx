@@ -2,6 +2,7 @@ import { Navbar } from "@/components/landing/Navbar";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { LogoCloud } from "@/components/landing/LogoCloud";
 import { StatsSection } from "@/components/landing/StatsSection";
+import { ScrollRevealText } from "@/components/landing/ScrollRevealText";
 import { LaptopFeaturesSection } from "@/components/landing/LaptopFeaturesSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
@@ -17,6 +18,7 @@ const LandingPage = () => {
       <HeroSection />
       <LogoCloud />
       <StatsSection />
+      <ScrollRevealText />
       <LaptopFeaturesSection />
       <TestimonialsSection />
       <PricingSection />
