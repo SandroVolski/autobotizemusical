@@ -79,7 +79,7 @@ export const Navbar = () => {
               Entrar
             </Button>
             <Button
-              onClick={() => navigate("/login")}
+              onClick={() => handleNavClick("#pricing-section")}
               onMouseEnter={() => setIsStartHovered(true)}
               onMouseLeave={() => setIsStartHovered(false)}
               className="relative overflow-hidden min-w-[120px] transition-all duration-300"
@@ -132,7 +132,7 @@ export const Navbar = () => {
                   Entrar
                 </Button>
                 <Button
-                  onClick={() => navigate("/login")}
+                  onClick={() => handleNavClick("#pricing-section")}
                 >
                   Começar
                 </Button>
