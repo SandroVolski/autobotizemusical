@@ -123,12 +123,7 @@ export const HeroSection = () => {
       <div ref={contentRef} className="relative z-10 h-full flex items-center justify-center px-4">
         <div className="max-w-5xl mx-auto text-center">
           {/* Badge */}
-          <div ref={badgeRef} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-8">
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-white">
-              A plataforma #1 para escolas de música
-            </span>
-          </div>
+          
 
           {/* Heading */}
           <h1 ref={headingRef} className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold mb-8 leading-[1.1] tracking-tight">
@@ -159,16 +154,7 @@ export const HeroSection = () => {
           </div>
 
           {/* Social Proof */}
-          <div ref={socialProofRef} className="mt-16 flex flex-col items-center gap-4">
-            <div className="flex items-center gap-1">
-              {[...Array(5)].map((_, i) => <Music key={i} className="w-5 h-5 text-secondary fill-secondary" />)}
-            </div>
-            <p className="text-sm text-white/70">
-              Usado por{" "}
-              <span className="text-white font-semibold">+500 escolas</span> em
-              todo o Brasil
-            </p>
-          </div>
+          
         </div>
       </div>
 
