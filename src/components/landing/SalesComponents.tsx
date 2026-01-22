@@ -240,7 +240,7 @@ export const RevealSection = () => {
           <div ref={containerRef} className="reveal-text-container text-2xl md:text-4xl font-bold font-sans"></div>
         </section>
       </div>
-      <div className="h-[20vh] w-full"></div>
+      <div className="h-[8vh] w-full"></div>
     </div>
   );
 };
@@ -342,7 +342,7 @@ export const MusicalTransition = () => {
   };
 
   return (
-    <div ref={sectionRef} className="relative w-full h-[350px] pointer-events-none z-50 overflow-hidden opacity-0">
+    <div ref={sectionRef} className="relative w-full h-[350px] pointer-events-none z-[5] overflow-hidden opacity-0">
       <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
         <path
           ref={path1Ref}
