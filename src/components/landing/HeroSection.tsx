@@ -17,11 +17,8 @@ export const HeroSection = () => {
   const badgeRef = useRef<HTMLDivElement>(null);
   const socialProofRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const section = sectionRef.current;
-    const video = videoRef.current;
-    const overlay = overlayRef.current;
     const content = contentRef.current;
-    if (!section || !video || !overlay || !content) return;
+    if (!content) return;
 
     // Initial state
     gsap.set(badgeRef.current, {
@@ -45,7 +42,7 @@ export const HeroSection = () => {
       y: 20
     });
 
-    // Entrance animation timeline
+    // Entrance animation timeline (no scroll pinning)
     const entranceTl = gsap.timeline({
       delay: 0.3
     });
@@ -75,36 +72,6 @@ export const HeroSection = () => {
       duration: 0.5,
       ease: "power3.out"
     }, "-=0.3");
-
-    // Pin the section and create scroll effects
-    const scrollTl = gsap.timeline({
-      scrollTrigger: {
-        trigger: section,
-        start: "top top",
-        end: "+=150%",
-        pin: true,
-        scrub: 1,
-        anticipatePin: 1
-      }
-    });
-
-    // Video and overlay effects during scroll
-    scrollTl.to(video, {
-      scale: 1.15,
-      ease: "none"
-    }, 0).to(overlay, {
-      opacity: 0.85,
-      ease: "none"
-    }, 0).to(content, {
-      y: -80,
-      opacity: 0,
-      scale: 0.95,
-      filter: "blur(10px)",
-      ease: "power2.in"
-    }, 0.3);
-    return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-    };
   }, []);
   return <section ref={sectionRef} className="relative h-screen w-full overflow-hidden">
       {/* Video Background */}
