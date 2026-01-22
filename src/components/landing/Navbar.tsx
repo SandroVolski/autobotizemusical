@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Music, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import autobotizeLogo from "@/assets/autobotize-logo.webp";
 
 const navLinks = [
   { label: "Recursos", href: "#recursos" },
@@ -39,9 +40,11 @@ export const Navbar = () => {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <a href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-              <Music className="w-6 h-6 text-primary-foreground" />
-            </div>
+            <img 
+              src={autobotizeLogo} 
+              alt="Autobotize Logo" 
+              className="w-10 h-10 rounded-xl object-cover"
+            />
             <span className="font-bold text-xl">Autobotize</span>
           </a>
 
