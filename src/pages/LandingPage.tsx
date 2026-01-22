@@ -1,19 +1,9 @@
 import { Navbar } from "@/components/landing/Navbar";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { FloatingElements } from "@/components/landing/FloatingElements";
-import { 
-  RevealSection, 
-  NotebookFeaturesSection, 
-  SocialProofSphere, 
-  MusicalTransition, 
-  SpiralCTASection, 
-  PricingSection, 
-  NewFooter 
-} from "@/components/landing/SalesComponents";
-
+import { RevealSection, NotebookFeaturesSection, SocialProofSphere, MusicalTransition, SpiralCTASection, PricingSection, NewFooter } from "@/components/landing/SalesComponents";
 const LandingPage = () => {
-  return (
-    <div className="min-h-screen bg-background relative">
+  return <div className="min-h-screen relative bg-black">
       <style>{`
         .montserrat-font { font-family: 'Montserrat', sans-serif; }
         
@@ -107,8 +97,6 @@ const LandingPage = () => {
       <SpiralCTASection />
       <PricingSection />
       <NewFooter />
-    </div>
-  );
+    </div>;
 };
-
 export default LandingPage;
