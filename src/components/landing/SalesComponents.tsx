@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import AutobotizeLogo from "@/assets/autobotize-logo.webp";
+import IconeEscolaMusica from "@/assets/IconeEscolaMusica.png";
 import Espiral from "@/assets/espiral.gif";
 gsap.registerPlugin(ScrollTrigger);
 
@@ -231,7 +232,7 @@ export const RevealSection = () => {
       <div className="w-full">
         <section ref={sectionRef} className="py-12 flex flex-col items-center justify-center px-6 text-center">
           <div className="w-[100px] h-[100px] mb-8 flex items-center justify-center">
-            <img src={AutobotizeLogo} alt="Autobotize Logo" className="w-full h-full object-contain" />
+            <img src={IconeEscolaMusica} alt="Escola de Música" className="w-full h-full object-contain" />
           </div>
           <h2 className="text-3xl md:text-6xl font-black mb-16 leading-tight tracking-tighter uppercase font-sans">
             Tudo o que precisa em <br />
