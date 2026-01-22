@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import IconeEscolaMusica from "@/assets/IconeEscolaMusica.png";
+import AutobotizeLogo from "@/assets/autobotize-logo.png";
 import Espiral from "@/assets/espiral.gif";
 gsap.registerPlugin(ScrollTrigger);
 
@@ -231,7 +231,7 @@ export const RevealSection = () => {
       <div className="w-full">
         <section ref={sectionRef} className="py-12 flex flex-col items-center justify-center px-6 text-center">
           <div className="w-[100px] h-[100px] mb-8 flex items-center justify-center">
-            <img src={IconeEscolaMusica} alt="Ícone Escola de Música" className="w-full h-full object-contain" />
+            <img src={AutobotizeLogo} alt="Autobotize Logo" className="w-full h-full object-contain" />
           </div>
           <h2 className="text-3xl md:text-6xl font-black mb-16 leading-tight tracking-tighter uppercase font-sans">
             Tudo o que precisa em <br />
@@ -2009,7 +2009,7 @@ export const NewFooter = () => {
               <div className="lg:col-span-6 space-y-12">
                 <div className="flex items-center gap-6">
                   <img
-                    src={IconeEscolaMusica}
+                    src={AutobotizeLogo}
                     alt="Autobotize Logo"
                     className="w-16 h-16 rounded-2xl shadow-[0_0_40px_rgba(128,0,255,0.2)] object-cover"
                   />

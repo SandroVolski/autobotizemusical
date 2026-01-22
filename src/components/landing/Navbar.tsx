@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import autobotizeLogo from "@/assets/IconeEscolaMusica.png";
+import autobotizeLogo from "@/assets/autobotize-logo.png";
 
 const navLinks = [
   { label: "Recursos", href: "#recursos" },
@@ -41,12 +41,9 @@ export const Navbar = () => {
           {/* Logo */}
           <a href="/" className="flex items-center gap-2">
             <img
-              src="/images/autobotize-logo.webp"
+              src={autobotizeLogo}
               alt="Autobotize"
               className="w-10 h-10 rounded-xl object-cover"
-              onError={(e) => {
-                e.currentTarget.src = autobotizeLogo;
-              }}
             />
             <span className="font-bold text-xl">Autobotize</span>
           </a>
