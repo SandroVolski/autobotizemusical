@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import IconeEscolaMusica from "@/assets/IconeEscolaMusica.png";
-import Espiral from "@/assets/espiral.gif";
 
 gsap.registerPlugin(ScrollTrigger);
 
