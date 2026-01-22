@@ -265,3 +265,8 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--primary) / 0.7);
 }
+
+/* Scroll margin for fixed header compensation */
+[id] {
+  scroll-margin-top: 100px;
+}
