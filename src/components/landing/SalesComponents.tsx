@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import IconeEscolaMusica from "@/assets/IconeEscolaMusica.png";
+import Espiral from "@/assets/espiral.gif";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -1778,7 +1779,7 @@ export const SpiralCTASection = () => {
         <div className="relative z-0 flex items-center justify-center w-full h-full">
           <img
             ref={imageRef}
-            src="src/assets/espiral.webp"
+            src={Espiral}
             alt="Espiral"
             className="
               w-56 h-56
