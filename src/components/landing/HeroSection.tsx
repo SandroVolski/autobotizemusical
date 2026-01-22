@@ -109,14 +109,29 @@ export const HeroSection = () => {
 
           {/* CTA Buttons */}
           <div ref={ctaRef} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="xl" className="glow-primary group relative overflow-hidden bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 transition-all duration-300" onClick={() => navigate("/login")}>
+            <Button 
+              size="xl" 
+              className="glow-primary group relative overflow-hidden bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 transition-all duration-300" 
+              onClick={() => {
+                const element = document.querySelector("#pricing-section");
+                if (element) element.scrollIntoView({ behavior: "smooth" });
+              }}
+            >
               <Zap className="mr-2 h-5 w-5" />
               Começar gratuitamente
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button size="xl" variant="outline" className="group backdrop-blur-md bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white">
+            <Button 
+              size="xl" 
+              variant="outline" 
+              className="group backdrop-blur-md bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white"
+              onClick={() => {
+                const element = document.querySelector("#recursos-premium");
+                if (element) element.scrollIntoView({ behavior: "smooth" });
+              }}
+            >
               <Play className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
-              Ver demonstração
+              Ver funcionalidades
             </Button>
           </div>
 

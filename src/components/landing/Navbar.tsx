@@ -6,16 +6,17 @@ import { useNavigate } from "react-router-dom";
 import autobotizeLogo from "@/assets/autobotize-logo.webp";
 
 const navLinks = [
-  { label: "Recursos", href: "#recursos" },
-  { label: "Preços", href: "#precos" },
-  { label: "Sobre", href: "#" },
-  { label: "Contato", href: "#" },
+  { label: "Recursos", href: "#recursos-premium" },
+  { label: "Sobre", href: "#depoimentos" },
+  { label: "Preços", href: "#pricing-section" },
+  { label: "Contato", href: "#contato-especialista" },
 ];
 
 export const Navbar = () => {
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isStartHovered, setIsStartHovered] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,6 +25,14 @@ export const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleNavClick = (href: string) => {
+    setIsMobileMenuOpen(false);
+    const element = document.querySelector(href);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   return (
     <motion.header
@@ -51,13 +60,13 @@ export const Navbar = () => {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
-              <a
+              <button
                 key={link.label}
-                href={link.href}
+                onClick={() => handleNavClick(link.href)}
                 className="text-muted-foreground hover:text-foreground transition-colors text-sm font-medium"
               >
                 {link.label}
-              </a>
+              </button>
             ))}
           </nav>
 
@@ -71,8 +80,16 @@ export const Navbar = () => {
             </Button>
             <Button
               onClick={() => navigate("/login")}
+              onMouseEnter={() => setIsStartHovered(true)}
+              onMouseLeave={() => setIsStartHovered(false)}
+              className="relative overflow-hidden min-w-[120px] transition-all duration-300"
             >
-              Começar grátis
+              <span className={`transition-all duration-300 ${isStartHovered ? "opacity-0 -translate-y-4" : "opacity-100 translate-y-0"}`}>
+                Começar
+              </span>
+              <span className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isStartHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+                Vamos lá!
+              </span>
             </Button>
           </div>
 
@@ -99,14 +116,13 @@ export const Navbar = () => {
           >
             <nav className="flex flex-col gap-4">
               {navLinks.map((link) => (
-                <a
+                <button
                   key={link.label}
-                  href={link.href}
-                  className="text-muted-foreground hover:text-foreground transition-colors py-2"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={() => handleNavClick(link.href)}
+                  className="text-muted-foreground hover:text-foreground transition-colors py-2 text-left"
                 >
                   {link.label}
-                </a>
+                </button>
               ))}
               <div className="flex flex-col gap-2 pt-4 border-t border-border">
                 <Button
@@ -118,7 +134,7 @@ export const Navbar = () => {
                 <Button
                   onClick={() => navigate("/login")}
                 >
-                  Começar grátis
+                  Começar
                 </Button>
               </div>
             </nav>

@@ -1373,7 +1373,7 @@ export const SocialProofSphere = () => {
   }, []);
 
   return (
-    <div className="relative w-full min-h-[85vh] md:min-h-screen bg-black flex flex-col items-center select-none py-16 overflow-hidden montserrat-font">
+    <div id="depoimentos" className="relative w-full min-h-[85vh] md:min-h-screen bg-black flex flex-col items-center select-none py-16 overflow-hidden montserrat-font">
       <div className="w-full text-center mb-8 z-[100] relative pointer-events-none px-6">
         <h3 className="text-[#00FFA1] font-bold tracking-[0.5em] uppercase text-[10px] mb-4 opacity-70">Depoimentos</h3>
         <h1 className="text-white text-4xl md:text-6xl font-black tracking-tight leading-none mx-auto max-w-4xl">
@@ -1607,7 +1607,7 @@ export const NotebookFeaturesSection = () => {
   }, []);
 
   return (
-    <div ref={notebookContainerRef} className="relative h-screen w-full overflow-hidden bg-zinc-950">
+    <div id="recursos-premium" ref={notebookContainerRef} className="relative h-screen w-full overflow-hidden bg-zinc-950">
       <div className="absolute top-10 left-0 w-full z-50 pointer-events-none flex justify-center">
         <span className="text-[#8000FF] font-black tracking-[0.5em] uppercase text-[9px] bg-zinc-900/60 py-2 px-6 backdrop-blur-md rounded-full border border-white/5">
           Recursos Premium
@@ -1959,7 +1959,7 @@ export const PricingSection = () => {
             </div>
           </div>
         </div>
-        <div className="mt-12 text-center relative z-10">
+        <div id="contato-especialista" className="mt-12 text-center relative z-10">
           <div className="inline-flex flex-col md:flex-row items-center gap-2 md:gap-4 px-8 py-5 rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-sm transition-all duration-500 hover:bg-[#00F69C]/5 hover:border-[#00F69C]/20 hover:scale-105 group cursor-pointer shadow-lg hover:shadow-[#00F69C]/10">
             <span className="text-gray-400 text-sm font-medium tracking-tight">Dúvidas?</span>
             <a
