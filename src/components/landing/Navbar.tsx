@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import autobotizeLogo from "@/assets/autobotize-logo.webp";
+import autobotizeLogo from "@/assets/IconeEscolaMusica.png";
 
 const navLinks = [
   { label: "Recursos", href: "#recursos" },

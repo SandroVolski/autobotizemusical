@@ -2008,9 +2008,11 @@ export const NewFooter = () => {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 mb-6">
               <div className="lg:col-span-6 space-y-12">
                 <div className="flex items-center gap-6">
-                  <div className="w-16 h-16 bg-[#8000FF] flex items-center justify-center font-black text-3xl italic rounded-2xl shadow-[0_0_40px_rgba(128,0,255,0.2)] text-white montserrat-font">
-                    AZ
-                  </div>
+                  <img
+                    src={IconeEscolaMusica}
+                    alt="Autobotize Logo"
+                    className="w-16 h-16 rounded-2xl shadow-[0_0_40px_rgba(128,0,255,0.2)] object-cover"
+                  />
                   <div className="uppercase">
                     <h2 className="text-3xl font-black italic leading-none tracking-tighter text-white montserrat-font">
                       Autobotize
