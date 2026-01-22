@@ -40,10 +40,13 @@ export const Navbar = () => {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <a href="/" className="flex items-center gap-2">
-            <img 
-              src={autobotizeLogo} 
-              alt="Autobotize Logo" 
+            <img
+              src="/images/autobotize-logo.webp"
+              alt="Autobotize"
               className="w-10 h-10 rounded-xl object-cover"
+              onError={(e) => {
+                e.currentTarget.src = autobotizeLogo;
+              }}
             />
             <span className="font-bold text-xl">Autobotize</span>
           </a>

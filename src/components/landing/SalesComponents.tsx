@@ -1779,7 +1779,7 @@ export const SpiralCTASection = () => {
         <div className="relative z-0 flex items-center justify-center w-full h-full">
           <img
             ref={imageRef}
-            src="/lovable-uploads/a7a6135e-ee5d-4b3d-beba-42e41f732ed8.webp"
+            src="/images/autobotize-logo.webp"
             alt="Espiral"
             className="
               w-56 h-56
@@ -1790,6 +1790,10 @@ export const SpiralCTASection = () => {
               object-contain
               rounded-full
             "
+            onError={(e) => {
+              // Fallback: asset empacotado no bundle
+              e.currentTarget.src = autobotizeLogo;
+            }}
           />
         </div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,black_85%)] z-10 pointer-events-none" />
@@ -2009,10 +2013,13 @@ export const NewFooter = () => {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 mb-6">
               <div className="lg:col-span-6 space-y-12">
                 <div className="flex items-center gap-6">
-                  <img 
-                    src={autobotizeLogo} 
-                    alt="Autobotize Logo" 
+                  <img
+                    src="/images/autobotize-logo.webp"
+                    alt="Autobotize"
                     className="w-16 h-16 rounded-2xl shadow-[0_0_40px_rgba(128,0,255,0.2)] object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = autobotizeLogo;
+                    }}
                   />
                   <div className="uppercase">
                     <h2 className="text-3xl font-black italic leading-none tracking-tighter text-white montserrat-font">
