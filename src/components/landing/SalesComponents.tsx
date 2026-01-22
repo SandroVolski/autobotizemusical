@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import IconeEscolaMusica from "@/assets/IconeEscolaMusica.png";
-import autobotizeLogo from "@/assets/autobotize-logo.webp";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -241,7 +240,7 @@ export const RevealSection = () => {
           <div ref={containerRef} className="reveal-text-container text-2xl md:text-4xl font-bold font-sans"></div>
         </section>
       </div>
-      <div className="h-[8vh] w-full"></div>
+      <div className="h-[20vh] w-full"></div>
     </div>
   );
 };
@@ -343,7 +342,7 @@ export const MusicalTransition = () => {
   };
 
   return (
-    <div ref={sectionRef} className="relative w-full h-[350px] pointer-events-none z-[5] overflow-hidden opacity-0">
+    <div ref={sectionRef} className="relative w-full h-[350px] pointer-events-none z-50 overflow-hidden opacity-0">
       <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
         <path
           ref={path1Ref}
@@ -1779,7 +1778,7 @@ export const SpiralCTASection = () => {
         <div className="relative z-0 flex items-center justify-center w-full h-full">
           <img
             ref={imageRef}
-            src="/images/autobotize-logo.webp"
+            src="src/assets/espiral.webp"
             alt="Espiral"
             className="
               w-56 h-56
@@ -1790,10 +1789,6 @@ export const SpiralCTASection = () => {
               object-contain
               rounded-full
             "
-            onError={(e) => {
-              // Fallback: asset empacotado no bundle
-              e.currentTarget.src = autobotizeLogo;
-            }}
           />
         </div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,black_85%)] z-10 pointer-events-none" />
@@ -2013,14 +2008,9 @@ export const NewFooter = () => {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 mb-6">
               <div className="lg:col-span-6 space-y-12">
                 <div className="flex items-center gap-6">
-                  <img
-                    src="/images/autobotize-logo.webp"
-                    alt="Autobotize"
-                    className="w-16 h-16 rounded-2xl shadow-[0_0_40px_rgba(128,0,255,0.2)] object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = autobotizeLogo;
-                    }}
-                  />
+                  <div className="w-16 h-16 bg-[#8000FF] flex items-center justify-center font-black text-3xl italic rounded-2xl shadow-[0_0_40px_rgba(128,0,255,0.2)] text-white montserrat-font">
+                    AZ
+                  </div>
                   <div className="uppercase">
                     <h2 className="text-3xl font-black italic leading-none tracking-tighter text-white montserrat-font">
                       Autobotize
