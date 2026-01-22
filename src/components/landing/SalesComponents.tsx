@@ -1780,7 +1780,15 @@ export const SpiralCTASection = () => {
             ref={imageRef}
             src="/lovable-uploads/a7a6135e-ee5d-4b3d-beba-42e41f732ed8.webp"
             alt="Espiral"
-            className="w-48 h-48 md:w-80 md:h-80 object-contain rounded-full"
+            className="
+              w-56 h-56
+              sm:w-64 sm:h-64
+              md:w-80 md:h-80
+              lg:w-[28rem] lg:h-[28rem]
+              xl:w-[32rem] xl:h-[32rem]
+              object-contain
+              rounded-full
+            "
           />
         </div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,black_85%)] z-10 pointer-events-none" />
