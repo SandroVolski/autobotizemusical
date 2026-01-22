@@ -1503,7 +1503,7 @@ export const SpiralCTASection = () => {
       <section ref={triggerRef} className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-black">
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none" />
         <div className="relative z-0 flex items-center justify-center w-full h-full">
-          <img ref={imageRef} alt="Espiral" className="w-48 h-48 md:w-80 md:h-80 object-contain rounded-full" src="/lovable-uploads/812087cc-367d-4c3d-be95-aeb93a8cd063.webp" />
+          <img ref={imageRef} src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJndXh3ZmxyeXJ3ZmxyeXJ3JmVwPXYxX2ludGVybmFs+Z2lmX2J5X2lkJmN0PWc/3o7TKMGpxxS06DclhS/giphy.gif" alt="Espiral" className="w-48 h-48 md:w-80 md:h-80 object-contain rounded-full" />
         </div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,black_85%)] z-10 pointer-events-none" />
       </section>
@@ -1702,7 +1702,7 @@ export const NewFooter = () => {
                     <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 montserrat-font">WhatsApp</p>
                     <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer" className="flex gap-4 items-center group">
                       <MessageIcon className="w-5 h-5 text-[#8000FF] group-hover:scale-110 transition-transform flex-shrink-0" />
-                      <span className="text-xs font-bold uppercase tracking-widest text-white border-b border-[#8000FF]/30 pb-1 group-hover:border-[#8000FF] group-hover:text-[#8000FF] transition-all montserrat-font whitespace-nowrap">
+                      <span className="text-xs font-bold uppercase tracking-widest text-white border-b border-[#8000FF]/30 pb-1 group-hover:border-[#8000FF] group-hover:text-[#8000FF] transition-all montserrat-font whitespace-nowrap py-[200px]">
                         +55 42 99800-5326
                       </span>
                     </a>
