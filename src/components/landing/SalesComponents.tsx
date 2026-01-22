@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import AutobotizeLogo from "@/assets/autobotize-logo.png";
+import AutobotizeLogo from "@/assets/autobotize-logo.webp";
 import Espiral from "@/assets/espiral.gif";
 gsap.registerPlugin(ScrollTrigger);
 
