@@ -1480,10 +1480,11 @@ const FooterLink = ({ children, href = "#" }: { children: React.ReactNode; href?
 // --- SEÇÃO DE NOTEBOOK COM SCROLL HORIZONTAL ---
 export const NotebookFeaturesSection = () => {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 768 : false);
   const notebookContainerRef = useRef<HTMLDivElement>(null);
   const horizontalRef = useRef<HTMLDivElement>(null);
   const lidRef = useRef<HTMLDivElement>(null);
+  const gsapCtxRef = useRef<gsap.Context | null>(null);
 
   const features = [
     {
@@ -1536,19 +1537,27 @@ export const NotebookFeaturesSection = () => {
     },
   ];
 
-  // Detectar mobile
+  // Detectar mobile com cleanup seguro do GSAP
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      const newIsMobile = window.innerWidth < 768;
+      if (newIsMobile !== isMobile) {
+        // Limpar GSAP antes de mudar estado
+        if (gsapCtxRef.current) {
+          gsapCtxRef.current.revert();
+          gsapCtxRef.current = null;
+        }
+        setIsMobile(newIsMobile);
+      }
     };
-    checkMobile();
+    
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
-  }, []);
+  }, [isMobile]);
 
   // GSAP Pinning APENAS para desktop
   useEffect(() => {
-    if (isMobile) return; // Não aplicar pinning no mobile
+    if (isMobile) return;
     if (!notebookContainerRef.current || !horizontalRef.current || !lidRef.current) return;
 
     const totalFeatures = features.length;
@@ -1565,7 +1574,7 @@ export const NotebookFeaturesSection = () => {
     }
     snapPoints.push(1);
 
-    const ctx = gsap.context(() => {
+    gsapCtxRef.current = gsap.context(() => {
       const notebookTl = gsap.timeline({
         scrollTrigger: {
           trigger: notebookContainerRef.current,
@@ -1616,94 +1625,102 @@ export const NotebookFeaturesSection = () => {
       }, 500);
     }, notebookContainerRef);
 
-    return () => ctx.revert();
+    return () => {
+      if (gsapCtxRef.current) {
+        gsapCtxRef.current.revert();
+        gsapCtxRef.current = null;
+      }
+    };
   }, [isMobile]);
 
-  // Versão MOBILE com carrossel swipeable
-  if (isMobile) {
-    return (
-      <div id="recursos-premium" className="relative w-full bg-zinc-950 py-16 overflow-hidden">
-        {/* Label */}
-        <div className="flex justify-center mb-8">
-          <span className="text-[#8000FF] font-black tracking-[0.5em] uppercase text-[9px] bg-zinc-900/60 py-2 px-6 backdrop-blur-md rounded-full border border-white/5">
-            Recursos Premium
-          </span>
-        </div>
-
-        {/* Carrossel horizontal swipeable */}
-        <div 
-          className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4 px-4 pb-4"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          onScroll={(e) => {
-            const scrollLeft = e.currentTarget.scrollLeft;
-            const cardWidth = e.currentTarget.offsetWidth * 0.85;
-            const newIndex = Math.round(scrollLeft / cardWidth);
-            setActiveIndex(Math.max(0, Math.min(newIndex, features.length - 1)));
-          }}
-        >
-          {features.map((item, index) => (
-            <div
-              key={index}
-              className="flex-shrink-0 w-[85vw] snap-center"
-            >
-              <div className="relative bg-zinc-900/50 rounded-2xl border border-white/10 overflow-hidden h-[400px]">
-                {/* Imagem de fundo */}
-                <div className="absolute inset-0">
-                  <img
-                    src={item.img}
-                    alt={item.title}
-                    className="w-full h-full object-cover grayscale-[30%] brightness-50"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent" />
-                </div>
-
-                {/* Texto de fundo decorativo */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <h4
-                    className="text-[25vw] font-black uppercase leading-none transform -rotate-12 text-transparent"
-                    style={{ WebkitTextStroke: "1px rgba(255, 255, 255, 0.03)" }}
-                  >
-                    {item.bgText}
-                  </h4>
-                </div>
-
-                {/* Conteúdo */}
-                <div className="relative z-10 h-full flex flex-col justify-end p-6">
-                  <h3 className="text-2xl font-black tracking-tight uppercase italic bg-gradient-to-r from-[#8000FF] to-[#00D084] bg-clip-text text-transparent mb-3">
-                    {item.title}
-                  </h3>
-                  <p className="text-zinc-400 text-sm leading-relaxed">
-                    {item.desc}
-                  </p>
-                </div>
-
-                {/* Glow effect */}
-                <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-[60%] h-20 bg-[#8000FF]/20 blur-[40px] rounded-full" />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Indicadores de página */}
-        <div className="flex justify-center items-center gap-2 mt-6">
-          {features.map((_, i) => (
-            <div
-              key={i}
-              className={`h-1.5 rounded-full transition-all duration-500 ${
-                activeIndex === i 
-                  ? "w-8 bg-[#8000FF] shadow-[0_0_15px_rgba(128,0,255,0.4)]" 
-                  : "w-2 bg-zinc-700"
-              }`}
-            />
-          ))}
-        </div>
-
-        {/* Dica de swipe */}
-        <p className="text-center text-zinc-600 text-xs mt-4 flex items-center justify-center gap-2">
-          <span>←</span> Arraste para ver mais <span>→</span>
-        </p>
+  // Componente Mobile separado para evitar conflitos de DOM
+  const MobileCarousel = () => (
+    <div id="recursos-premium" className="relative w-full bg-zinc-950 py-16 overflow-hidden">
+      {/* Label */}
+      <div className="flex justify-center mb-8">
+        <span className="text-[#8000FF] font-black tracking-[0.5em] uppercase text-[9px] bg-zinc-900/60 py-2 px-6 backdrop-blur-md rounded-full border border-white/5">
+          Recursos Premium
+        </span>
       </div>
-    );
+
+      {/* Carrossel horizontal swipeable */}
+      <div 
+        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4 px-4 pb-4"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        onScroll={(e) => {
+          const scrollLeft = e.currentTarget.scrollLeft;
+          const cardWidth = e.currentTarget.offsetWidth * 0.85;
+          const newIndex = Math.round(scrollLeft / cardWidth);
+          setActiveIndex(Math.max(0, Math.min(newIndex, features.length - 1)));
+        }}
+      >
+        {features.map((item, index) => (
+          <div
+            key={index}
+            className="flex-shrink-0 w-[85vw] snap-center"
+          >
+            <div className="relative bg-zinc-900/50 rounded-2xl border border-white/10 overflow-hidden h-[400px]">
+              {/* Imagem de fundo */}
+              <div className="absolute inset-0">
+                <img
+                  src={item.img}
+                  alt={item.title}
+                  className="w-full h-full object-cover grayscale-[30%] brightness-50"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent" />
+              </div>
+
+              {/* Texto de fundo decorativo */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <h4
+                  className="text-[25vw] font-black uppercase leading-none transform -rotate-12 text-transparent"
+                  style={{ WebkitTextStroke: "1px rgba(255, 255, 255, 0.03)" }}
+                >
+                  {item.bgText}
+                </h4>
+              </div>
+
+              {/* Conteúdo */}
+              <div className="relative z-10 h-full flex flex-col justify-end p-6">
+                <h3 className="text-2xl font-black tracking-tight uppercase italic bg-gradient-to-r from-[#8000FF] to-[#00D084] bg-clip-text text-transparent mb-3">
+                  {item.title}
+                </h3>
+                <p className="text-zinc-400 text-sm leading-relaxed">
+                  {item.desc}
+                </p>
+              </div>
+
+              {/* Glow effect */}
+              <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-[60%] h-20 bg-[#8000FF]/20 blur-[40px] rounded-full" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Indicadores de página */}
+      <div className="flex justify-center items-center gap-2 mt-6">
+        {features.map((_, i) => (
+          <div
+            key={i}
+            className={`h-1.5 rounded-full transition-all duration-500 ${
+              activeIndex === i 
+                ? "w-8 bg-[#8000FF] shadow-[0_0_15px_rgba(128,0,255,0.4)]" 
+                : "w-2 bg-zinc-700"
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* Dica de swipe */}
+      <p className="text-center text-zinc-600 text-xs mt-4 flex items-center justify-center gap-2">
+        <span>←</span> Arraste para ver mais <span>→</span>
+      </p>
+    </div>
+  );
+
+  // Retornar mobile ou desktop baseado no estado
+  if (isMobile) {
+    return <MobileCarousel />;
   }
 
   // Versão DESKTOP com pinning e animação 3D do notebook
