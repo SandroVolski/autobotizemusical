@@ -139,7 +139,7 @@ export const Navbar = () => {
         </div>
       </motion.header>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu - Top Down */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
@@ -149,62 +149,63 @@ export const Navbar = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="fixed inset-0 z-[195] bg-background/80 backdrop-blur-sm md:hidden"
+              className="fixed inset-0 z-[195] bg-black/60 backdrop-blur-sm md:hidden"
               onClick={() => setIsMobileMenuOpen(false)}
             />
 
-            {/* Menu Panel */}
+            {/* Menu Panel - Top Down */}
             <motion.div
-              initial={{ opacity: 0, x: "100%" }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: "100%" }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="fixed top-0 right-0 z-[205] h-full w-[85%] max-w-[320px] bg-background border-l border-border shadow-2xl md:hidden"
+              initial={{ opacity: 0, y: "-100%" }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: "-100%" }}
+              transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="fixed top-0 left-0 right-0 z-[205] bg-background border-b border-border shadow-2xl md:hidden"
             >
               {/* Menu Header */}
-              <div className="flex items-center justify-between p-6 border-b border-border">
+              <div className="flex items-center justify-between px-4 h-16 border-b border-border">
                 <div className="flex items-center gap-2">
                   <img
                     src={autobotizeLogo}
                     alt="Autobotize"
                     className="w-8 h-8 rounded-lg object-cover"
                   />
-                  <span className="font-bold text-lg">Menu</span>
+                  <span className="font-bold text-lg">Autobotize</span>
                 </div>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-2 rounded-lg bg-muted hover:bg-muted/80 transition-colors"
+                  className="p-2 rounded-lg bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-5 h-5 text-primary" />
                 </button>
               </div>
 
               {/* Navigation Links */}
-              <nav className="p-6 space-y-2">
+              <nav className="p-4 space-y-1">
                 {navLinks.map((link, index) => (
                   <motion.button
                     key={link.label}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.08 }}
                     onClick={() => handleNavClick(link.href)}
-                    className="flex items-center justify-between w-full p-4 rounded-xl text-foreground hover:bg-primary/10 hover:text-primary transition-all group"
+                    className="flex items-center justify-between w-full p-3 rounded-xl text-foreground hover:bg-primary/10 hover:text-primary transition-all group"
                   >
                     <span className="font-medium">{link.label}</span>
-                    <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                    <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-primary" />
                   </motion.button>
                 ))}
               </nav>
 
               {/* Divider */}
-              <div className="mx-6 h-px bg-border" />
+              <div className="mx-4 h-px bg-border" />
 
               {/* CTA Buttons */}
-              <div className="p-6 space-y-3">
+              <div className="p-4 flex gap-3">
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
+                  transition={{ delay: 0.35 }}
+                  className="flex-1"
                 >
                   <Button
                     variant="outline"
@@ -212,31 +213,32 @@ export const Navbar = () => {
                       setIsMobileMenuOpen(false);
                       navigate("/login");
                     }}
-                    className="w-full h-12 text-base"
+                    className="w-full h-11"
                   >
                     Entrar
                   </Button>
                 </motion.div>
                 
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
+                  transition={{ delay: 0.4 }}
+                  className="flex-1"
                 >
                   <Button
                     onClick={() => handleNavClick("#pricing-section")}
-                    className="w-full h-12 text-base gap-2"
+                    className="w-full h-11 gap-2"
                   >
                     <Sparkles className="w-4 h-4" />
-                    Começar agora
+                    Começar
                   </Button>
                 </motion.div>
               </div>
 
-              {/* Footer */}
-              <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-border bg-muted/30">
-                <p className="text-xs text-muted-foreground text-center">
-                  Automatize sua escola de música com IA
+              {/* Footer tagline */}
+              <div className="px-4 pb-4">
+                <p className="text-xs text-muted-foreground text-center py-2 bg-muted/30 rounded-lg">
+                  Automatize sua escola de música com IA ✨
                 </p>
               </div>
             </motion.div>
