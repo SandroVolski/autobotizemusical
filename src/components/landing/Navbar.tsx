@@ -53,20 +53,14 @@ export const Navbar = () => {
         animate={{ y: 0 }}
         transition={{ duration: 0.5 }}
         className={`fixed top-0 left-0 right-0 z-[200] transition-all duration-300 ${
-          isScrolled
-            ? "bg-background/80 backdrop-blur-xl border-b border-border"
-            : "bg-transparent"
+          isScrolled ? "bg-background/80 backdrop-blur-xl border-b border-border" : "bg-transparent"
         }`}
       >
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* Logo */}
             <a href="/" className="flex items-center gap-2">
-              <img
-                src={autobotizeLogo}
-                alt="Autobotize"
-                className="w-10 h-10 rounded-xl object-cover"
-              />
+              <img src={autobotizeLogo} alt="Autobotize" className="w-10 h-10 rounded-xl object-cover" />
               <span className="font-bold text-xl">Autobotize</span>
             </a>
 
@@ -85,10 +79,7 @@ export const Navbar = () => {
 
             {/* Desktop CTA */}
             <div className="hidden md:flex items-center gap-3">
-              <Button
-                variant="ghost"
-                onClick={() => navigate("/login")}
-              >
+              <Button variant="ghost" onClick={() => navigate("/login")}>
                 Entrar
               </Button>
               <Button
@@ -97,10 +88,14 @@ export const Navbar = () => {
                 onMouseLeave={() => setIsStartHovered(false)}
                 className="relative overflow-hidden min-w-[120px] transition-all duration-300"
               >
-                <span className={`transition-all duration-300 ${isStartHovered ? "opacity-0 -translate-y-4" : "opacity-100 translate-y-0"}`}>
+                <span
+                  className={`transition-all duration-300 ${isStartHovered ? "opacity-0 -translate-y-4" : "opacity-100 translate-y-0"}`}
+                >
                   Começar
                 </span>
-                <span className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isStartHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+                <span
+                  className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isStartHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+                >
                   Vamos lá!
                 </span>
               </Button>
@@ -164,11 +159,7 @@ export const Navbar = () => {
               {/* Menu Header */}
               <div className="flex items-center justify-between px-4 h-16 border-b border-border">
                 <div className="flex items-center gap-2">
-                  <img
-                    src={autobotizeLogo}
-                    alt="Autobotize"
-                    className="w-8 h-8 rounded-lg object-cover"
-                  />
+                  <img src={autobotizeLogo} alt="Autobotize" className="w-8 h-8 rounded-lg object-cover" />
                   <span className="font-bold text-lg">Autobotize</span>
                 </div>
                 <button
@@ -218,17 +209,14 @@ export const Navbar = () => {
                     Entrar
                   </Button>
                 </motion.div>
-                
+
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
                   className="flex-1"
                 >
-                  <Button
-                    onClick={() => handleNavClick("#pricing-section")}
-                    className="w-full h-11 gap-2"
-                  >
+                  <Button onClick={() => handleNavClick("#pricing-section")} className="w-full h-11 gap-2">
                     <Sparkles className="w-4 h-4" />
                     Começar
                   </Button>
@@ -236,11 +224,6 @@ export const Navbar = () => {
               </div>
 
               {/* Footer tagline */}
-              <div className="px-4 pb-4">
-                <p className="text-xs text-muted-foreground text-center py-2 bg-muted/30 rounded-lg">
-                  Automatize sua escola de música com IA ✨
-                </p>
-              </div>
             </motion.div>
           </>
         )}
