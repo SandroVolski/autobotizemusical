@@ -58,6 +58,7 @@ import { EnrollmentDialog } from "@/components/alunos/EnrollmentDialog";
 import { StudentEnrollments } from "@/components/alunos/StudentEnrollments";
 import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
 import { exportAlunos } from "@/lib/csv-export";
+import { CameraCapture } from "@/components/ui/camera-capture";
 
 const filterOptions: FilterOption[] = [
   {
@@ -106,7 +107,12 @@ export default function Alunos() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+
+  const handleCameraCapture = (file: File) => {
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -319,7 +325,7 @@ export default function Alunos() {
                         <Plus className="w-4 h-4 mr-2" />
                         Galeria / Arquivos
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => cameraInputRef.current?.click()}>
+                      <DropdownMenuItem onClick={() => setIsCameraOpen(true)}>
                         <Camera className="w-4 h-4 mr-2" />
                         Tirar Foto
                       </DropdownMenuItem>
@@ -330,14 +336,6 @@ export default function Alunos() {
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  className="hidden"
-                  onChange={handlePhotoSelect}
-                />
-                <input
-                  ref={cameraInputRef}
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
                   className="hidden"
                   onChange={handlePhotoSelect}
                 />
@@ -355,7 +353,7 @@ export default function Alunos() {
                       <Plus className="w-4 h-4 mr-2" />
                       Galeria / Arquivos
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => cameraInputRef.current?.click()}>
+                    <DropdownMenuItem onClick={() => setIsCameraOpen(true)}>
                       <Camera className="w-4 h-4 mr-2" />
                       Tirar Foto
                     </DropdownMenuItem>
@@ -739,6 +737,9 @@ export default function Alunos() {
           onOpenChange={(open) => !open && setEnrollmentAluno(null)}
         />
       )}
+
+      {/* Camera Capture */}
+      <CameraCapture open={isCameraOpen} onOpenChange={setIsCameraOpen} onCapture={handleCameraCapture} />
 
       {/* Photo Preview Dialog */}
       <Dialog open={!!previewPhoto} onOpenChange={(open) => !open && setPreviewPhoto(null)}>
