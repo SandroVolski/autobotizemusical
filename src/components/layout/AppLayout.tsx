@@ -44,7 +44,9 @@ export function AppLayout({ children }: AppLayoutProps) {
   const pageTitle = pageTitles[basePath] || "";
 
   return (
-    <div className="min-h-screen bg-background bg-[radial-gradient(ellipse_at_top_left,hsl(270_100%_50%/0.08)_0%,transparent_50%),radial-gradient(ellipse_at_bottom_right,hsl(158_100%_50%/0.05)_0%,transparent_50%)]">
+    <div className="min-h-screen bg-background relative">
+      {/* Full-page gradient overlay */}
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top_left,hsl(270_100%_50%/0.08)_0%,transparent_50%),radial-gradient(ellipse_at_bottom_right,hsl(158_100%_50%/0.05)_0%,transparent_50%)]" />
       <AppSidebar />
 
       <motion.main
