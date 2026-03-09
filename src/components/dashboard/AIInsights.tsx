@@ -108,7 +108,7 @@ export function AIInsights() {
             <Badge variant="glow" className="text-xs">{insights.length}</Badge>
           </div>
         </CardHeader>
-        <CardContent className="relative space-y-2 px-4 pb-3 pt-0">
+        <CardContent className="relative space-y-2 px-4 pb-3 pt-0 flex-1 flex flex-col">
           {insights.slice(0, 2).map((insight, index) => (
             <div
               key={insight.id}
