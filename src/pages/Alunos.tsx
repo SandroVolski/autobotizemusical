@@ -101,6 +101,35 @@ export default function Alunos() {
     objetivo: "",
     observacoes: "",
   });
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Arquivo muito grande", description: "Máximo 5MB", variant: "destructive" });
+      return;
+    }
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
+
+  const uploadPhoto = async (alunoId: string): Promise<string | null> => {
+    if (!photoFile) return null;
+    const ext = photoFile.name.split(".").pop();
+    const filePath = `${alunoId}/avatar.${ext}`;
+    const { error } = await supabase.storage.from("alunos-fotos").upload(filePath, photoFile, { upsert: true });
+    if (error) {
+      console.error("Upload error:", error);
+      toast({ title: "Erro no upload da foto", description: error.message, variant: "destructive" });
+      return null;
+    }
+    const { data: urlData } = supabase.storage.from("alunos-fotos").getPublicUrl(filePath);
+    return urlData.publicUrl;
+  };
 
   const { data: alunos, isLoading } = useAlunos();
   const createAlunoMutation = useCreateAluno();
