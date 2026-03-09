@@ -13,6 +13,7 @@ import Login from "./pages/Login";
 import RedefinirSenha from "./pages/RedefinirSenha";
 import Dashboard from "./pages/Dashboard";
 import Alunos from "./pages/Alunos";
+import AlunoPerfil from "./pages/AlunoPerfil";
 import Agenda from "./pages/Agenda";
 import Financeiro from "./pages/Financeiro";
 import HubIA from "./pages/HubIA";
@@ -61,6 +62,14 @@ const App = () => (
               element={
                 <AuthenticatedPage>
                   <Alunos />
+                </AuthenticatedPage>
+              }
+            />
+            <Route
+              path="/alunos/:id"
+              element={
+                <AuthenticatedPage>
+                  <AlunoPerfil />
                 </AuthenticatedPage>
               }
             />

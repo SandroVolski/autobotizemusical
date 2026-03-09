@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Search, 
@@ -78,6 +79,7 @@ const filterOptions: FilterOption[] = [
 ];
 
 export default function Alunos() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAluno, setEditingAluno] = useState<string | null>(null);
@@ -469,9 +471,17 @@ export default function Alunos() {
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4">
                       {/* Avatar */}
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-semibold">
-                        {getInitials(aluno.nome)}
-                      </div>
+                      {aluno.foto_url ? (
+                        <img
+                          src={aluno.foto_url}
+                          alt={aluno.nome}
+                          className="w-12 h-12 rounded-full object-cover border border-primary/30"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-semibold">
+                          {getInitials(aluno.nome)}
+                        </div>
+                      )}
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
@@ -507,13 +517,17 @@ export default function Alunos() {
                       {/* Contact */}
                       <div className="hidden md:flex items-center gap-4">
                         {aluno.telefone && (
-                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                            <Phone className="w-4 h-4" />
+                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" asChild>
+                            <a href={`tel:${aluno.telefone}`}>
+                              <Phone className="w-4 h-4" />
+                            </a>
                           </Button>
                         )}
                         {aluno.email && (
-                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                            <Mail className="w-4 h-4" />
+                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" asChild>
+                            <a href={`mailto:${aluno.email}`}>
+                              <Mail className="w-4 h-4" />
+                            </a>
                           </Button>
                         )}
                       </div>
@@ -537,7 +551,7 @@ export default function Alunos() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate(`/alunos/${aluno.id}`)}>
                             <Eye className="w-4 h-4 mr-2" />
                             Ver Perfil
                           </DropdownMenuItem>
@@ -549,7 +563,7 @@ export default function Alunos() {
                             <Edit className="w-4 h-4 mr-2" />
                             Editar
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate("/agenda")}>
                             <Calendar className="w-4 h-4 mr-2" />
                             Agendar Aula
                           </DropdownMenuItem>
