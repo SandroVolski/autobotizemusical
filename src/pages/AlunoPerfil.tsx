@@ -230,7 +230,8 @@ export default function AlunoPerfil() {
                 </div>
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-sm text-muted-foreground">
                   {aluno.nivel && <span className="flex items-center gap-1"><Music className="w-3 h-3" /> {aluno.nivel}</span>}
-                  {aluno.data_matricula && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> Desde {new Date(aluno.data_matricula).toLocaleDateString("pt-BR")}</span>}
+                  {aluno.status === "ativo" && aluno.data_matricula && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> Desde {new Date(aluno.data_matricula).toLocaleDateString("pt-BR")}</span>}
+                  {aluno.status !== "ativo" && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> Saiu em {new Date(aluno.updated_at).toLocaleDateString("pt-BR")}</span>}
                   {aluno.endereco && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {aluno.endereco}</span>}
                 </div>
               </div>
