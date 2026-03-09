@@ -325,7 +325,7 @@ export default function Alunos() {
                         <Plus className="w-4 h-4 mr-2" />
                         Galeria / Arquivos
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => cameraInputRef.current?.click()}>
+                      <DropdownMenuItem onClick={() => setIsCameraOpen(true)}>
                         <Camera className="w-4 h-4 mr-2" />
                         Tirar Foto
                       </DropdownMenuItem>
@@ -336,14 +336,6 @@ export default function Alunos() {
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  className="hidden"
-                  onChange={handlePhotoSelect}
-                />
-                <input
-                  ref={cameraInputRef}
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
                   className="hidden"
                   onChange={handlePhotoSelect}
                 />
