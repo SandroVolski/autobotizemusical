@@ -132,6 +132,7 @@ export function AIInsights() {
             </div>
           ))}
 
+          <div className="flex-1" />
           <Button variant="outline" size="sm" className="w-full text-xs" onClick={() => navigate("/hub-ia")}>
             <Bot className="w-3.5 h-3.5 mr-1.5" />
             Abrir Hub de IA
