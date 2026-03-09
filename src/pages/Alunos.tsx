@@ -580,6 +580,7 @@ export default function Alunos() {
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
+                      </div>
                     </div>
                     
                     {/* Enrollments Section */}
