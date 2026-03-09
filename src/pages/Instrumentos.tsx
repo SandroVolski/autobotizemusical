@@ -414,61 +414,60 @@ export default function Instrumentos() {
           ))}
         </div>
       )}
-    </motion.div>
 
-    {/* Sell/Negotiate Dialog */}
-    <Dialog open={sellDialogOpen} onOpenChange={setSellDialogOpen}>
-      <DialogContent>
-        <DialogHeader><DialogTitle>Vender / Negociar Instrumento</DialogTitle></DialogHeader>
-        {sellInstrumento && (
-          <div className="grid gap-4 py-4">
-            <div className="p-3 rounded-lg bg-muted/50">
-              <p className="font-medium">{sellInstrumento.nome}</p>
-              <p className="text-sm text-muted-foreground">{sellInstrumento.marca} {sellInstrumento.modelo}</p>
-              {sellInstrumento.valor_patrimonio && (
-                <p className="text-sm text-muted-foreground">Valor patrimonial: R$ {Number(sellInstrumento.valor_patrimonio).toFixed(2)}</p>
-              )}
+      {/* Sell/Negotiate Dialog */}
+      <Dialog open={sellDialogOpen} onOpenChange={setSellDialogOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Vender / Negociar Instrumento</DialogTitle></DialogHeader>
+          {sellInstrumento && (
+            <div className="grid gap-4 py-4">
+              <div className="p-3 rounded-lg bg-muted/50">
+                <p className="font-medium">{sellInstrumento.nome}</p>
+                <p className="text-sm text-muted-foreground">{sellInstrumento.marca} {sellInstrumento.modelo}</p>
+                {sellInstrumento.valor_patrimonio && (
+                  <p className="text-sm text-muted-foreground">Valor patrimonial: R$ {Number(sellInstrumento.valor_patrimonio).toFixed(2)}</p>
+                )}
+              </div>
+              <div className="grid gap-2">
+                <Label>Comprador</Label>
+                <Input placeholder="Nome do comprador" value={sellData.comprador}
+                  onChange={(e) => setSellData(p => ({ ...p, comprador: e.target.value }))} />
+              </div>
+              <div className="grid gap-2">
+                <Label>Valor da Venda (R$)</Label>
+                <Input type="number" step="0.01" placeholder="0,00" value={sellData.valor_venda}
+                  onChange={(e) => setSellData(p => ({ ...p, valor_venda: e.target.value }))} />
+              </div>
+              <div className="grid gap-2">
+                <Label>Observações</Label>
+                <Textarea placeholder="Detalhes da negociação..." value={sellData.observacoes}
+                  onChange={(e) => setSellData(p => ({ ...p, observacoes: e.target.value }))} />
+              </div>
+              <Button onClick={() => {
+                if (!sellData.comprador) {
+                  toast({ title: "Informe o comprador", variant: "destructive" });
+                  return;
+                }
+                updateInstrumentoMutation.mutate({
+                  id: sellInstrumento.id,
+                  status: "vendido",
+                  observacoes: `Vendido para ${sellData.comprador}${sellData.valor_venda ? ` por R$ ${sellData.valor_venda}` : ""}. ${sellData.observacoes}`.trim(),
+                }, {
+                  onSuccess: () => {
+                    setSellDialogOpen(false);
+                    setSellInstrumento(null);
+                    setSellData({ comprador: "", valor_venda: "", observacoes: "" });
+                    toast({ title: "Instrumento marcado como vendido!" });
+                  },
+                });
+              }} disabled={updateInstrumentoMutation.isPending} className="w-full">
+                {updateInstrumentoMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                Confirmar Venda
+              </Button>
             </div>
-            <div className="grid gap-2">
-              <Label>Comprador</Label>
-              <Input placeholder="Nome do comprador" value={sellData.comprador}
-                onChange={(e) => setSellData(p => ({ ...p, comprador: e.target.value }))} />
-            </div>
-            <div className="grid gap-2">
-              <Label>Valor da Venda (R$)</Label>
-              <Input type="number" step="0.01" placeholder="0,00" value={sellData.valor_venda}
-                onChange={(e) => setSellData(p => ({ ...p, valor_venda: e.target.value }))} />
-            </div>
-            <div className="grid gap-2">
-              <Label>Observações</Label>
-              <Textarea placeholder="Detalhes da negociação..." value={sellData.observacoes}
-                onChange={(e) => setSellData(p => ({ ...p, observacoes: e.target.value }))} />
-            </div>
-            <Button onClick={() => {
-              if (!sellData.comprador) {
-                toast({ title: "Informe o comprador", variant: "destructive" });
-                return;
-              }
-              updateInstrumentoMutation.mutate({
-                id: sellInstrumento.id,
-                status: "vendido",
-                observacoes: `Vendido para ${sellData.comprador}${sellData.valor_venda ? ` por R$ ${sellData.valor_venda}` : ""}. ${sellData.observacoes}`.trim(),
-              }, {
-                onSuccess: () => {
-                  setSellDialogOpen(false);
-                  setSellInstrumento(null);
-                  setSellData({ comprador: "", valor_venda: "", observacoes: "" });
-                  toast({ title: "Instrumento marcado como vendido!" });
-                },
-              });
-            }} disabled={updateInstrumentoMutation.isPending} className="w-full">
-              {updateInstrumentoMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-              Confirmar Venda
-            </Button>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
+          )}
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }
