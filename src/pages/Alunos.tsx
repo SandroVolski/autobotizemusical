@@ -533,15 +533,17 @@ export default function Alunos() {
                       </div>
 
                       {/* Expand Enrollments */}
-                      <CollapsibleTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-muted-foreground">
-                          {expandedAluno === aluno.id ? (
-                            <ChevronUp className="w-4 h-4" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4" />
-                          )}
-                        </Button>
-                      </CollapsibleTrigger>
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <CollapsibleTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-muted-foreground">
+                            {expandedAluno === aluno.id ? (
+                              <ChevronUp className="w-4 h-4" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </CollapsibleTrigger>
+                      </div>
 
                       {/* Actions */}
                       <DropdownMenu>
