@@ -10,7 +10,14 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { UpcomingClasses } from "@/components/dashboard/UpcomingClasses";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { AIInsights } from "@/components/dashboard/AIInsights";
-import { QuickActions } from "@/components/dashboard/QuickActions";
+import { BirthdayCard } from "@/components/dashboard/BirthdayCard";
+import { WeeklyPayments } from "@/components/dashboard/WeeklyPayments";
+import { 
+  StudentsByLevelChart, 
+  ClassesByDayChart, 
+  MonthlyRevenueVsPendingChart, 
+  StudentGrowthChart 
+} from "@/components/dashboard/DashboardCharts";
 import { useAlunos } from "@/hooks/useAlunos";
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useAulas } from "@/hooks/useAulas";
@@ -108,16 +115,27 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Main Content Grid */}
+      {/* Main Content - Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
         <div className="lg:col-span-2 space-y-4 lg:space-y-6">
+          <WeeklyPayments />
           <UpcomingClasses />
-          <RevenueChart />
         </div>
         <div className="space-y-4 lg:space-y-6">
-          <QuickActions />
+          <BirthdayCard />
           <AIInsights />
         </div>
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+        <StudentsByLevelChart />
+        <ClassesByDayChart />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+        <MonthlyRevenueVsPendingChart />
+        <StudentGrowthChart />
       </div>
     </div>
   );
