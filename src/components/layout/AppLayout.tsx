@@ -70,12 +70,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <Menu className="w-5 h-5" />
               </Button>
 
-              {pageTitle && (
-                <div className="hidden sm:flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                  <span className="text-sm font-medium text-muted-foreground">{pageTitle}</span>
-                </div>
-              )}
+              
             </div>
 
             {/* Right: Actions + Profile */}
