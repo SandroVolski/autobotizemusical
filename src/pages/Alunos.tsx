@@ -63,6 +63,16 @@ import { StudentEnrollments } from "@/components/alunos/StudentEnrollments";
 import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
 import { exportAlunos } from "@/lib/csv-export";
 import { CameraCapture } from "@/components/ui/camera-capture";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const filterOptions: FilterOption[] = [
   {
