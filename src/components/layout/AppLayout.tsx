@@ -59,7 +59,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         className="min-h-screen flex flex-col"
       >
         {/* Elegant Header */}
-        <header className="sticky top-0 z-40 h-14 lg:h-16 bg-background border-b border-transparent">
+        <header className="sticky top-0 z-40 h-14 lg:h-16 bg-transparent border-b border-transparent">
           <div className="flex items-center justify-between h-full px-4 lg:px-6">
             {/* Left: Mobile menu + Page context */}
             <div className="flex items-center gap-3">
