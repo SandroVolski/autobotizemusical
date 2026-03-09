@@ -179,7 +179,7 @@ export function MonthlyRevenueVsPendingChart() {
                     tickFormatter={(v) => `R$${v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}`}
                   />
                   <Tooltip 
-                    contentStyle={tooltipStyle}
+                    contentStyle={themedTooltipStyle}
                     formatter={(value: number) => [value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }), ""]}
                   />
                   <Legend />
