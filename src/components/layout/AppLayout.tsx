@@ -20,7 +20,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const sidebarWidth = isMobile ? 0 : (collapsed ? 72 : 280);
 
   return (
-    <div className="min-h-screen bg-background overflow-hidden">
+    <div className="min-h-screen bg-background">
       <AppSidebar />
       
       {/* Main content area */}
@@ -31,7 +31,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           width: `calc(100% - ${sidebarWidth}px)`
         }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="min-h-screen"
+        className="min-h-screen flex flex-col"
       >
         {/* Top bar */}
         <header className="sticky top-0 z-40 h-14 lg:h-16 bg-background/95 backdrop-blur-xl border-b border-border/50">
@@ -71,7 +71,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         </header>
 
         {/* Page content */}
-        <div className="p-4 lg:p-6 max-w-full overflow-x-hidden">
+        <div className="flex-1 p-4 lg:p-6 max-w-full overflow-x-hidden">
           {children}
         </div>
       </motion.main>
