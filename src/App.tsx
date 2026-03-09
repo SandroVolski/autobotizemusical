@@ -28,6 +28,7 @@ import Turmas from "./pages/Turmas";
 import Reposicoes from "./pages/Reposicoes";
 import Contratos from "./pages/Contratos";
 import CRM from "./pages/CRM";
+import Confirmacoes from "./pages/Confirmacoes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -186,6 +187,14 @@ const App = () => (
               element={
                 <AuthenticatedPage>
                   <CRM />
+                </AuthenticatedPage>
+              }
+            />
+            <Route
+              path="/confirmacoes"
+              element={
+                <AuthenticatedPage>
+                  <Confirmacoes />
                 </AuthenticatedPage>
               }
             />

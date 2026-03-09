@@ -45,7 +45,7 @@ const menuItems = [
 { icon: UserPlus, label: "Captação", path: "/crm" },
 { icon: Bot, label: "Hub IA", path: "/hub-ia" },
 { icon: UserCog, label: "Professores", path: "/professores" },
-// { icon: MessageSquare, label: "Comunicação", path: "/comunicacao" },
+{ icon: MessageSquare, label: "Confirmações", path: "/confirmacoes" },
 { icon: Settings, label: "Configurações", path: "/configuracoes" }];
 
 
