@@ -115,27 +115,36 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Main Content - 3 column layout */}
+      {/* Main Content - Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-        {/* Left 2 columns */}
-        <div className="lg:col-span-2 space-y-4 lg:space-y-6">
+        <div className="lg:col-span-2">
           <WeeklyPayments />
-          <UpcomingClasses />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-            <StudentsByLevelChart />
-            <MonthlyRevenueVsPendingChart />
-          </div>
         </div>
-
-        {/* Right column - stacked cards */}
-        <div className="space-y-4 lg:space-y-6">
+        <div>
           <BirthdayCard />
-          <AIInsights />
-          <ClassesByDayChart />
-          <StudentGrowthChart />
         </div>
       </div>
 
+      {/* Row 2 - Classes & AI Insights */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+        <div className="lg:col-span-2">
+          <UpcomingClasses />
+        </div>
+        <div>
+          <AIInsights />
+        </div>
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+        <StudentsByLevelChart />
+        <ClassesByDayChart />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+        <MonthlyRevenueVsPendingChart />
+        <StudentGrowthChart />
+      </div>
     </div>
   );
 }
