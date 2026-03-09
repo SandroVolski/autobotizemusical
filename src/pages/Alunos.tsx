@@ -89,6 +89,7 @@ export default function Alunos() {
   const [enrollmentAluno, setEnrollmentAluno] = useState<{ id: string; nome: string } | null>(null);
   const [filterValues, setFilterValues] = useState<FilterValues>({});
   const [expandedAluno, setExpandedAluno] = useState<string | null>(null);
+  const [previewPhoto, setPreviewPhoto] = useState<{ url: string; nome: string } | null>(null);
   const [newAluno, setNewAluno] = useState<NovoAluno>({
     nome: "",
     email: "",
@@ -105,6 +106,7 @@ export default function Alunos() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -298,20 +300,31 @@ export default function Alunos() {
             <div className="grid gap-4 py-4">
               {/* Photo Upload */}
               <div className="flex flex-col items-center gap-3">
-                <div 
-                  className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-dashed border-primary/40 hover:border-primary/70 cursor-pointer transition-colors group"
-                  onClick={() => fileInputRef.current?.click()}
-                >
+                <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-dashed border-primary/40 hover:border-primary/70 cursor-pointer transition-colors group">
                   {photoPreview ? (
                     <img src={photoPreview} alt="Foto do aluno" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center bg-muted/50">
-                      <User className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
+                      <User className="w-8 h-8 text-muted-foreground" />
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Camera className="w-5 h-5 text-white" />
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                        <Camera className="w-5 h-5 text-white" />
+                      </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="center">
+                      <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Galeria / Arquivos
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => cameraInputRef.current?.click()}>
+                        <Camera className="w-4 h-4 mr-2" />
+                        Tirar Foto
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
                 <input
                   ref={fileInputRef}
@@ -320,13 +333,34 @@ export default function Alunos() {
                   className="hidden"
                   onChange={handlePhotoSelect}
                 />
-                <button
-                  type="button"
-                  className="text-xs text-muted-foreground hover:text-primary transition-colors"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  {photoPreview ? "Alterar foto" : "Adicionar foto"}
-                </button>
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={handlePhotoSelect}
+                />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {photoPreview ? "Alterar foto" : "Adicionar foto"}
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center">
+                    <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Galeria / Arquivos
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => cameraInputRef.current?.click()}>
+                      <Camera className="w-4 h-4 mr-2" />
+                      Tirar Foto
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               <div className="grid gap-2">
@@ -558,7 +592,11 @@ export default function Alunos() {
                         <img
                           src={aluno.foto_url}
                           alt={aluno.nome}
-                          className="w-12 h-12 rounded-full object-cover border border-primary/30"
+                          className="w-12 h-12 rounded-full object-cover border border-primary/30 hover:ring-2 hover:ring-primary/50 transition-all"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPreviewPhoto({ url: aluno.foto_url!, nome: aluno.nome });
+                          }}
                         />
                       ) : (
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-semibold">
@@ -701,6 +739,24 @@ export default function Alunos() {
           onOpenChange={(open) => !open && setEnrollmentAluno(null)}
         />
       )}
+
+      {/* Photo Preview Dialog */}
+      <Dialog open={!!previewPhoto} onOpenChange={(open) => !open && setPreviewPhoto(null)}>
+        <DialogContent className="sm:max-w-md p-2 bg-background/95 backdrop-blur-sm">
+          <DialogHeader>
+            <DialogTitle className="text-center">{previewPhoto?.nome}</DialogTitle>
+          </DialogHeader>
+          {previewPhoto && (
+            <div className="flex items-center justify-center p-2">
+              <img
+                src={previewPhoto.url}
+                alt={previewPhoto.nome}
+                className="max-w-full max-h-[70vh] rounded-lg object-contain"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
