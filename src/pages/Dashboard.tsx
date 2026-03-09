@@ -117,12 +117,20 @@ export default function Dashboard() {
 
       {/* Main Content - Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-        <div className="lg:col-span-2 space-y-4 lg:space-y-6">
+        <div className="lg:col-span-2">
           <WeeklyPayments />
+        </div>
+        <div>
+          <BirthdayCard />
+        </div>
+      </div>
+
+      {/* Row 2 - Classes & AI Insights */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+        <div className="lg:col-span-2">
           <UpcomingClasses />
         </div>
-        <div className="space-y-4 lg:space-y-6">
-          <BirthdayCard />
+        <div>
           <AIInsights />
         </div>
       </div>
