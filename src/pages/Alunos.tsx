@@ -551,7 +551,7 @@ export default function Alunos() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate(`/alunos/${aluno.id}`)}>
                             <Eye className="w-4 h-4 mr-2" />
                             Ver Perfil
                           </DropdownMenuItem>
@@ -563,7 +563,7 @@ export default function Alunos() {
                             <Edit className="w-4 h-4 mr-2" />
                             Editar
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate("/agenda")}>
                             <Calendar className="w-4 h-4 mr-2" />
                             Agendar Aula
                           </DropdownMenuItem>
