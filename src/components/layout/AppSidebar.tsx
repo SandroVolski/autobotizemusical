@@ -239,7 +239,7 @@ export function AppSidebar() {
         <ul className="space-y-1">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.path;
-            const badgeValue = item.badgeKey ? badgeValues[item.badgeKey] : item.badge;
+            const badgeValue = item.badgeKey ? badgeValues[item.badgeKey] : (item as any).badge;
 
             return (
               <li key={item.path}>
