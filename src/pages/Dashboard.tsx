@@ -130,7 +130,7 @@ export default function Dashboard() {
         <div className="lg:col-span-2">
           <UpcomingClasses />
         </div>
-        <div>
+        <div className="h-full">
           <AIInsights />
         </div>
       </div>
