@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { 
   DollarSign, TrendingUp, CreditCard, AlertCircle, CheckCircle2, Clock, Download, Plus, Loader2, Trash2,
-  Receipt, ShoppingCart, Wallet,
+  Receipt, ShoppingCart, Wallet, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
