@@ -469,7 +469,7 @@ export default function Alunos() {
               >
                 <Card variant="interactive">
                   <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigate(`/alunos/${aluno.id}`)}>
                       {/* Avatar */}
                       {aluno.foto_url ? (
                         <img
