@@ -436,9 +436,9 @@ export default function Alunos() {
               <Button 
                 className="w-full mt-2" 
                 onClick={handleCreateAluno}
-                disabled={createAlunoMutation.isPending || updateAlunoMutation.isPending}
+                disabled={createAlunoMutation.isPending || updateAlunoMutation.isPending || isUploading}
               >
-                {(createAlunoMutation.isPending || updateAlunoMutation.isPending) && (
+                {(createAlunoMutation.isPending || updateAlunoMutation.isPending || isUploading) && (
                   <Loader2 className="w-4 h-4 animate-spin mr-2" />
                 )}
                 {editingAluno ? "Salvar Alterações" : "Cadastrar Aluno"}
