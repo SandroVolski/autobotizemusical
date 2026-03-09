@@ -58,6 +58,7 @@ export default function Turmas() {
   const [attendance, setAttendance] = useState<Record<string, string>>({});
   const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split("T")[0]);
   const [selectedAlunosIds, setSelectedAlunosIds] = useState<string[]>([]);
+  const [studentSearch, setStudentSearch] = useState("");
   const [newTurma, setNewTurma] = useState({
     nome: "", professor_id: "", curso_id: "", dia_semana: 1,
     horario: "08:00", max_alunos: 10, sala: "",

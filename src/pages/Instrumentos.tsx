@@ -41,10 +41,11 @@ import { useInstrumentos, useCreateInstrumento, useDeleteInstrumento, useUpdateI
 import { toast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 
-const statusConfig = {
+const statusConfig: Record<string, { label: string; color: string }> = {
   disponivel: { label: "Disponível", color: "bg-success/20 text-success border-success/30" },
   emprestado: { label: "Emprestado", color: "bg-warning/20 text-warning border-warning/30" },
   manutencao: { label: "Em Manutenção", color: "bg-destructive/20 text-destructive border-destructive/30" },
+  vendido: { label: "Vendido", color: "bg-muted text-muted-foreground border-muted" },
 };
 
 export default function Instrumentos() {

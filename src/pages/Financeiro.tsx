@@ -436,7 +436,7 @@ export default function Financeiro() {
         </TabsContent>
 
         <TabsContent value="pagar"><ContasPagarTab /></TabsContent>
-        <TabsContent value="caixa"><FluxoCaixaTab /></TabsContent>
+        <TabsContent value="caixa"><FluxoCaixaTab selectedMonth={selectedMonth} selectedYear={selectedYear} /></TabsContent>
         <TabsContent value="pdv"><PDVTab /></TabsContent>
       </Tabs>
     </div>
