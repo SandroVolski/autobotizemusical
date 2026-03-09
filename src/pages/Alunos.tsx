@@ -158,7 +158,7 @@ export default function Alunos() {
     return matriculaDate.getMonth() === now.getMonth() && matriculaDate.getFullYear() === now.getFullYear();
   }).length || 0;
 
-  const handleCreateAluno = () => {
+  const handleCreateAluno = async () => {
     if (!newAluno.nome) {
       toast({
         title: "Erro",
