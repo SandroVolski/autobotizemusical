@@ -115,27 +115,30 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Main Content - Combined grid with AI Insights spanning right column */}
+      {/* Main Content - Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-        {/* Left column (2/3 width) */}
-        <div className="lg:col-span-2 space-y-4 lg:space-y-6">
-          <div className="grid grid-cols-1 gap-4 lg:gap-6">
-            <WeeklyPayments />
-          </div>
+        <div className="lg:col-span-2">
+          <WeeklyPayments />
+        </div>
+        <div>
           <BirthdayCard />
-          <UpcomingClasses />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-            <StudentsByLevelChart />
-            <ClassesByDayChart />
-          </div>
         </div>
+      </div>
 
-        {/* Right column - AI Insights spanning full height */}
-        <div className="lg:row-span-1">
-          <div className="sticky top-20">
-            <AIInsights />
-          </div>
+      {/* Row 2 - Classes & AI Insights */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+        <div className="lg:col-span-2">
+          <UpcomingClasses />
         </div>
+        <div>
+          <AIInsights />
+        </div>
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+        <StudentsByLevelChart />
+        <ClassesByDayChart />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
