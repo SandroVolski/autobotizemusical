@@ -102,9 +102,11 @@ export function AppSidebar() {
                       className="w-10 h-10 object-contain flex-shrink-0" 
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center flex-shrink-0">
-                      <Music className="w-5 h-5 text-primary-foreground" />
-                    </div>
+                    <img 
+                      src={autobotizeLogo} 
+                      alt="Autobotize" 
+                      className="w-10 h-10 object-contain flex-shrink-0" 
+                    />
                   )}
                   <div>
                     <h1 className="font-bold text-foreground whitespace-nowrap">
