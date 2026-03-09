@@ -819,6 +819,29 @@ export default function Alunos() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Status Toggle Confirmation */}
+      <AlertDialog open={!!statusToggleAluno} onOpenChange={(open) => !open && setStatusToggleAluno(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {statusToggleAluno?.currentStatus === "ativo" ? "Desativar aluno?" : "Reativar aluno?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {statusToggleAluno?.currentStatus === "ativo"
+                ? `Tem certeza que deseja desativar "${statusToggleAluno?.nome}"? O aluno será marcado como inativo, mas poderá ser reativado a qualquer momento.`
+                : `Tem certeza que deseja reativar "${statusToggleAluno?.nome}"? O aluno voltará a aparecer como ativo no sistema.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleToggleStatus} disabled={updateAlunoMutation.isPending}>
+              {updateAlunoMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+              {statusToggleAluno?.currentStatus === "ativo" ? "Desativar" : "Reativar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
