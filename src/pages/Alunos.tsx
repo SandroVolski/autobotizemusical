@@ -668,8 +668,17 @@ export default function Alunos() {
                             <>
                               <span className="hidden sm:inline">•</span>
                               <span className="hidden sm:flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
-                                Desde {new Date(aluno.data_matricula).toLocaleDateString("pt-BR")}
+                                {aluno.status === "ativo" ? (
+                                  <>
+                                    <Calendar className="w-3 h-3" />
+                                    Desde {new Date(aluno.data_matricula).toLocaleDateString("pt-BR")}
+                                  </>
+                                ) : (
+                                  <>
+                                    <LogOut className="w-3 h-3" />
+                                    Saiu em {new Date(aluno.updated_at).toLocaleDateString("pt-BR")}
+                                  </>
+                                )}
                               </span>
                             </>
                           )}
