@@ -299,20 +299,31 @@ export default function Alunos() {
             <div className="grid gap-4 py-4">
               {/* Photo Upload */}
               <div className="flex flex-col items-center gap-3">
-                <div 
-                  className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-dashed border-primary/40 hover:border-primary/70 cursor-pointer transition-colors group"
-                  onClick={() => fileInputRef.current?.click()}
-                >
+                <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-dashed border-primary/40 hover:border-primary/70 cursor-pointer transition-colors group">
                   {photoPreview ? (
                     <img src={photoPreview} alt="Foto do aluno" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center bg-muted/50">
-                      <User className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
+                      <User className="w-8 h-8 text-muted-foreground" />
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Camera className="w-5 h-5 text-white" />
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                        <Camera className="w-5 h-5 text-white" />
+                      </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="center">
+                      <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Galeria / Arquivos
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => cameraInputRef.current?.click()}>
+                        <Camera className="w-4 h-4 mr-2" />
+                        Tirar Foto
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
                 <input
                   ref={fileInputRef}
@@ -321,13 +332,34 @@ export default function Alunos() {
                   className="hidden"
                   onChange={handlePhotoSelect}
                 />
-                <button
-                  type="button"
-                  className="text-xs text-muted-foreground hover:text-primary transition-colors"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  {photoPreview ? "Alterar foto" : "Adicionar foto"}
-                </button>
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={handlePhotoSelect}
+                />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {photoPreview ? "Alterar foto" : "Adicionar foto"}
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center">
+                    <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Galeria / Arquivos
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => cameraInputRef.current?.click()}>
+                      <Camera className="w-4 h-4 mr-2" />
+                      Tirar Foto
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               <div className="grid gap-2">
