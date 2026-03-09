@@ -11,12 +11,16 @@ import {
   Plus,
   Loader2,
   Trash2,
+  Receipt,
+  ShoppingCart,
+  Wallet,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +41,9 @@ import { useAlunos } from "@/hooks/useAlunos";
 import { toast } from "@/hooks/use-toast";
 import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
 import { exportPagamentos } from "@/lib/csv-export";
+import { ContasPagarTab } from "@/components/financeiro/ContasPagarTab";
+import { FluxoCaixaTab } from "@/components/financeiro/FluxoCaixaTab";
+import { PDVTab } from "@/components/financeiro/PDVTab";
 
 const filterOptions: FilterOption[] = [
   {
@@ -216,7 +223,7 @@ export default function Financeiro() {
         <div>
           <h1 className="text-3xl font-bold">Financeiro</h1>
           <p className="text-muted-foreground">
-            Controle financeiro da escola
+            Controle financeiro completo da escola
           </p>
         </div>
         <div className="flex gap-2">
@@ -348,6 +355,16 @@ export default function Financeiro() {
           </Dialog>
         </div>
       </motion.div>
+
+      <Tabs defaultValue="receber" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4 max-w-lg">
+          <TabsTrigger value="receber" className="flex items-center gap-1"><DollarSign className="w-4 h-4" />Receber</TabsTrigger>
+          <TabsTrigger value="pagar" className="flex items-center gap-1"><Receipt className="w-4 h-4" />Pagar</TabsTrigger>
+          <TabsTrigger value="caixa" className="flex items-center gap-1"><Wallet className="w-4 h-4" />Caixa</TabsTrigger>
+          <TabsTrigger value="pdv" className="flex items-center gap-1"><ShoppingCart className="w-4 h-4" />PDV</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="receber" className="space-y-6">
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -629,6 +646,21 @@ export default function Financeiro() {
           </CardContent>
         </Card>
       </motion.div>
+
+        </TabsContent>
+
+        <TabsContent value="pagar">
+          <ContasPagarTab />
+        </TabsContent>
+
+        <TabsContent value="caixa">
+          <FluxoCaixaTab />
+        </TabsContent>
+
+        <TabsContent value="pdv">
+          <PDVTab />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
