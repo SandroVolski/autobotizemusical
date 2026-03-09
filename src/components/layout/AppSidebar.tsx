@@ -33,13 +33,17 @@ import autobotizeLogo from "@/assets/autobotize-logo-4.webp";
 const menuItems = [
 { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
 { icon: Users, label: "Alunos", path: "/alunos", badgeKey: "alunos" },
+{ icon: UsersRound, label: "Turmas", path: "/turmas" },
 { icon: Music, label: "Instrumentos", path: "/instrumentos" },
 { icon: BookOpen, label: "Cursos", path: "/cursos" },
 { icon: DollarSign, label: "Financeiro", path: "/financeiro", badgeKey: "financeiro" },
 { icon: Calendar, label: "Agenda", path: "/agenda" },
+{ icon: RefreshCw, label: "Reposições", path: "/reposicoes" },
 { icon: BarChart3, label: "Relatórios", path: "/relatorios" },
 { icon: GraduationCap, label: "Pedagógico", path: "/pedagogico" },
-{ icon: Bot, label: "Hub IA", path: "/hub-ia", badge: "Novo" },
+{ icon: FileText, label: "Contratos", path: "/contratos" },
+{ icon: UserPlus, label: "Captação", path: "/crm", badge: "Novo" },
+{ icon: Bot, label: "Hub IA", path: "/hub-ia" },
 { icon: UserCog, label: "Professores", path: "/professores" },
 { icon: MessageSquare, label: "Comunicação", path: "/comunicacao" },
 { icon: Settings, label: "Configurações", path: "/configuracoes" }];
