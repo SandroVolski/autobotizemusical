@@ -24,6 +24,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAlunos } from "@/hooks/useAlunos";
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useConfiguracoes } from "@/hooks/useConfiguracoes";
+import autobotizeLogo from "@/assets/autobotize-logo.webp";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -101,9 +102,11 @@ export function AppSidebar() {
                       className="w-10 h-10 object-contain flex-shrink-0" 
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center flex-shrink-0">
-                      <Music className="w-5 h-5 text-primary-foreground" />
-                    </div>
+                    <img 
+                      src={autobotizeLogo} 
+                      alt="Autobotize" 
+                      className="w-10 h-10 object-contain flex-shrink-0" 
+                    />
                   )}
                   <div>
                     <h1 className="font-bold text-foreground whitespace-nowrap">
@@ -196,9 +199,11 @@ export function AppSidebar() {
               className="w-10 h-10 object-contain flex-shrink-0" 
             />
           ) : (
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center flex-shrink-0">
-              <Music className="w-5 h-5 text-primary-foreground" />
-            </div>
+            <img 
+              src={autobotizeLogo} 
+              alt="Autobotize" 
+              className="w-10 h-10 object-contain flex-shrink-0" 
+            />
           )}
           <AnimatePresence>
             {!collapsed && (
