@@ -25,34 +25,78 @@ function generateContractHTML(contrato: any, escola: any) {
   const aluno = contrato.alunos;
   const curso = contrato.cursos;
   const today = new Date().toLocaleDateString("pt-BR");
+  const year = new Date().getFullYear();
 
   if (contrato.tipo === "matricula") {
     return `
-      <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; padding: 40px;">
-        <h1 style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px;">CONTRATO DE PRESTAÇÃO DE SERVIÇOS EDUCACIONAIS</h1>
-        <p style="text-align: center; color: #666;">${escola?.nome || "Escola de Música"}</p>
-        <br/>
-        <p><strong>CONTRATANTE:</strong> ${aluno?.responsavel_nome || aluno?.nome}</p>
-        <p><strong>Endereço:</strong> ${aluno?.endereco || "—"}</p>
-        <p><strong>Telefone:</strong> ${aluno?.telefone || "—"} | <strong>Email:</strong> ${aluno?.email || "—"}</p>
-        <br/>
-        <p><strong>ALUNO(A):</strong> ${aluno?.nome}</p>
-        <p><strong>CURSO:</strong> ${curso?.nome || "—"}</p>
-        <p><strong>VALOR MENSAL:</strong> ${curso?.valor_mensal ? `R$ ${Number(curso.valor_mensal).toFixed(2)}` : "A definir"}</p>
-        <p><strong>INÍCIO:</strong> ${contrato.data_inicio ? new Date(contrato.data_inicio).toLocaleDateString("pt-BR") : today}</p>
-        ${contrato.data_fim ? `<p><strong>TÉRMINO:</strong> ${new Date(contrato.data_fim).toLocaleDateString("pt-BR")}</p>` : ""}
-        <br/>
-        <h3>CLÁUSULAS</h3>
-        <p>1. O presente contrato tem por objeto a prestação de serviços educacionais musicais.</p>
-        <p>2. O pagamento deverá ser efetuado até o dia 10 de cada mês.</p>
-        <p>3. A falta sem aviso prévio de 24h não gera direito a reposição.</p>
-        <p>4. O cancelamento deve ser comunicado com 30 dias de antecedência.</p>
-        <br/><br/>
-        <div style="display: flex; justify-content: space-between; margin-top: 60px;">
-          <div style="text-align: center; border-top: 1px solid #333; padding-top: 5px; width: 45%;">CONTRATANTE</div>
-          <div style="text-align: center; border-top: 1px solid #333; padding-top: 5px; width: 45%;">CONTRATADA</div>
+      <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 750px; margin: 0 auto; padding: 50px; color: #1a1a2e;">
+        <!-- Header -->
+        <div style="text-align: center; border-bottom: 3px solid #7c3aed; padding-bottom: 20px; margin-bottom: 30px;">
+          <h1 style="font-size: 22px; font-weight: 700; color: #7c3aed; margin: 0; letter-spacing: 2px;">CONTRATO DE PRESTAÇÃO DE SERVIÇOS EDUCACIONAIS</h1>
+          <p style="font-size: 16px; color: #555; margin: 8px 0 0;">${escola?.nome || "Escola de Música"}</p>
+          ${escola?.cnpj ? `<p style="font-size: 12px; color: #888; margin: 4px 0 0;">CNPJ: ${escola.cnpj}</p>` : ""}
+          ${escola?.endereco ? `<p style="font-size: 12px; color: #888; margin: 2px 0 0;">${escola.endereco}${escola?.cidade ? ` — ${escola.cidade}/${escola.estado}` : ""}</p>` : ""}
         </div>
-        <p style="text-align: center; margin-top: 20px; color: #999; font-size: 12px;">${today}</p>
+        
+        <!-- Parties -->
+        <div style="background: #f8f7ff; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+          <h3 style="font-size: 13px; color: #7c3aed; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 12px;">Dados da Contratante</h3>
+          <table style="width: 100%; font-size: 14px;">
+            <tr><td style="padding: 4px 0; color: #666; width: 140px;">Nome:</td><td style="font-weight: 600;">${aluno?.responsavel_nome || aluno?.nome || "—"}</td></tr>
+            <tr><td style="padding: 4px 0; color: #666;">Endereço:</td><td>${aluno?.endereco || "—"}</td></tr>
+            <tr><td style="padding: 4px 0; color: #666;">Telefone:</td><td>${aluno?.telefone || "—"}</td></tr>
+            <tr><td style="padding: 4px 0; color: #666;">E-mail:</td><td>${aluno?.email || "—"}</td></tr>
+          </table>
+        </div>
+
+        <div style="background: #f0fdf4; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+          <h3 style="font-size: 13px; color: #16a34a; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 12px;">Dados do Aluno(a)</h3>
+          <table style="width: 100%; font-size: 14px;">
+            <tr><td style="padding: 4px 0; color: #666; width: 140px;">Aluno(a):</td><td style="font-weight: 600;">${aluno?.nome || "—"}</td></tr>
+            <tr><td style="padding: 4px 0; color: #666;">Curso:</td><td style="font-weight: 600;">${curso?.nome || "—"}</td></tr>
+            <tr><td style="padding: 4px 0; color: #666;">Valor Mensal:</td><td style="font-weight: 700; color: #7c3aed; font-size: 16px;">${curso?.valor_mensal ? `R$ ${Number(curso.valor_mensal).toFixed(2)}` : "A definir"}</td></tr>
+            <tr><td style="padding: 4px 0; color: #666;">Início:</td><td>${contrato.data_inicio ? new Date(contrato.data_inicio).toLocaleDateString("pt-BR") : today}</td></tr>
+            ${contrato.data_fim ? `<tr><td style="padding: 4px 0; color: #666;">Término:</td><td>${new Date(contrato.data_fim).toLocaleDateString("pt-BR")}</td></tr>` : ""}
+          </table>
+        </div>
+        
+        <!-- Clauses -->
+        <div style="margin-bottom: 30px;">
+          <h3 style="font-size: 14px; color: #1a1a2e; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">CLÁUSULAS E CONDIÇÕES</h3>
+          <div style="font-size: 13px; line-height: 1.8; color: #444;">
+            <p><strong>CLÁUSULA 1ª — OBJETO:</strong> O presente contrato tem por objeto a prestação de serviços educacionais musicais, consistindo em aulas regulares do curso acima especificado.</p>
+            <p><strong>CLÁUSULA 2ª — VIGÊNCIA:</strong> Este contrato terá vigência a partir da data de início acima mencionada${contrato.data_fim ? ", com término previsto para a data indicada" : ", com prazo indeterminado, podendo ser rescindido conforme cláusula 7ª"}.</p>
+            <p><strong>CLÁUSULA 3ª — PAGAMENTO:</strong> O pagamento da mensalidade deverá ser efetuado até o dia 10 (dez) de cada mês, através de boleto, PIX, cartão ou dinheiro. O atraso no pagamento acarretará multa de 2% e juros de 1% ao mês.</p>
+            <p><strong>CLÁUSULA 4ª — FREQUÊNCIA:</strong> O(a) aluno(a) deverá comparecer às aulas nos dias e horários estabelecidos. A falta sem aviso prévio de 24 (vinte e quatro) horas será considerada "Falta" e a aula será cobrada normalmente.</p>
+            <p><strong>CLÁUSULA 5ª — REPOSIÇÃO:</strong> Faltas comunicadas com no mínimo 24h de antecedência gerarão crédito de reposição, sujeito à disponibilidade de horário. O crédito expira em 30 dias.</p>
+            <p><strong>CLÁUSULA 6ª — MATERIAL:</strong> O material didático necessário será indicado pelo professor e é de responsabilidade do contratante.</p>
+            <p><strong>CLÁUSULA 7ª — RESCISÃO:</strong> O cancelamento deverá ser comunicado por escrito com 30 (trinta) dias de antecedência. A mensalidade do mês corrente não será devolvida.</p>
+            <p><strong>CLÁUSULA 8ª — FORO:</strong> Fica eleito o foro da comarca de ${escola?.cidade || "[cidade]"}/${escola?.estado || "[UF]"} para dirimir quaisquer questões oriundas deste contrato.</p>
+          </div>
+        </div>
+        
+        <!-- Signatures -->
+        <div style="margin-top: 60px;">
+          <p style="text-align: center; color: #888; font-size: 12px; margin-bottom: 40px;">${escola?.cidade || "[Cidade]"}, ${today}</p>
+          <div style="display: flex; justify-content: space-between; gap: 40px;">
+            <div style="flex: 1; text-align: center;">
+              <div style="border-top: 2px solid #1a1a2e; padding-top: 8px; margin-top: 50px;">
+                <p style="font-size: 13px; font-weight: 600; margin: 0;">${aluno?.responsavel_nome || aluno?.nome || "CONTRATANTE"}</p>
+                <p style="font-size: 11px; color: #888; margin: 2px 0 0;">Contratante</p>
+              </div>
+            </div>
+            <div style="flex: 1; text-align: center;">
+              <div style="border-top: 2px solid #1a1a2e; padding-top: 8px; margin-top: 50px;">
+                <p style="font-size: 13px; font-weight: 600; margin: 0;">${escola?.nome || "CONTRATADA"}</p>
+                <p style="font-size: 11px; color: #888; margin: 2px 0 0;">Contratada</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+          <p style="font-size: 10px; color: #aaa;">Documento gerado eletronicamente em ${today} — ${escola?.nome || "Escola de Música"} © ${year}</p>
+        </div>
       </div>
     `;
   }
@@ -60,32 +104,76 @@ function generateContractHTML(contrato: any, escola: any) {
   // Termo de empréstimo
   const instrumento = contrato.instrumentos;
   return `
-    <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; padding: 40px;">
-      <h1 style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px;">TERMO DE EMPRÉSTIMO DE INSTRUMENTO</h1>
-      <p style="text-align: center; color: #666;">${escola?.nome || "Escola de Música"}</p>
-      <br/>
-      <p><strong>RESPONSÁVEL:</strong> ${aluno?.responsavel_nome || aluno?.nome}</p>
-      <p><strong>ALUNO(A):</strong> ${aluno?.nome}</p>
-      <p><strong>Telefone:</strong> ${aluno?.telefone || "—"}</p>
-      <br/>
-      <h3>INSTRUMENTO</h3>
-      <p><strong>Nome:</strong> ${instrumento?.nome || "—"}</p>
-      <p><strong>Marca/Modelo:</strong> ${instrumento?.marca || "—"} ${instrumento?.modelo || ""}</p>
-      <p><strong>Nº Série:</strong> ${instrumento?.numero_serie || "—"}</p>
-      <br/>
-      <p><strong>DATA DO EMPRÉSTIMO:</strong> ${contrato.data_inicio ? new Date(contrato.data_inicio).toLocaleDateString("pt-BR") : today}</p>
-      ${contrato.data_fim ? `<p><strong>DEVOLUÇÃO PREVISTA:</strong> ${new Date(contrato.data_fim).toLocaleDateString("pt-BR")}</p>` : ""}
-      <br/>
-      <h3>TERMOS</h3>
-      <p>1. O instrumento deverá ser devolvido nas mesmas condições em que foi emprestado.</p>
-      <p>2. Danos ou perda serão de responsabilidade do contratante.</p>
-      <p>3. O instrumento é de uso exclusivo do aluno acima identificado.</p>
-      <br/><br/>
-      <div style="display: flex; justify-content: space-between; margin-top: 60px;">
-        <div style="text-align: center; border-top: 1px solid #333; padding-top: 5px; width: 45%;">RESPONSÁVEL</div>
-        <div style="text-align: center; border-top: 1px solid #333; padding-top: 5px; width: 45%;">${escola?.nome || "ESCOLA"}</div>
+    <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 750px; margin: 0 auto; padding: 50px; color: #1a1a2e;">
+      <!-- Header -->
+      <div style="text-align: center; border-bottom: 3px solid #0ea5e9; padding-bottom: 20px; margin-bottom: 30px;">
+        <h1 style="font-size: 22px; font-weight: 700; color: #0ea5e9; margin: 0; letter-spacing: 2px;">TERMO DE EMPRÉSTIMO DE INSTRUMENTO</h1>
+        <p style="font-size: 16px; color: #555; margin: 8px 0 0;">${escola?.nome || "Escola de Música"}</p>
+        ${escola?.cnpj ? `<p style="font-size: 12px; color: #888; margin: 4px 0 0;">CNPJ: ${escola.cnpj}</p>` : ""}
       </div>
-      <p style="text-align: center; margin-top: 20px; color: #999; font-size: 12px;">${today}</p>
+      
+      <div style="background: #f0f9ff; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+        <h3 style="font-size: 13px; color: #0ea5e9; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 12px;">Responsável</h3>
+        <table style="width: 100%; font-size: 14px;">
+          <tr><td style="padding: 4px 0; color: #666; width: 140px;">Nome:</td><td style="font-weight: 600;">${aluno?.responsavel_nome || aluno?.nome || "—"}</td></tr>
+          <tr><td style="padding: 4px 0; color: #666;">Aluno(a):</td><td>${aluno?.nome || "—"}</td></tr>
+          <tr><td style="padding: 4px 0; color: #666;">Telefone:</td><td>${aluno?.telefone || "—"}</td></tr>
+          <tr><td style="padding: 4px 0; color: #666;">Endereço:</td><td>${aluno?.endereco || "—"}</td></tr>
+        </table>
+      </div>
+
+      <div style="background: #fff7ed; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+        <h3 style="font-size: 13px; color: #ea580c; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 12px;">Instrumento</h3>
+        <table style="width: 100%; font-size: 14px;">
+          <tr><td style="padding: 4px 0; color: #666; width: 140px;">Instrumento:</td><td style="font-weight: 600;">${instrumento?.nome || "—"}</td></tr>
+          <tr><td style="padding: 4px 0; color: #666;">Marca/Modelo:</td><td>${instrumento?.marca || "—"} ${instrumento?.modelo || ""}</td></tr>
+          <tr><td style="padding: 4px 0; color: #666;">Nº Série:</td><td>${instrumento?.numero_serie || "—"}</td></tr>
+          ${instrumento?.valor_patrimonio ? `<tr><td style="padding: 4px 0; color: #666;">Valor Patrimonial:</td><td style="font-weight: 700; color: #ea580c;">R$ ${Number(instrumento.valor_patrimonio).toFixed(2)}</td></tr>` : ""}
+        </table>
+      </div>
+
+      <div style="background: #f8f7ff; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+        <h3 style="font-size: 13px; color: #7c3aed; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 12px;">Período</h3>
+        <table style="width: 100%; font-size: 14px;">
+          <tr><td style="padding: 4px 0; color: #666; width: 140px;">Data do Empréstimo:</td><td style="font-weight: 600;">${contrato.data_inicio ? new Date(contrato.data_inicio).toLocaleDateString("pt-BR") : today}</td></tr>
+          ${contrato.data_fim ? `<tr><td style="padding: 4px 0; color: #666;">Devolução Prevista:</td><td style="font-weight: 600;">${new Date(contrato.data_fim).toLocaleDateString("pt-BR")}</td></tr>` : ""}
+        </table>
+      </div>
+      
+      <div style="margin-bottom: 30px;">
+        <h3 style="font-size: 14px; color: #1a1a2e; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">TERMOS E CONDIÇÕES</h3>
+        <div style="font-size: 13px; line-height: 1.8; color: #444;">
+          <p><strong>1.</strong> O instrumento acima descrito é de propriedade da ${escola?.nome || "escola"} e está sendo cedido em regime de empréstimo para uso exclusivo nas atividades de estudo do(a) aluno(a) identificado(a).</p>
+          <p><strong>2.</strong> O responsável se compromete a zelar pelo instrumento, mantendo-o em perfeitas condições de uso e conservação.</p>
+          <p><strong>3.</strong> Quaisquer danos, avarias ou perda do instrumento serão de total responsabilidade financeira do responsável, devendo arcar com os custos de reparo ou reposição.</p>
+          <p><strong>4.</strong> O instrumento deverá ser devolvido na data prevista ou quando solicitado pela escola, nas mesmas condições em que foi recebido.</p>
+          <p><strong>5.</strong> É expressamente proibido ceder, emprestar ou transferir o instrumento a terceiros.</p>
+          <p><strong>6.</strong> Em caso de desistência do curso, o instrumento deverá ser devolvido imediatamente.</p>
+        </div>
+      </div>
+      
+      <!-- Signatures -->
+      <div style="margin-top: 60px;">
+        <p style="text-align: center; color: #888; font-size: 12px; margin-bottom: 40px;">${escola?.cidade || "[Cidade]"}, ${today}</p>
+        <div style="display: flex; justify-content: space-between; gap: 40px;">
+          <div style="flex: 1; text-align: center;">
+            <div style="border-top: 2px solid #1a1a2e; padding-top: 8px; margin-top: 50px;">
+              <p style="font-size: 13px; font-weight: 600; margin: 0;">${aluno?.responsavel_nome || aluno?.nome || "RESPONSÁVEL"}</p>
+              <p style="font-size: 11px; color: #888; margin: 2px 0 0;">Responsável</p>
+            </div>
+          </div>
+          <div style="flex: 1; text-align: center;">
+            <div style="border-top: 2px solid #1a1a2e; padding-top: 8px; margin-top: 50px;">
+              <p style="font-size: 13px; font-weight: 600; margin: 0;">${escola?.nome || "ESCOLA"}</p>
+              <p style="font-size: 11px; color: #888; margin: 2px 0 0;">Cedente</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 40px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+        <p style="font-size: 10px; color: #aaa;">Documento gerado eletronicamente em ${today} — ${escola?.nome || "Escola de Música"} © ${year}</p>
+      </div>
     </div>
   `;
 }
@@ -93,7 +181,7 @@ function generateContractHTML(contrato: any, escola: any) {
 function printContract(html: string) {
   const win = window.open("", "_blank");
   if (!win) return;
-  win.document.write(`<html><head><title>Contrato</title></head><body>${html}</body></html>`);
+  win.document.write(`<html><head><title>Contrato</title><style>@media print { body { margin: 0; } } @page { margin: 15mm; }</style></head><body>${html}</body></html>`);
   win.document.close();
   win.print();
 }

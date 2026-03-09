@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
-  Users, Plus, Music, Clock, Loader2, UserPlus, UserMinus, CheckCircle2, X
+  Users, Plus, Music, Clock, Loader2, UserPlus, UserMinus, CheckCircle2, X, Calendar
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,14 +23,30 @@ import { useTurmas, useTurmaAlunos, useCreateTurma, useAddAlunoTurma, useRemoveA
 import { useProfessores } from "@/hooks/useProfessores";
 import { useCursos } from "@/hooks/useCursos";
 import { useAlunos } from "@/hooks/useAlunos";
-import { useCreatePresenca } from "@/hooks/usePresencas";
+import { useCreatePresenca, usePresencas } from "@/hooks/usePresencas";
 import { toast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const diasSemana = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
-function useCreatePresencaHook() {
-  // We'll use the existing presencas hook for group attendance
-  return useCreatePresenca();
+// Hook to count alunos per turma
+function useTurmaAlunosCounts() {
+  return useQuery({
+    queryKey: ["turma_alunos_counts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("turma_alunos")
+        .select("turma_id")
+        .eq("status", "ativo");
+      if (error) throw error;
+      const counts: Record<string, number> = {};
+      data?.forEach(ta => {
+        counts[ta.turma_id] = (counts[ta.turma_id] || 0) + 1;
+      });
+      return counts;
+    },
+  });
 }
 
 export default function Turmas() {
@@ -40,6 +56,8 @@ export default function Turmas() {
   const [addAlunoDialogOpen, setAddAlunoDialogOpen] = useState(false);
   const [selectedAlunoId, setSelectedAlunoId] = useState("");
   const [attendance, setAttendance] = useState<Record<string, string>>({});
+  const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split("T")[0]);
+  const [selectedAlunosIds, setSelectedAlunosIds] = useState<string[]>([]);
   const [newTurma, setNewTurma] = useState({
     nome: "", professor_id: "", curso_id: "", dia_semana: 1,
     horario: "08:00", max_alunos: 10, sala: "",
@@ -50,10 +68,39 @@ export default function Turmas() {
   const { data: professores } = useProfessores();
   const { data: cursos } = useCursos();
   const { data: alunos } = useAlunos();
+  const { data: counts } = useTurmaAlunosCounts();
   const createTurma = useCreateTurma();
   const addAluno = useAddAlunoTurma();
   const removeAluno = useRemoveAlunoTurma();
-  const createPresenca = useCreatePresencaHook();
+  const createPresenca = useCreatePresenca();
+
+  // Fetch existing attendance for the selected date
+  const { data: existingPresencas } = useQuery({
+    queryKey: ["presencas_turma", selectedTurma, attendanceDate],
+    enabled: !!selectedTurma && sheetOpen,
+    queryFn: async () => {
+      const alunoIds = turmaAlunos?.map(ta => ta.aluno_id) || [];
+      if (alunoIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from("presencas")
+        .select("*")
+        .in("aluno_id", alunoIds)
+        .eq("data", attendanceDate);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Pre-fill attendance from existing records
+  const effectiveAttendance = useMemo(() => {
+    const result: Record<string, string> = { ...attendance };
+    existingPresencas?.forEach(p => {
+      if (!(p.aluno_id in attendance)) {
+        result[p.aluno_id] = p.status || "presente";
+      }
+    });
+    return result;
+  }, [attendance, existingPresencas]);
 
   const handleCreate = () => {
     if (!newTurma.nome) {
@@ -69,28 +116,41 @@ export default function Turmas() {
       max_alunos: newTurma.max_alunos,
       sala: newTurma.sala || undefined,
     }, {
-      onSuccess: () => {
+      onSuccess: (data) => {
+        // Add selected students to the new turma
+        if (selectedAlunosIds.length > 0 && data?.id) {
+          selectedAlunosIds.forEach(alunoId => {
+            addAluno.mutate({ turma_id: data.id, aluno_id: alunoId });
+          });
+        }
         setIsDialogOpen(false);
         setNewTurma({ nome: "", professor_id: "", curso_id: "", dia_semana: 1, horario: "08:00", max_alunos: 10, sala: "" });
+        setSelectedAlunosIds([]);
       },
     });
+  };
+
+  const toggleAlunoSelection = (alunoId: string) => {
+    setSelectedAlunosIds(prev =>
+      prev.includes(alunoId) ? prev.filter(id => id !== alunoId) : [...prev, alunoId]
+    );
   };
 
   const openAttendance = (turmaId: string) => {
     setSelectedTurma(turmaId);
     setAttendance({});
+    setAttendanceDate(new Date().toISOString().split("T")[0]);
     setSheetOpen(true);
   };
 
   const handleSaveAttendance = async () => {
     if (!turmaAlunos) return;
-    const today = new Date().toISOString().split("T")[0];
     for (const ta of turmaAlunos) {
-      const status = attendance[ta.aluno_id] || "presente";
+      const status = effectiveAttendance[ta.aluno_id] || "presente";
       try {
         await createPresenca.mutateAsync({
           aluno_id: ta.aluno_id,
-          data: today,
+          data: attendanceDate,
           status,
         });
       } catch {}
@@ -104,12 +164,6 @@ export default function Turmas() {
     addAluno.mutate({ turma_id: selectedTurma, aluno_id: selectedAlunoId }, {
       onSuccess: () => { setAddAlunoDialogOpen(false); setSelectedAlunoId(""); },
     });
-  };
-
-  // Count alunos per turma
-  const getAlunoCount = (turmaId: string) => {
-    // This is simplified - in production you'd want a count query
-    return 0; // Will show from turma_alunos when data loads
   };
 
   if (isLoading) {
@@ -135,7 +189,7 @@ export default function Turmas() {
           <DialogTrigger asChild>
             <Button><Plus className="w-4 h-4 mr-2" />Nova Turma</Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>Criar Turma</DialogTitle></DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
@@ -189,6 +243,25 @@ export default function Turmas() {
                 <Input placeholder="Ex: Sala 3" value={newTurma.sala}
                   onChange={(e) => setNewTurma(p => ({ ...p, sala: e.target.value }))} />
               </div>
+              {/* Student selection */}
+              <div className="grid gap-2">
+                <Label>Alunos Participantes</Label>
+                <div className="border border-border rounded-lg max-h-[200px] overflow-y-auto p-2 space-y-1">
+                  {alunos?.filter(a => a.status === "ativo").map(a => (
+                    <div key={a.id} className="flex items-center gap-2 p-2 rounded-md hover:bg-muted/50 cursor-pointer"
+                      onClick={() => toggleAlunoSelection(a.id)}>
+                      <Checkbox checked={selectedAlunosIds.includes(a.id)} />
+                      <span className="text-sm">{a.nome}</span>
+                    </div>
+                  ))}
+                  {(!alunos || alunos.filter(a => a.status === "ativo").length === 0) && (
+                    <p className="text-sm text-muted-foreground text-center py-2">Nenhum aluno ativo</p>
+                  )}
+                </div>
+                {selectedAlunosIds.length > 0 && (
+                  <p className="text-xs text-muted-foreground">{selectedAlunosIds.length} aluno(s) selecionado(s)</p>
+                )}
+              </div>
               <Button onClick={handleCreate} disabled={createTurma.isPending} className="w-full mt-2">
                 {createTurma.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                 Criar Turma
@@ -204,7 +277,7 @@ export default function Turmas() {
           const prof = (turma as any).professores?.nome || "Sem professor";
           const curso = (turma as any).cursos?.nome || "";
           const maxAlunos = turma.max_alunos || 10;
-          const currentAlunos = 0; // Will be dynamic with count
+          const currentAlunos = counts?.[turma.id] || 0;
           const occupancy = (currentAlunos / maxAlunos) * 100;
 
           return (
@@ -279,10 +352,19 @@ export default function Turmas() {
             </SheetTitle>
           </SheetHeader>
           <div className="mt-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                {new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}
-              </p>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-muted-foreground" />
+                <Input
+                  type="date"
+                  value={attendanceDate}
+                  onChange={(e) => {
+                    setAttendanceDate(e.target.value);
+                    setAttendance({});
+                  }}
+                  className="w-auto h-8 text-sm"
+                />
+              </div>
               <Button variant="outline" size="sm" onClick={() => { setAddAlunoDialogOpen(true); }}>
                 <UserPlus className="w-4 h-4 mr-1" />Adicionar
               </Button>
@@ -291,7 +373,7 @@ export default function Turmas() {
             <div className="space-y-2">
               {turmaAlunos?.map((ta) => {
                 const aluno = (ta as any).alunos;
-                const status = attendance[ta.aluno_id] || "presente";
+                const status = effectiveAttendance[ta.aluno_id] || "presente";
                 return (
                   <div key={ta.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-card">
                     <div className="flex items-center gap-3">
