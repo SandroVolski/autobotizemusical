@@ -18,7 +18,11 @@ import {
   ChevronDown,
   ChevronUp,
   Camera,
-  User
+  User,
+  UserCheck,
+  UserX,
+  LogOut,
+  RotateCcw,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -59,6 +63,16 @@ import { StudentEnrollments } from "@/components/alunos/StudentEnrollments";
 import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
 import { exportAlunos } from "@/lib/csv-export";
 import { CameraCapture } from "@/components/ui/camera-capture";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const filterOptions: FilterOption[] = [
   {
@@ -108,6 +122,35 @@ export default function Alunos() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [statusToggleAluno, setStatusToggleAluno] = useState<{ id: string; nome: string; currentStatus: string } | null>(null);
+
+  const handleToggleStatus = async () => {
+    if (!statusToggleAluno) return;
+    const newStatus = statusToggleAluno.currentStatus === "ativo" ? "inativo" : "ativo";
+    const oldStatus = statusToggleAluno.currentStatus;
+    
+    // Insert history record
+    await supabase.from("historico_status_aluno").insert({
+      aluno_id: statusToggleAluno.id,
+      status_anterior: oldStatus,
+      status_novo: newStatus,
+    });
+
+    updateAlunoMutation.mutate(
+      { id: statusToggleAluno.id, status: newStatus, updated_at: new Date().toISOString() },
+      {
+        onSuccess: () => {
+          setStatusToggleAluno(null);
+          toast({
+            title: newStatus === "ativo" ? "Aluno reativado!" : "Aluno desativado",
+            description: newStatus === "ativo" 
+              ? `${statusToggleAluno.nome} foi reativado com sucesso.`
+              : `${statusToggleAluno.nome} foi marcado como inativo.`,
+          });
+        },
+      }
+    );
+  };
 
   const handleCameraCapture = (file: File) => {
     setPhotoFile(file);
@@ -625,8 +668,17 @@ export default function Alunos() {
                             <>
                               <span className="hidden sm:inline">•</span>
                               <span className="hidden sm:flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
-                                Desde {new Date(aluno.data_matricula).toLocaleDateString("pt-BR")}
+                                {aluno.status === "ativo" ? (
+                                  <>
+                                    <Calendar className="w-3 h-3" />
+                                    Desde {new Date(aluno.data_matricula).toLocaleDateString("pt-BR")}
+                                  </>
+                                ) : (
+                                  <>
+                                    <LogOut className="w-3 h-3" />
+                                    Saiu em {new Date(aluno.updated_at).toLocaleDateString("pt-BR")}
+                                  </>
+                                )}
                               </span>
                             </>
                           )}
@@ -688,6 +740,15 @@ export default function Alunos() {
                           <DropdownMenuItem onClick={() => navigate("/agenda")}>
                             <Calendar className="w-4 h-4 mr-2" />
                             Agendar Aula
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => setStatusToggleAluno({ id: aluno.id, nome: aluno.nome, currentStatus: aluno.status || "ativo" })}
+                          >
+                            {aluno.status === "ativo" ? (
+                              <><UserX className="w-4 h-4 mr-2" /> Desativar Aluno</>
+                            ) : (
+                              <><RotateCcw className="w-4 h-4 mr-2" /> Reativar Aluno</>
+                            )}
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             className="text-destructive"
@@ -758,6 +819,29 @@ export default function Alunos() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Status Toggle Confirmation */}
+      <AlertDialog open={!!statusToggleAluno} onOpenChange={(open) => !open && setStatusToggleAluno(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {statusToggleAluno?.currentStatus === "ativo" ? "Desativar aluno?" : "Reativar aluno?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {statusToggleAluno?.currentStatus === "ativo"
+                ? `Tem certeza que deseja desativar "${statusToggleAluno?.nome}"? O aluno será marcado como inativo, mas poderá ser reativado a qualquer momento.`
+                : `Tem certeza que deseja reativar "${statusToggleAluno?.nome}"? O aluno voltará a aparecer como ativo no sistema.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleToggleStatus} disabled={updateAlunoMutation.isPending}>
+              {updateAlunoMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+              {statusToggleAluno?.currentStatus === "ativo" ? "Desativar" : "Reativar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

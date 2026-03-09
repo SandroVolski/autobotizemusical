@@ -342,6 +342,44 @@ export type Database = {
         }
         Relationships: []
       }
+      historico_status_aluno: {
+        Row: {
+          aluno_id: string
+          created_at: string
+          data_mudanca: string
+          id: string
+          observacao: string | null
+          status_anterior: string | null
+          status_novo: string
+        }
+        Insert: {
+          aluno_id: string
+          created_at?: string
+          data_mudanca?: string
+          id?: string
+          observacao?: string | null
+          status_anterior?: string | null
+          status_novo: string
+        }
+        Update: {
+          aluno_id?: string
+          created_at?: string
+          data_mudanca?: string
+          id?: string
+          observacao?: string | null
+          status_anterior?: string | null
+          status_novo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_status_aluno_aluno_id_fkey"
+            columns: ["aluno_id"]
+            isOneToOne: false
+            referencedRelation: "alunos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       instrumentos: {
         Row: {
           created_at: string
