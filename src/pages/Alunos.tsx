@@ -517,8 +517,8 @@ export default function Alunos() {
                       {/* Contact */}
                       <div className="hidden md:flex items-center gap-4">
                         {aluno.telefone && (
-                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" asChild>
-                            <a href={`tel:${aluno.telefone}`}>
+                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                            <a href={`https://wa.me/${aluno.telefone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer">
                               <Phone className="w-4 h-4" />
                             </a>
                           </Button>
