@@ -1,22 +1,16 @@
 import { motion } from "framer-motion";
-import { 
-  Users, 
-  DollarSign, 
-  Calendar, 
-  TrendingUp,
-  Loader2
-} from "lucide-react";
+import { Users, DollarSign, Calendar, TrendingUp, Loader2 } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { UpcomingClasses } from "@/components/dashboard/UpcomingClasses";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { AIInsights } from "@/components/dashboard/AIInsights";
 import { BirthdayCard } from "@/components/dashboard/BirthdayCard";
 import { WeeklyPayments } from "@/components/dashboard/WeeklyPayments";
-import { 
-  StudentsByLevelChart, 
-  ClassesByDayChart, 
-  MonthlyRevenueVsPendingChart, 
-  StudentGrowthChart 
+import {
+  StudentsByLevelChart,
+  ClassesByDayChart,
+  MonthlyRevenueVsPendingChart,
+  StudentGrowthChart,
 } from "@/components/dashboard/DashboardCharts";
 import { useAlunos } from "@/hooks/useAlunos";
 import { usePagamentos } from "@/hooks/usePagamentos";
@@ -33,23 +27,24 @@ export default function Dashboard() {
 
   // Calculate real stats
   const totalAlunos = alunos?.length || 0;
-  const alunosAtivos = alunos?.filter(a => a.status === "ativo").length || 0;
-  
+  const alunosAtivos = alunos?.filter((a) => a.status === "ativo").length || 0;
+
   // Calculate monthly revenue
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
-  const receitaMensal = pagamentos?.filter(p => {
-    const date = new Date(p.data_vencimento);
-    return date.getMonth() === currentMonth && 
-           date.getFullYear() === currentYear && 
-           p.status === "pago";
-  }).reduce((acc, p) => acc + Number(p.valor), 0) || 0;
+  const receitaMensal =
+    pagamentos
+      ?.filter((p) => {
+        const date = new Date(p.data_vencimento);
+        return date.getMonth() === currentMonth && date.getFullYear() === currentYear && p.status === "pago";
+      })
+      .reduce((acc, p) => acc + Number(p.valor), 0) || 0;
 
   // Get today's classes
   const today = new Date().getDay();
-  const aulasHoje = aulas?.filter(a => a.dia_semana === today) || [];
-  const aulasConfirmadas = aulasHoje.filter(a => a.status === "ativo").length;
-  const aulasPendentes = aulasHoje.filter(a => a.status !== "ativo").length;
+  const aulasHoje = aulas?.filter((a) => a.dia_semana === today) || [];
+  const aulasConfirmadas = aulasHoje.filter((a) => a.status === "ativo").length;
+  const aulasPendentes = aulasHoje.filter((a) => a.status !== "ativo").length;
 
   // Calculate retention rate (active / total)
   const taxaRetencao = totalAlunos > 0 ? Math.round((alunosAtivos / totalAlunos) * 100) : 0;
@@ -77,9 +72,7 @@ export default function Dashboard() {
         <h1 className="text-3xl font-bold">
           Bem-vindo, <span className="gradient-text">{userName}</span>
         </h1>
-        <p className="text-muted-foreground">
-          Aqui está um resumo da sua escola de música
-        </p>
+        <p className="text-muted-foreground">Aqui está um resumo da sua escola de música</p>
       </motion.div>
 
       {/* Stats Grid */}
@@ -126,11 +119,11 @@ export default function Dashboard() {
       </div>
 
       {/* Row 2 - Classes & AI Insights */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-6">
         <div className="lg:col-span-2">
           <UpcomingClasses />
         </div>
-        <div className="h-full">
+        <div>
           <AIInsights />
         </div>
       </div>
