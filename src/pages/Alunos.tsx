@@ -625,7 +625,7 @@ export default function Alunos() {
                 open={expandedAluno === aluno.id}
                 onOpenChange={(open) => setExpandedAluno(open ? aluno.id : null)}
               >
-                <Card variant="interactive">
+                <Card variant="interactive" className={aluno.status !== "ativo" ? "opacity-50" : ""}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigate(`/alunos/${aluno.id}`)}>
                       {/* Avatar */}
