@@ -738,6 +738,9 @@ export default function Alunos() {
         />
       )}
 
+      {/* Camera Capture */}
+      <CameraCapture open={isCameraOpen} onOpenChange={setIsCameraOpen} onCapture={handleCameraCapture} />
+
       {/* Photo Preview Dialog */}
       <Dialog open={!!previewPhoto} onOpenChange={(open) => !open && setPreviewPhoto(null)}>
         <DialogContent className="sm:max-w-md p-2 bg-background/95 backdrop-blur-sm">
