@@ -66,6 +66,14 @@ const App = () => (
               }
             />
             <Route
+              path="/alunos/:id"
+              element={
+                <AuthenticatedPage>
+                  <AlunoPerfil />
+                </AuthenticatedPage>
+              }
+            />
+            <Route
               path="/agenda"
               element={
                 <AuthenticatedPage>
