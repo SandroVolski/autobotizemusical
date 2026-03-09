@@ -546,6 +546,7 @@ export default function Alunos() {
                       </div>
 
                       {/* Actions */}
+                      <div onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
