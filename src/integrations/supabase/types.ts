@@ -21,6 +21,7 @@ export type Database = {
           data_nascimento: string | null
           email: string | null
           endereco: string | null
+          foto_url: string | null
           id: string
           nivel: string | null
           nome: string
@@ -38,6 +39,7 @@ export type Database = {
           data_nascimento?: string | null
           email?: string | null
           endereco?: string | null
+          foto_url?: string | null
           id?: string
           nivel?: string | null
           nome: string
@@ -55,6 +57,7 @@ export type Database = {
           data_nascimento?: string | null
           email?: string | null
           endereco?: string | null
+          foto_url?: string | null
           id?: string
           nivel?: string | null
           nome?: string
