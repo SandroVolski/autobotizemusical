@@ -592,7 +592,11 @@ export default function Alunos() {
                         <img
                           src={aluno.foto_url}
                           alt={aluno.nome}
-                          className="w-12 h-12 rounded-full object-cover border border-primary/30"
+                          className="w-12 h-12 rounded-full object-cover border border-primary/30 hover:ring-2 hover:ring-primary/50 transition-all"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPreviewPhoto({ url: aluno.foto_url!, nome: aluno.nome });
+                          }}
                         />
                       ) : (
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-semibold">
