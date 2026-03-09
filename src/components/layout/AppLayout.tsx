@@ -34,7 +34,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         className="min-h-screen"
       >
         {/* Top bar */}
-        <header className="sticky top-0 z-40 h-14 lg:h-16 bg-background/80 backdrop-blur-xl">
+        <header className="sticky top-0 z-40 h-14 lg:h-16 bg-background/95 backdrop-blur-xl border-b border-border/50">
           <div className="flex items-center justify-between h-full px-4 lg:px-6">
             <div className="flex items-center gap-3 flex-1">
               <Button 
