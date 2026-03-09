@@ -122,6 +122,35 @@ export default function Alunos() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [statusToggleAluno, setStatusToggleAluno] = useState<{ id: string; nome: string; currentStatus: string } | null>(null);
+
+  const handleToggleStatus = async () => {
+    if (!statusToggleAluno) return;
+    const newStatus = statusToggleAluno.currentStatus === "ativo" ? "inativo" : "ativo";
+    const oldStatus = statusToggleAluno.currentStatus;
+    
+    // Insert history record
+    await supabase.from("historico_status_aluno").insert({
+      aluno_id: statusToggleAluno.id,
+      status_anterior: oldStatus,
+      status_novo: newStatus,
+    });
+
+    updateAlunoMutation.mutate(
+      { id: statusToggleAluno.id, status: newStatus, updated_at: new Date().toISOString() },
+      {
+        onSuccess: () => {
+          setStatusToggleAluno(null);
+          toast({
+            title: newStatus === "ativo" ? "Aluno reativado!" : "Aluno desativado",
+            description: newStatus === "ativo" 
+              ? `${statusToggleAluno.nome} foi reativado com sucesso.`
+              : `${statusToggleAluno.nome} foi marcado como inativo.`,
+          });
+        },
+      }
+    );
+  };
 
   const handleCameraCapture = (file: File) => {
     setPhotoFile(file);
