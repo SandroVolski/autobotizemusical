@@ -71,7 +71,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         </header>
 
         {/* Page content */}
-        <div className="p-4 lg:p-6 max-w-full overflow-x-hidden">
+        <div className="flex-1 p-4 lg:p-6 max-w-full overflow-x-hidden">
           {children}
         </div>
       </motion.main>
