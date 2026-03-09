@@ -1,0 +1,1 @@
+UPDATE configuracoes_escola SET nome = 'Autobotize' WHERE id = '9607dd69-138c-4cc8-8c87-1232f2a87239';
