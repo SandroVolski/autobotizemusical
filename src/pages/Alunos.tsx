@@ -470,9 +470,17 @@ export default function Alunos() {
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4">
                       {/* Avatar */}
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-semibold">
-                        {getInitials(aluno.nome)}
-                      </div>
+                      {aluno.foto_url ? (
+                        <img
+                          src={aluno.foto_url}
+                          alt={aluno.nome}
+                          className="w-12 h-12 rounded-full object-cover border border-primary/30"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-semibold">
+                          {getInitials(aluno.nome)}
+                        </div>
+                      )}
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
