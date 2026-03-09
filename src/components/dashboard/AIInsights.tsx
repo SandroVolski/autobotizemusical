@@ -92,7 +92,7 @@ export function AIInsights() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.5 }}
     >
-      <Card variant="glow" className="overflow-hidden h-fit">
+      <Card variant="glow" className="overflow-hidden h-fulll">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 pointer-events-none" />
         <CardHeader className="relative py-3 px-4">
           <div className="flex items-center justify-between">
@@ -109,7 +109,7 @@ export function AIInsights() {
           </div>
         </CardHeader>
         <CardContent className="relative space-y-2 px-4 pb-3 pt-0">
-          {insights.slice(0, 2).map((insight, index) => (
+          {insights.map((insight, index) => (
             <div
               key={insight.id}
               className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
