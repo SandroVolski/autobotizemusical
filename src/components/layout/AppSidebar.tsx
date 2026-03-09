@@ -24,6 +24,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAlunos } from "@/hooks/useAlunos";
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useConfiguracoes } from "@/hooks/useConfiguracoes";
+import autobotizeLogo from "@/assets/autobotize-logo.webp";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
