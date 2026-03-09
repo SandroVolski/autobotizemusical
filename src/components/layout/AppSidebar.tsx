@@ -42,10 +42,10 @@ const menuItems = [
 { icon: BarChart3, label: "Relatórios", path: "/relatorios" },
 { icon: GraduationCap, label: "Pedagógico", path: "/pedagogico" },
 { icon: FileText, label: "Contratos", path: "/contratos" },
-{ icon: UserPlus, label: "Captação", path: "/crm", badge: "Novo" },
+{ icon: UserPlus, label: "Captação", path: "/crm" },
 { icon: Bot, label: "Hub IA", path: "/hub-ia" },
 { icon: UserCog, label: "Professores", path: "/professores" },
-{ icon: MessageSquare, label: "Comunicação", path: "/comunicacao" },
+// { icon: MessageSquare, label: "Comunicação", path: "/comunicacao" },
 { icon: Settings, label: "Configurações", path: "/configuracoes" }];
 
 
@@ -133,7 +133,7 @@ export function AppSidebar() {
                 <ul className="space-y-1">
                   {menuItems.map((item) => {
                   const isActive = location.pathname === item.path;
-                  const badgeValue = item.badgeKey ? badgeValues[item.badgeKey] : item.badge;
+                  const badgeValue = item.badgeKey ? badgeValues[item.badgeKey] : (item as any).badge;
 
                   return (
                     <li key={item.path}>
@@ -239,7 +239,7 @@ export function AppSidebar() {
         <ul className="space-y-1">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.path;
-            const badgeValue = item.badgeKey ? badgeValues[item.badgeKey] : item.badge;
+            const badgeValue = item.badgeKey ? badgeValues[item.badgeKey] : (item as any).badge;
 
             return (
               <li key={item.path}>

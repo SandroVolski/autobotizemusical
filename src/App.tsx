@@ -22,7 +22,7 @@ import Cursos from "./pages/Cursos";
 import Relatorios from "./pages/Relatorios";
 import Pedagogico from "./pages/Pedagogico";
 import Professores from "./pages/Professores";
-import Comunicacao from "./pages/Comunicacao";
+// import Comunicacao from "./pages/Comunicacao";
 import Configuracoes from "./pages/Configuracoes";
 import Turmas from "./pages/Turmas";
 import Reposicoes from "./pages/Reposicoes";
@@ -141,14 +141,14 @@ const App = () => (
                 </AuthenticatedPage>
               }
             />
-            <Route
+            {/* <Route
               path="/comunicacao"
               element={
                 <AuthenticatedPage>
                   <Comunicacao />
                 </AuthenticatedPage>
               }
-            />
+            /> */}
             <Route
               path="/configuracoes"
               element={
