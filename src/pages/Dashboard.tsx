@@ -108,23 +108,17 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Main Content - Row 1 */}
+      {/* Main Content - Combined Rows */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-4 lg:space-y-6">
           <WeeklyPayments />
-        </div>
-        <div>
-          <BirthdayCard />
-        </div>
-      </div>
-
-      {/* Row 2 - Classes & AI Insights */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-6">
-        <div className="lg:col-span-2">
           <UpcomingClasses />
         </div>
-        <div>
-          <AIInsights />
+        <div className="space-y-4 lg:space-y-6 flex flex-col">
+          <BirthdayCard />
+          <div className="flex-1">
+            <AIInsights />
+          </div>
         </div>
       </div>
 
