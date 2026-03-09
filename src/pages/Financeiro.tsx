@@ -223,7 +223,7 @@ export default function Financeiro() {
         <div>
           <h1 className="text-3xl font-bold">Financeiro</h1>
           <p className="text-muted-foreground">
-            Controle financeiro da escola
+            Controle financeiro completo da escola
           </p>
         </div>
         <div className="flex gap-2">
