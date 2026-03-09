@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
@@ -16,8 +16,11 @@ import {
   Loader2,
   GraduationCap,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Camera,
+  User
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -98,6 +101,35 @@ export default function Alunos() {
     objetivo: "",
     observacoes: "",
   });
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Arquivo muito grande", description: "Máximo 5MB", variant: "destructive" });
+      return;
+    }
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
+
+  const uploadPhoto = async (alunoId: string): Promise<string | null> => {
+    if (!photoFile) return null;
+    const ext = photoFile.name.split(".").pop();
+    const filePath = `${alunoId}/avatar.${ext}`;
+    const { error } = await supabase.storage.from("alunos-fotos").upload(filePath, photoFile, { upsert: true });
+    if (error) {
+      console.error("Upload error:", error);
+      toast({ title: "Erro no upload da foto", description: error.message, variant: "destructive" });
+      return null;
+    }
+    const { data: urlData } = supabase.storage.from("alunos-fotos").getPublicUrl(filePath);
+    return urlData.publicUrl;
+  };
 
   const { data: alunos, isLoading } = useAlunos();
   const createAlunoMutation = useCreateAluno();
@@ -126,7 +158,7 @@ export default function Alunos() {
     return matriculaDate.getMonth() === now.getMonth() && matriculaDate.getFullYear() === now.getFullYear();
   }).length || 0;
 
-  const handleCreateAluno = () => {
+  const handleCreateAluno = async () => {
     if (!newAluno.nome) {
       toast({
         title: "Erro",
@@ -137,16 +169,30 @@ export default function Alunos() {
     }
 
     if (editingAluno) {
-      updateAlunoMutation.mutate({ id: editingAluno, ...newAluno }, {
+      setIsUploading(true);
+      const fotoUrl = await uploadPhoto(editingAluno);
+      const updateData: any = { id: editingAluno, ...newAluno };
+      if (fotoUrl) updateData.foto_url = fotoUrl;
+      updateAlunoMutation.mutate(updateData, {
         onSuccess: () => {
           setIsDialogOpen(false);
           setEditingAluno(null);
           resetForm();
-        }
+          setIsUploading(false);
+        },
+        onError: () => setIsUploading(false),
       });
     } else {
       createAlunoMutation.mutate(newAluno, {
-        onSuccess: () => {
+        onSuccess: async (data) => {
+          if (photoFile && data?.id) {
+            setIsUploading(true);
+            const fotoUrl = await uploadPhoto(data.id);
+            if (fotoUrl) {
+              updateAlunoMutation.mutate({ id: data.id, foto_url: fotoUrl });
+            }
+            setIsUploading(false);
+          }
           setIsDialogOpen(false);
           resetForm();
         }
@@ -167,6 +213,8 @@ export default function Alunos() {
       objetivo: "",
       observacoes: "",
     });
+    setPhotoFile(null);
+    setPhotoPreview(null);
   };
 
   const handleEdit = (aluno: typeof alunos extends (infer T)[] | undefined ? T : never) => {
@@ -183,6 +231,8 @@ export default function Alunos() {
       objetivo: aluno.objetivo || "",
       observacoes: aluno.observacoes || "",
     });
+    setPhotoFile(null);
+    setPhotoPreview(aluno.foto_url || null);
     setIsDialogOpen(true);
   };
 
@@ -246,6 +296,39 @@ export default function Alunos() {
               <DialogTitle>{editingAluno ? "Editar Aluno" : "Cadastrar Novo Aluno"}</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-4">
+              {/* Photo Upload */}
+              <div className="flex flex-col items-center gap-3">
+                <div 
+                  className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-dashed border-primary/40 hover:border-primary/70 cursor-pointer transition-colors group"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {photoPreview ? (
+                    <img src={photoPreview} alt="Foto do aluno" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-muted/50">
+                      <User className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Camera className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoSelect}
+                />
+                <button
+                  type="button"
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {photoPreview ? "Alterar foto" : "Adicionar foto"}
+                </button>
+              </div>
+
               <div className="grid gap-2">
                 <Label htmlFor="nome">Nome Completo *</Label>
                 <Input 
@@ -353,9 +436,9 @@ export default function Alunos() {
               <Button 
                 className="w-full mt-2" 
                 onClick={handleCreateAluno}
-                disabled={createAlunoMutation.isPending || updateAlunoMutation.isPending}
+                disabled={createAlunoMutation.isPending || updateAlunoMutation.isPending || isUploading}
               >
-                {(createAlunoMutation.isPending || updateAlunoMutation.isPending) && (
+                {(createAlunoMutation.isPending || updateAlunoMutation.isPending || isUploading) && (
                   <Loader2 className="w-4 h-4 animate-spin mr-2" />
                 )}
                 {editingAluno ? "Salvar Alterações" : "Cadastrar Aluno"}
