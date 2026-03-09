@@ -356,6 +356,16 @@ export default function Financeiro() {
         </div>
       </motion.div>
 
+      <Tabs defaultValue="receber" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4 max-w-lg">
+          <TabsTrigger value="receber" className="flex items-center gap-1"><DollarSign className="w-4 h-4" />Receber</TabsTrigger>
+          <TabsTrigger value="pagar" className="flex items-center gap-1"><Receipt className="w-4 h-4" />Pagar</TabsTrigger>
+          <TabsTrigger value="caixa" className="flex items-center gap-1"><Wallet className="w-4 h-4" />Caixa</TabsTrigger>
+          <TabsTrigger value="pdv" className="flex items-center gap-1"><ShoppingCart className="w-4 h-4" />PDV</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="receber" className="space-y-6">
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <motion.div
