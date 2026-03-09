@@ -141,14 +141,14 @@ const App = () => (
                 </AuthenticatedPage>
               }
             />
-            <Route
+            {/* <Route
               path="/comunicacao"
               element={
                 <AuthenticatedPage>
                   <Comunicacao />
                 </AuthenticatedPage>
               }
-            />
+            /> */}
             <Route
               path="/configuracoes"
               element={

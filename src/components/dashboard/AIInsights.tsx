@@ -92,7 +92,7 @@ export function AIInsights() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.5 }}
     >
-      <Card variant="glow" className="overflow-hidden h-full flex flex-col">
+      <Card variant="glow" className="overflow-hidden h-full flex flex-col min-h-[320px]">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 pointer-events-none" />
         <CardHeader className="relative py-3 px-4">
           <div className="flex items-center justify-between">
