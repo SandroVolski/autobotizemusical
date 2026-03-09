@@ -143,7 +143,17 @@ export default function Financeiro() {
           <h1 className="text-3xl font-bold">Financeiro</h1>
           <p className="text-muted-foreground">Controle financeiro completo da escola</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          {/* Month Navigator */}
+          <div className="flex items-center gap-1 bg-muted/50 border border-border rounded-lg px-2 py-1">
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={prevMonth}>
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <span className="text-sm font-medium min-w-[120px] text-center">{meses[selectedMonth].slice(0, 3)} {selectedYear}</span>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={nextMonth}>
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
           <Button variant="outline" onClick={handleExport}>
             <Download className="w-4 h-4 mr-2" />Exportar
           </Button>
