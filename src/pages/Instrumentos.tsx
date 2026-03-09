@@ -59,9 +59,14 @@ export default function Instrumentos() {
     modelo: "",
   });
 
+  const [sellDialogOpen, setSellDialogOpen] = useState(false);
+  const [sellInstrumento, setSellInstrumento] = useState<any>(null);
+  const [sellData, setSellData] = useState({ comprador: "", valor_venda: "", observacoes: "" });
+
   const { data: instrumentos, isLoading } = useInstrumentos();
   const createInstrumentoMutation = useCreateInstrumento();
   const deleteInstrumentoMutation = useDeleteInstrumento();
+  const updateInstrumentoMutation = useUpdateInstrumento();
 
   const stats = {
     total: instrumentos?.length || 0,
