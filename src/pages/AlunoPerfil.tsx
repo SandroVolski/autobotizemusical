@@ -137,9 +137,9 @@ export default function AlunoPerfil() {
             <div className="flex flex-col sm:flex-row items-center gap-6">
               {/* Avatar with upload */}
               <div className="relative group">
-                {(aluno as any).foto_url ? (
+              {aluno.foto_url ? (
                   <img
-                    src={(aluno as any).foto_url}
+                    src={aluno.foto_url}
                     alt={aluno.nome}
                     className="w-24 h-24 rounded-full object-cover border-2 border-primary/30"
                   />
