@@ -89,6 +89,7 @@ export default function Alunos() {
   const [enrollmentAluno, setEnrollmentAluno] = useState<{ id: string; nome: string } | null>(null);
   const [filterValues, setFilterValues] = useState<FilterValues>({});
   const [expandedAluno, setExpandedAluno] = useState<string | null>(null);
+  const [previewPhoto, setPreviewPhoto] = useState<{ url: string; nome: string } | null>(null);
   const [newAluno, setNewAluno] = useState<NovoAluno>({
     nome: "",
     email: "",
