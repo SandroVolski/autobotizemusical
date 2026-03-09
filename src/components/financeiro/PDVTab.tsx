@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Plus, Minus, Loader2, ShoppingCart, Package, Trash2
+  Plus, Minus, Loader2, ShoppingCart, Package, Trash2, PackagePlus
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { useProdutos, useCreateProduto } from "@/hooks/useProdutos";
+import { useProdutos, useCreateProduto, useUpdateProduto } from "@/hooks/useProdutos";
 import { useVendas, useCreateVenda } from "@/hooks/useVendas";
 import { useAlunos } from "@/hooks/useAlunos";
 import { toast } from "@/hooks/use-toast";
@@ -28,15 +28,18 @@ interface CartItem {
 
 export function PDVTab() {
   const [prodDialogOpen, setProdDialogOpen] = useState(false);
+  const [stockDialogOpen, setStockDialogOpen] = useState(false);
+  const [selectedProduto, setSelectedProduto] = useState<any>(null);
+  const [stockQty, setStockQty] = useState(0);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [alunoId, setAlunoId] = useState("");
   const [metodo, setMetodo] = useState("dinheiro");
   const [newProduto, setNewProduto] = useState({ nome: "", preco: 0, estoque: 10, categoria: "acessorio" });
 
   const { data: produtos } = useProdutos();
-  const { data: vendas } = useVendas();
   const { data: alunos } = useAlunos();
   const createProduto = useCreateProduto();
+  const updateProduto = useUpdateProduto();
   const createVenda = useCreateVenda();
 
   const addToCart = (produto: any) => {
@@ -56,9 +59,7 @@ export function PDVTab() {
     }
   };
 
-  const removeFromCart = (produtoId: string) => {
-    setCart(cart.filter(c => c.produto_id !== produtoId));
-  };
+  const removeFromCart = (produtoId: string) => setCart(cart.filter(c => c.produto_id !== produtoId));
 
   const updateQty = (produtoId: string, delta: number) => {
     setCart(cart.map(c => {
@@ -73,25 +74,34 @@ export function PDVTab() {
 
   const handleFinalizeSale = () => {
     if (cart.length === 0) return;
-    createVenda.mutate({
-      aluno_id: alunoId || undefined,
-      itens: cart,
-      total,
-      metodo_pagamento: metodo,
-    }, {
-      onSuccess: () => {
-        setCart([]);
-        setAlunoId("");
-      },
+    createVenda.mutate({ aluno_id: alunoId || undefined, itens: cart, total, metodo_pagamento: metodo }, {
+      onSuccess: () => { setCart([]); setAlunoId(""); },
     });
   };
 
   const handleCreateProduto = () => {
     if (!newProduto.nome || !newProduto.preco) return;
     createProduto.mutate(newProduto, {
+      onSuccess: () => { setProdDialogOpen(false); setNewProduto({ nome: "", preco: 0, estoque: 10, categoria: "acessorio" }); },
+    });
+  };
+
+  const openStockDialog = (produto: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedProduto(produto);
+    setStockQty(0);
+    setStockDialogOpen(true);
+  };
+
+  const handleUpdateStock = () => {
+    if (!selectedProduto || stockQty <= 0) return;
+    updateProduto.mutate({
+      id: selectedProduto.id,
+      estoque: selectedProduto.estoque + stockQty,
+    }, {
       onSuccess: () => {
-        setProdDialogOpen(false);
-        setNewProduto({ nome: "", preco: 0, estoque: 10, categoria: "acessorio" });
+        toast({ title: `Estoque atualizado! +${stockQty} unidades` });
+        setStockDialogOpen(false);
       },
     });
   };
@@ -149,11 +159,7 @@ export function PDVTab() {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {produtos?.map((produto, i) => (
             <motion.div key={produto.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.03 }}>
-              <Card
-                variant="interactive"
-                className="p-3 cursor-pointer"
-                onClick={() => addToCart(produto)}
-              >
+              <Card variant="interactive" className="p-3 cursor-pointer" onClick={() => addToCart(produto)}>
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="font-medium text-sm">{produto.nome}</p>
@@ -161,9 +167,15 @@ export function PDVTab() {
                       {Number(produto.preco).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                     </p>
                   </div>
-                  <Badge variant={produto.estoque > 0 ? "secondary" : "destructive"} className="text-xs">
-                    {produto.estoque} un
-                  </Badge>
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge variant={produto.estoque > 0 ? "secondary" : "destructive"} className="text-xs">
+                      {produto.estoque} un
+                    </Badge>
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0"
+                      onClick={(e) => openStockDialog(produto, e)} title="Adicionar estoque">
+                      <PackagePlus className="w-3.5 h-3.5 text-muted-foreground hover:text-primary" />
+                    </Button>
+                  </div>
                 </div>
               </Card>
             </motion.div>
@@ -185,7 +197,6 @@ export function PDVTab() {
               <ShoppingCart className="w-5 h-5 text-primary" />
               <h3 className="font-semibold">Carrinho</h3>
             </div>
-
             {cart.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">Carrinho vazio</p>
             ) : (
@@ -214,13 +225,11 @@ export function PDVTab() {
                 ))}
               </div>
             )}
-
             <div className="border-t border-border pt-3 space-y-3">
               <div className="flex justify-between font-bold">
                 <span>Total</span>
                 <span className="text-primary">{total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
               </div>
-
               <div className="grid gap-2">
                 <Label className="text-xs">Vincular a aluno (opcional)</Label>
                 <Select value={alunoId} onValueChange={setAlunoId}>
@@ -228,7 +237,6 @@ export function PDVTab() {
                   <SelectContent>{alunos?.map(a => <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-
               <div className="grid gap-2">
                 <Label className="text-xs">Pagamento</Label>
                 <Select value={metodo} onValueChange={setMetodo}>
@@ -240,7 +248,6 @@ export function PDVTab() {
                   </SelectContent>
                 </Select>
               </div>
-
               <Button className="w-full" onClick={handleFinalizeSale} disabled={cart.length === 0 || createVenda.isPending}>
                 {createVenda.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                 Finalizar Venda
@@ -249,6 +256,36 @@ export function PDVTab() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Stock Dialog */}
+      <Dialog open={stockDialogOpen} onOpenChange={setStockDialogOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader><DialogTitle>Adicionar Estoque</DialogTitle></DialogHeader>
+          <div className="grid gap-4 py-4">
+            {selectedProduto && (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  Produto: <strong>{selectedProduto.nome}</strong> — Estoque atual: <strong>{selectedProduto.estoque} un</strong>
+                </p>
+                <div className="grid gap-2">
+                  <Label>Quantidade a adicionar</Label>
+                  <Input type="number" min="1" value={stockQty || ""} placeholder="0"
+                    onChange={(e) => setStockQty(parseInt(e.target.value) || 0)} />
+                </div>
+                {stockQty > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Novo estoque: {selectedProduto.estoque + stockQty} unidades
+                  </p>
+                )}
+                <Button onClick={handleUpdateStock} disabled={stockQty <= 0 || updateProduto.isPending} className="w-full">
+                  {updateProduto.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                  Atualizar Estoque
+                </Button>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

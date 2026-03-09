@@ -1,44 +1,22 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
-  BookOpen,
-  Plus,
-  Search,
-  Clock,
-  Users,
-  MoreVertical,
-  GraduationCap,
-  Music,
-  DollarSign,
-  Loader2,
-  Trash2,
-  Download,
+  BookOpen, Plus, Search, Clock, Users, MoreVertical, GraduationCap, Music, DollarSign, Loader2, Trash2, Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useCursos, useCreateCurso, useDeleteCurso } from "@/hooks/useCursos";
 import { toast } from "@/hooks/use-toast";
@@ -53,9 +31,7 @@ const nivelConfig = {
 
 const filterOptions: FilterOption[] = [
   {
-    id: "nivel",
-    label: "Nível",
-    type: "select",
+    id: "nivel", label: "Nível", type: "select",
     options: [
       { value: "iniciante", label: "Iniciante" },
       { value: "intermediario", label: "Intermediário" },
@@ -63,9 +39,7 @@ const filterOptions: FilterOption[] = [
     ],
   },
   {
-    id: "instrumento",
-    label: "Instrumento",
-    type: "select",
+    id: "instrumento", label: "Instrumento", type: "select",
     options: [
       { value: "Piano", label: "Piano" },
       { value: "Violão", label: "Violão" },
@@ -76,9 +50,7 @@ const filterOptions: FilterOption[] = [
     ],
   },
   {
-    id: "status",
-    label: "Status",
-    type: "select",
+    id: "status", label: "Status", type: "select",
     options: [
       { value: "ativo", label: "Ativo" },
       { value: "inativo", label: "Inativo" },
@@ -86,142 +58,107 @@ const filterOptions: FilterOption[] = [
   },
 ];
 
+function formatCargaHoraria(duracao: string, frequencia: string): string {
+  if (!duracao) return "";
+  return `${duracao}/${frequencia === "semanal" ? "semana" : frequencia === "mensal" ? "mês" : "aula"}`;
+}
+
 export default function Cursos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filterValues, setFilterValues] = useState<FilterValues>({});
   const [newCurso, setNewCurso] = useState({
-    nome: "",
-    instrumento: "",
-    nivel: "",
-    duracao: "",
-    carga_horaria: "",
-    valor_mensal: "",
-    descricao: "",
+    nome: "", instrumento: "", nivel: "", duracao: "",
+    carga_horaria_tempo: "", carga_horaria_frequencia: "semanal",
+    valor_mensal: "", descricao: "",
   });
 
   const { data: cursos, isLoading } = useCursos();
   const createCursoMutation = useCreateCurso();
   const deleteCursoMutation = useDeleteCurso();
 
-  const totalAlunos = 0; // TODO: Calculate from aulas table
+  const totalAlunos = 0;
   const receitaMensal = cursos?.reduce((acc, curso) => acc + (Number(curso.valor_mensal) || 0), 0) || 0;
 
   const filteredCursos = useMemo(() => {
     if (!cursos) return [];
     return cursos.filter((curso) => {
-      // Text search
       const matchesSearch = curso.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (curso.instrumento?.toLowerCase().includes(searchTerm.toLowerCase()));
-      
-      // Filters
       if (filterValues.nivel && curso.nivel !== filterValues.nivel) return false;
       if (filterValues.instrumento && curso.instrumento !== filterValues.instrumento) return false;
       if (filterValues.status && curso.status !== filterValues.status) return false;
-      
       return matchesSearch;
     });
   }, [cursos, searchTerm, filterValues]);
 
   const handleCreateCurso = () => {
     if (!newCurso.nome || !newCurso.instrumento) {
-      toast({
-        title: "Erro",
-        description: "Nome e instrumento são obrigatórios",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: "Nome e instrumento são obrigatórios", variant: "destructive" });
       return;
     }
+
+    const cargaHoraria = newCurso.carga_horaria_tempo
+      ? formatCargaHoraria(newCurso.carga_horaria_tempo, newCurso.carga_horaria_frequencia)
+      : undefined;
 
     createCursoMutation.mutate({
       nome: newCurso.nome,
       instrumento: newCurso.instrumento,
       nivel: newCurso.nivel || "iniciante",
       duracao: newCurso.duracao || undefined,
-      carga_horaria: newCurso.carga_horaria || undefined,
+      carga_horaria: cargaHoraria,
       valor_mensal: newCurso.valor_mensal ? parseFloat(newCurso.valor_mensal) : undefined,
       descricao: newCurso.descricao || undefined,
       status: "ativo",
     });
 
-    setNewCurso({ nome: "", instrumento: "", nivel: "", duracao: "", carga_horaria: "", valor_mensal: "", descricao: "" });
+    setNewCurso({ nome: "", instrumento: "", nivel: "", duracao: "", carga_horaria_tempo: "", carga_horaria_frequencia: "semanal", valor_mensal: "", descricao: "" });
     setIsDialogOpen(false);
   };
 
   const handleExport = () => {
     if (!filteredCursos || filteredCursos.length === 0) {
-      toast({
-        title: "Nenhum dado para exportar",
-        description: "Adicione cursos antes de exportar",
-        variant: "destructive",
-      });
+      toast({ title: "Nenhum dado para exportar", description: "Adicione cursos antes de exportar", variant: "destructive" });
       return;
     }
     exportCursos(filteredCursos);
-    toast({
-      title: "Exportação concluída",
-      description: `${filteredCursos.length} cursos exportados`,
-    });
+    toast({ title: "Exportação concluída", description: `${filteredCursos.length} cursos exportados` });
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
-    >
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Gestão de Cursos</h1>
-          <p className="text-muted-foreground">
-            Gerencie cursos, workshops e aulas avulsas
-          </p>
+          <p className="text-muted-foreground">Gerencie cursos, workshops e aulas avulsas</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleExport}>
-            <Download className="w-4 h-4 mr-2" />
-            Exportar
+            <Download className="w-4 h-4 mr-2" />Exportar
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="w-4 h-4" />
-                Novo Curso
-              </Button>
+              <Button className="gap-2"><Plus className="w-4 h-4" />Novo Curso</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Criar Novo Curso</DialogTitle>
-              </DialogHeader>
+              <DialogHeader><DialogTitle>Criar Novo Curso</DialogTitle></DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
                   <Label htmlFor="nome">Nome do Curso *</Label>
-                  <Input 
-                    id="nome" 
-                    placeholder="Ex: Piano Intermediário"
-                    value={newCurso.nome}
-                    onChange={(e) => setNewCurso(prev => ({ ...prev, nome: e.target.value }))}
-                  />
+                  <Input id="nome" placeholder="Ex: Piano Intermediário" value={newCurso.nome}
+                    onChange={(e) => setNewCurso(prev => ({ ...prev, nome: e.target.value }))} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="instrumento">Instrumento *</Label>
-                    <Select
-                      value={newCurso.instrumento}
-                      onValueChange={(value) => setNewCurso(prev => ({ ...prev, instrumento: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
+                    <Label>Instrumento *</Label>
+                    <Select value={newCurso.instrumento} onValueChange={(v) => setNewCurso(prev => ({ ...prev, instrumento: v }))}>
+                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Piano">Piano</SelectItem>
                         <SelectItem value="Violão">Violão</SelectItem>
@@ -234,14 +171,9 @@ export default function Cursos() {
                     </Select>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="nivel">Nível</Label>
-                    <Select
-                      value={newCurso.nivel}
-                      onValueChange={(value) => setNewCurso(prev => ({ ...prev, nivel: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
+                    <Label>Nível</Label>
+                    <Select value={newCurso.nivel} onValueChange={(v) => setNewCurso(prev => ({ ...prev, nivel: v }))}>
+                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="iniciante">Iniciante</SelectItem>
                         <SelectItem value="intermediario">Intermediário</SelectItem>
@@ -250,50 +182,44 @@ export default function Cursos() {
                     </Select>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="duracao">Duração</Label>
-                    <Input 
-                      id="duracao" 
-                      placeholder="Ex: 6 meses"
-                      value={newCurso.duracao}
-                      onChange={(e) => setNewCurso(prev => ({ ...prev, duracao: e.target.value }))}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="carga">Carga Horária</Label>
-                    <Input 
-                      id="carga" 
-                      placeholder="Ex: 2h/semana"
-                      value={newCurso.carga_horaria}
-                      onChange={(e) => setNewCurso(prev => ({ ...prev, carga_horaria: e.target.value }))}
-                    />
-                  </div>
+                <div className="grid gap-2">
+                  <Label>Duração do Curso</Label>
+                  <Input placeholder="Ex: 6 meses" value={newCurso.duracao}
+                    onChange={(e) => setNewCurso(prev => ({ ...prev, duracao: e.target.value }))} />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="valor">Valor Mensal (R$)</Label>
-                  <Input 
-                    id="valor" 
-                    type="number" 
-                    placeholder="0,00"
-                    value={newCurso.valor_mensal}
-                    onChange={(e) => setNewCurso(prev => ({ ...prev, valor_mensal: e.target.value }))}
-                  />
+                  <Label>Carga Horária</Label>
+                  <div className="flex gap-2">
+                    <Input placeholder="Ex: 1h" value={newCurso.carga_horaria_tempo}
+                      onChange={(e) => setNewCurso(prev => ({ ...prev, carga_horaria_tempo: e.target.value }))}
+                      className="flex-1" />
+                    <Select value={newCurso.carga_horaria_frequencia}
+                      onValueChange={(v) => setNewCurso(prev => ({ ...prev, carga_horaria_frequencia: v }))}>
+                      <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="semanal">por semana</SelectItem>
+                        <SelectItem value="mensal">por mês</SelectItem>
+                        <SelectItem value="avulso">por aula</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {newCurso.carga_horaria_tempo && (
+                    <p className="text-xs text-muted-foreground">
+                      Resultado: {formatCargaHoraria(newCurso.carga_horaria_tempo, newCurso.carga_horaria_frequencia)}
+                    </p>
+                  )}
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="descricao">Descrição</Label>
-                  <Textarea 
-                    id="descricao" 
-                    placeholder="Descreva o conteúdo programático..."
-                    value={newCurso.descricao}
-                    onChange={(e) => setNewCurso(prev => ({ ...prev, descricao: e.target.value }))}
-                  />
+                  <Label>Valor Mensal (R$)</Label>
+                  <Input type="number" placeholder="0,00" value={newCurso.valor_mensal}
+                    onChange={(e) => setNewCurso(prev => ({ ...prev, valor_mensal: e.target.value }))} />
                 </div>
-                <Button 
-                  className="w-full mt-2" 
-                  onClick={handleCreateCurso}
-                  disabled={createCursoMutation.isPending}
-                >
+                <div className="grid gap-2">
+                  <Label>Descrição</Label>
+                  <Textarea placeholder="Descreva o conteúdo programático..." value={newCurso.descricao}
+                    onChange={(e) => setNewCurso(prev => ({ ...prev, descricao: e.target.value }))} />
+                </div>
+                <Button className="w-full mt-2" onClick={handleCreateCurso} disabled={createCursoMutation.isPending}>
                   {createCursoMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                   Criar Curso
                 </Button>
@@ -308,9 +234,7 @@ export default function Cursos() {
         <Card className="glass-card">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/20">
-                <BookOpen className="w-5 h-5 text-primary" />
-              </div>
+              <div className="p-2 rounded-lg bg-primary/20"><BookOpen className="w-5 h-5 text-primary" /></div>
               <div>
                 <p className="text-2xl font-bold">{cursos?.length || 0}</p>
                 <p className="text-xs text-muted-foreground">Total de Cursos</p>
@@ -321,9 +245,7 @@ export default function Cursos() {
         <Card className="glass-card">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-secondary/20">
-                <Users className="w-5 h-5 text-secondary" />
-              </div>
+              <div className="p-2 rounded-lg bg-secondary/20"><Users className="w-5 h-5 text-secondary" /></div>
               <div>
                 <p className="text-2xl font-bold">{totalAlunos}</p>
                 <p className="text-xs text-muted-foreground">Alunos Matriculados</p>
@@ -334,13 +256,9 @@ export default function Cursos() {
         <Card className="glass-card">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-success/20">
-                <DollarSign className="w-5 h-5 text-success" />
-              </div>
+              <div className="p-2 rounded-lg bg-success/20"><DollarSign className="w-5 h-5 text-success" /></div>
               <div>
-                <p className="text-2xl font-bold">
-                  {receitaMensal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                </p>
+                <p className="text-2xl font-bold">{receitaMensal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
                 <p className="text-xs text-muted-foreground">Valor Total/Mês</p>
               </div>
             </div>
@@ -349,9 +267,7 @@ export default function Cursos() {
         <Card className="glass-card">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-warning/20">
-                <GraduationCap className="w-5 h-5 text-warning" />
-              </div>
+              <div className="p-2 rounded-lg bg-warning/20"><GraduationCap className="w-5 h-5 text-warning" /></div>
               <div>
                 <p className="text-2xl font-bold">{cursos?.filter(c => c.status === "ativo").length || 0}</p>
                 <p className="text-xs text-muted-foreground">Cursos Ativos</p>
@@ -365,18 +281,9 @@ export default function Cursos() {
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar cursos..."
-            className="pl-10"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <Input placeholder="Buscar cursos..." className="pl-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
         </div>
-        <FilterPopover 
-          filters={filterOptions} 
-          values={filterValues} 
-          onChange={setFilterValues} 
-        />
+        <FilterPopover filters={filterOptions} values={filterValues} onChange={setFilterValues} />
       </div>
 
       {/* Courses Grid */}
@@ -385,33 +292,19 @@ export default function Cursos() {
           <CardContent className="py-12 text-center">
             <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">Nenhum curso encontrado</h3>
-            <p className="text-muted-foreground mb-4">
-              {searchTerm ? "Tente outra busca" : "Cadastre seu primeiro curso"}
-            </p>
-            {!searchTerm && (
-              <Button onClick={() => setIsDialogOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Novo Curso
-              </Button>
-            )}
+            <p className="text-muted-foreground mb-4">{searchTerm ? "Tente outra busca" : "Cadastre seu primeiro curso"}</p>
+            {!searchTerm && <Button onClick={() => setIsDialogOpen(true)}><Plus className="w-4 h-4 mr-2" />Novo Curso</Button>}
           </CardContent>
         </Card>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredCursos.map((curso, index) => (
-            <motion.div
-              key={curso.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
+            <motion.div key={curso.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }}>
               <Card className="glass-card hover:border-primary/30 transition-all">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-primary/20">
-                        <Music className="w-5 h-5 text-primary" />
-                      </div>
+                      <div className="p-2 rounded-lg bg-primary/20"><Music className="w-5 h-5 text-primary" /></div>
                       <div>
                         <CardTitle className="text-base">{curso.nome}</CardTitle>
                         <p className="text-sm text-muted-foreground">{curso.instrumento}</p>
@@ -419,22 +312,15 @@ export default function Cursos() {
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="w-4 h-4" /></Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem>Editar</DropdownMenuItem>
                         <DropdownMenuItem>Ver Alunos</DropdownMenuItem>
                         <DropdownMenuItem>Conteúdo Programático</DropdownMenuItem>
                         <DropdownMenuItem>Duplicar</DropdownMenuItem>
-                        <DropdownMenuItem 
-                          className="text-destructive"
-                          onClick={() => deleteCursoMutation.mutate(curso.id)}
-                          disabled={deleteCursoMutation.isPending}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Excluir
+                        <DropdownMenuItem className="text-destructive" onClick={() => deleteCursoMutation.mutate(curso.id)} disabled={deleteCursoMutation.isPending}>
+                          <Trash2 className="w-4 h-4 mr-2" />Excluir
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
