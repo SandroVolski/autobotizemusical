@@ -128,7 +128,7 @@ export function ClassesByDayChart() {
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(0, 0%, 20%)" />
                 <XAxis dataKey="dia" stroke="hsl(0, 0%, 60%)" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis stroke="hsl(0, 0%, 60%)" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
-                <Tooltip contentStyle={tooltipStyle} />
+                <Tooltip contentStyle={themedTooltipStyle} />
                 <Bar dataKey="aulas" fill="hsl(270, 100%, 50%)" radius={[6, 6, 0, 0]} name="Aulas" />
               </BarChart>
             </ResponsiveContainer>
