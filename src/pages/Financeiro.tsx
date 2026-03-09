@@ -646,6 +646,21 @@ export default function Financeiro() {
           </CardContent>
         </Card>
       </motion.div>
+
+        </TabsContent>
+
+        <TabsContent value="pagar">
+          <ContasPagarTab />
+        </TabsContent>
+
+        <TabsContent value="caixa">
+          <FluxoCaixaTab />
+        </TabsContent>
+
+        <TabsContent value="pdv">
+          <PDVTab />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
