@@ -300,6 +300,101 @@ export type Database = {
         }
         Relationships: []
       }
+      confirmacao_aula_config: {
+        Row: {
+          aluno_id: string
+          created_at: string
+          habilitado: boolean
+          id: string
+          telefone_override: string | null
+          updated_at: string
+        }
+        Insert: {
+          aluno_id: string
+          created_at?: string
+          habilitado?: boolean
+          id?: string
+          telefone_override?: string | null
+          updated_at?: string
+        }
+        Update: {
+          aluno_id?: string
+          created_at?: string
+          habilitado?: boolean
+          id?: string
+          telefone_override?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "confirmacao_aula_config_aluno_id_fkey"
+            columns: ["aluno_id"]
+            isOneToOne: true
+            referencedRelation: "alunos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      confirmacao_aula_mensagens: {
+        Row: {
+          aluno_id: string
+          aula_id: string | null
+          created_at: string
+          data_aula: string
+          enviado_em: string | null
+          erro: string | null
+          id: string
+          mensagem: string
+          respondido_em: string | null
+          resposta_aluno: string | null
+          status: string
+          telefone: string
+        }
+        Insert: {
+          aluno_id: string
+          aula_id?: string | null
+          created_at?: string
+          data_aula: string
+          enviado_em?: string | null
+          erro?: string | null
+          id?: string
+          mensagem: string
+          respondido_em?: string | null
+          resposta_aluno?: string | null
+          status?: string
+          telefone: string
+        }
+        Update: {
+          aluno_id?: string
+          aula_id?: string | null
+          created_at?: string
+          data_aula?: string
+          enviado_em?: string | null
+          erro?: string | null
+          id?: string
+          mensagem?: string
+          respondido_em?: string | null
+          resposta_aluno?: string | null
+          status?: string
+          telefone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "confirmacao_aula_mensagens_aluno_id_fkey"
+            columns: ["aluno_id"]
+            isOneToOne: false
+            referencedRelation: "alunos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "confirmacao_aula_mensagens_aula_id_fkey"
+            columns: ["aula_id"]
+            isOneToOne: false
+            referencedRelation: "aulas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contas_pagar: {
         Row: {
           categoria: string | null
