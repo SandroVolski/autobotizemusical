@@ -58,6 +58,7 @@ import { EnrollmentDialog } from "@/components/alunos/EnrollmentDialog";
 import { StudentEnrollments } from "@/components/alunos/StudentEnrollments";
 import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
 import { exportAlunos } from "@/lib/csv-export";
+import { CameraCapture } from "@/components/ui/camera-capture";
 
 const filterOptions: FilterOption[] = [
   {
