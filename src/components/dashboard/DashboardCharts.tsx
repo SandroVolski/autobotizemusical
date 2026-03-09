@@ -239,7 +239,7 @@ export function StudentGrowthChart() {
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(0, 0%, 20%)" />
                   <XAxis dataKey="mes" stroke="hsl(0, 0%, 60%)" fontSize={12} tickLine={false} axisLine={false} />
                   <YAxis stroke="hsl(0, 0%, 60%)" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
-                  <Tooltip contentStyle={tooltipStyle} />
+                  <Tooltip contentStyle={themedTooltipStyle} />
                   <Area type="monotone" dataKey="alunos" stroke="hsl(270, 100%, 50%)" strokeWidth={2} fill="url(#colorAlunos)" name="Total de Alunos" />
                 </AreaChart>
               </ResponsiveContainer>
