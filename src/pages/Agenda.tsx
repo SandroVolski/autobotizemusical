@@ -577,6 +577,26 @@ export default function Agenda() {
                               />
                             ))}
 
+                            {/* Current Time Indicator */}
+                            {isToday && (() => {
+                              const now = new Date();
+                              const currentHour = now.getHours();
+                              const currentMinute = now.getMinutes();
+                              if (currentHour >= 8 && currentHour <= 20) {
+                                const topPos = ((currentHour - 8) * 2 + currentMinute / 30) * 40;
+                                return (
+                                  <div
+                                    className="absolute left-0 right-0 z-20 pointer-events-none flex items-center"
+                                    style={{ top: `${topPos}px` }}
+                                  >
+                                    <div className="w-2.5 h-2.5 rounded-full bg-destructive -ml-1 shrink-0" />
+                                    <div className="flex-1 h-[2px] bg-destructive" />
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })()}
+
                             {/* Classes */}
                             {dayClasses.map((aula) => (
                               <motion.div

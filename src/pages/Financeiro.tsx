@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { 
   DollarSign, TrendingUp, CreditCard, AlertCircle, CheckCircle2, Clock, Download, Plus, Loader2, Trash2,
-  Receipt, ShoppingCart, Wallet,
+  Receipt, ShoppingCart, Wallet, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,9 +38,23 @@ const filterOptions: FilterOption[] = [
   ]},
 ];
 
+const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
 export default function Financeiro() {
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filterValues, setFilterValues] = useState<FilterValues>({});
+
+  const prevMonth = () => {
+    if (selectedMonth === 0) { setSelectedMonth(11); setSelectedYear(y => y - 1); }
+    else setSelectedMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    if (selectedMonth === 11) { setSelectedMonth(0); setSelectedYear(y => y + 1); }
+    else setSelectedMonth(m => m + 1);
+  };
   const [newPagamento, setNewPagamento] = useState<NovoPagamento>({
     aluno_id: "", valor: 0, data_vencimento: "", status: "pendente", tipo: "mensalidade", metodo_pagamento: "", referencia: "",
   });
@@ -129,7 +143,17 @@ export default function Financeiro() {
           <h1 className="text-3xl font-bold">Financeiro</h1>
           <p className="text-muted-foreground">Controle financeiro completo da escola</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          {/* Month Navigator */}
+          <div className="flex items-center gap-1 bg-muted/50 border border-border rounded-lg px-2 py-1">
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={prevMonth}>
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <span className="text-sm font-medium min-w-[120px] text-center">{meses[selectedMonth].slice(0, 3)} {selectedYear}</span>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={nextMonth}>
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
           <Button variant="outline" onClick={handleExport}>
             <Download className="w-4 h-4 mr-2" />Exportar
           </Button>
@@ -412,7 +436,7 @@ export default function Financeiro() {
         </TabsContent>
 
         <TabsContent value="pagar"><ContasPagarTab /></TabsContent>
-        <TabsContent value="caixa"><FluxoCaixaTab /></TabsContent>
+        <TabsContent value="caixa"><FluxoCaixaTab selectedMonth={selectedMonth} selectedYear={selectedYear} /></TabsContent>
         <TabsContent value="pdv"><PDVTab /></TabsContent>
       </Tabs>
     </div>
