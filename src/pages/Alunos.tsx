@@ -231,6 +231,8 @@ export default function Alunos() {
       objetivo: aluno.objetivo || "",
       observacoes: aluno.observacoes || "",
     });
+    setPhotoFile(null);
+    setPhotoPreview(aluno.foto_url || null);
     setIsDialogOpen(true);
   };
 
