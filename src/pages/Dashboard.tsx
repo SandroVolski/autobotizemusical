@@ -125,22 +125,19 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Row 2 - Classes & AI Insights */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-        <div className="lg:col-span-2">
-          <UpcomingClasses />
-        </div>
-        <div>
-          <AIInsights />
-        </div>
-      </div>
+      {/* Row 2 - Classes */}
+      <UpcomingClasses />
 
-      {/* Charts Row */}
+      {/* Row 3 - Charts top */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
         <StudentsByLevelChart />
         <ClassesByDayChart />
       </div>
 
+      {/* AI Insights - between Aniversariantes/ClassesByDay and bottom charts */}
+      <AIInsights />
+
+      {/* Charts Row bottom */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
         <MonthlyRevenueVsPendingChart />
         <StudentGrowthChart />
