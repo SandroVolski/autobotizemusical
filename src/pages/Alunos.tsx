@@ -469,7 +469,7 @@ export default function Alunos() {
               >
                 <Card variant="interactive">
                   <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigate(`/alunos/${aluno.id}`)}>
                       {/* Avatar */}
                       {aluno.foto_url ? (
                         <img
@@ -517,8 +517,8 @@ export default function Alunos() {
                       {/* Contact */}
                       <div className="hidden md:flex items-center gap-4">
                         {aluno.telefone && (
-                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" asChild>
-                            <a href={`tel:${aluno.telefone}`}>
+                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                            <a href={`https://wa.me/${aluno.telefone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer">
                               <Phone className="w-4 h-4" />
                             </a>
                           </Button>
@@ -533,17 +533,20 @@ export default function Alunos() {
                       </div>
 
                       {/* Expand Enrollments */}
-                      <CollapsibleTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-muted-foreground">
-                          {expandedAluno === aluno.id ? (
-                            <ChevronUp className="w-4 h-4" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4" />
-                          )}
-                        </Button>
-                      </CollapsibleTrigger>
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <CollapsibleTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-muted-foreground">
+                            {expandedAluno === aluno.id ? (
+                              <ChevronUp className="w-4 h-4" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </CollapsibleTrigger>
+                      </div>
 
                       {/* Actions */}
+                      <div onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
@@ -577,6 +580,7 @@ export default function Alunos() {
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
+                      </div>
                     </div>
                     
                     {/* Enrollments Section */}
