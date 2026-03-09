@@ -169,16 +169,30 @@ export default function Alunos() {
     }
 
     if (editingAluno) {
-      updateAlunoMutation.mutate({ id: editingAluno, ...newAluno }, {
+      setIsUploading(true);
+      const fotoUrl = await uploadPhoto(editingAluno);
+      const updateData: any = { id: editingAluno, ...newAluno };
+      if (fotoUrl) updateData.foto_url = fotoUrl;
+      updateAlunoMutation.mutate(updateData, {
         onSuccess: () => {
           setIsDialogOpen(false);
           setEditingAluno(null);
           resetForm();
-        }
+          setIsUploading(false);
+        },
+        onError: () => setIsUploading(false),
       });
     } else {
       createAlunoMutation.mutate(newAluno, {
-        onSuccess: () => {
+        onSuccess: async (data) => {
+          if (photoFile && data?.id) {
+            setIsUploading(true);
+            const fotoUrl = await uploadPhoto(data.id);
+            if (fotoUrl) {
+              updateAlunoMutation.mutate({ id: data.id, foto_url: fotoUrl });
+            }
+            setIsUploading(false);
+          }
           setIsDialogOpen(false);
           resetForm();
         }
@@ -199,6 +213,8 @@ export default function Alunos() {
       objetivo: "",
       observacoes: "",
     });
+    setPhotoFile(null);
+    setPhotoPreview(null);
   };
 
   const handleEdit = (aluno: typeof alunos extends (infer T)[] | undefined ? T : never) => {
