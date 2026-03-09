@@ -92,7 +92,7 @@ export function AIInsights() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.5 }}
     >
-      <Card variant="glow" className="overflow-hidden h-fit">
+      <Card variant="glow" className="overflow-hidden h-full flex flex-col">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 pointer-events-none" />
         <CardHeader className="relative py-3 px-4">
           <div className="flex items-center justify-between">
@@ -108,7 +108,7 @@ export function AIInsights() {
             <Badge variant="glow" className="text-xs">{insights.length}</Badge>
           </div>
         </CardHeader>
-        <CardContent className="relative space-y-2 px-4 pb-3 pt-0">
+        <CardContent className="relative space-y-2 px-4 pb-3 pt-0 flex-1 flex flex-col">
           {insights.slice(0, 2).map((insight, index) => (
             <div
               key={insight.id}
@@ -132,6 +132,7 @@ export function AIInsights() {
             </div>
           ))}
 
+          <div className="flex-1" />
           <Button variant="outline" size="sm" className="w-full text-xs" onClick={() => navigate("/hub-ia")}>
             <Bot className="w-3.5 h-3.5 mr-1.5" />
             Abrir Hub de IA
