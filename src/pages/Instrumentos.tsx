@@ -37,8 +37,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useInstrumentos, useCreateInstrumento, useDeleteInstrumento } from "@/hooks/useInstrumentos";
+import { useInstrumentos, useCreateInstrumento, useDeleteInstrumento, useUpdateInstrumento } from "@/hooks/useInstrumentos";
 import { toast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 
 const statusConfig = {
   disponivel: { label: "Disponível", color: "bg-success/20 text-success border-success/30" },
