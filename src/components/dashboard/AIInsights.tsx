@@ -94,57 +94,46 @@ export function AIInsights() {
     >
       <Card variant="glow" className="overflow-hidden h-fit">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 pointer-events-none" />
-        <CardHeader className="relative">
+        <CardHeader className="relative py-3 px-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                <Bot className="w-5 h-5 text-primary-foreground" />
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                <Bot className="w-4 h-4 text-primary-foreground" />
               </div>
-              <div>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  Insights da IA
-                  <Sparkles className="w-4 h-4 text-secondary animate-pulse-slow" />
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">Análises automáticas do seu negócio</p>
-              </div>
+              <CardTitle className="text-sm flex items-center gap-1.5">
+                Insights da IA
+                <Sparkles className="w-3.5 h-3.5 text-secondary animate-pulse-slow" />
+              </CardTitle>
             </div>
-            <Badge variant="glow">{insights.length} {insights.length === 1 ? "item" : "itens"}</Badge>
+            <Badge variant="glow" className="text-xs">{insights.length}</Badge>
           </div>
         </CardHeader>
-        <CardContent className="relative space-y-4">
-          {insights.slice(0, 3).map((insight, index) => (
-            <motion.div
+        <CardContent className="relative space-y-2 px-4 pb-3 pt-0">
+          {insights.slice(0, 2).map((insight, index) => (
+            <div
               key={insight.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 * index }}
-              className="flex items-start gap-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors group cursor-pointer"
+              className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
               onClick={() => navigate(insight.route)}
             >
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+              <div className={`w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 ${
                 insight.type === "warning" ? "bg-warning/20" :
                 insight.type === "suggestion" ? "bg-primary/20" : "bg-destructive/20"
               }`}>
-                <insight.icon className={`w-5 h-5 ${
+                <insight.icon className={`w-4 h-4 ${
                   insight.type === "warning" ? "text-warning" :
                   insight.type === "suggestion" ? "text-primary" : "text-destructive"
                 }`} />
               </div>
-              
               <div className="flex-1 min-w-0">
-                <p className="font-medium">{insight.title}</p>
-                <p className="text-sm text-muted-foreground mt-1">{insight.description}</p>
+                <p className="text-sm font-medium leading-tight">{insight.title}</p>
+                <p className="text-xs text-muted-foreground line-clamp-1">{insight.description}</p>
               </div>
-
-              <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                {insight.action}
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
-            </motion.div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            </div>
           ))}
 
-          <Button variant="outline" className="w-full mt-4" onClick={() => navigate("/hub-ia")}>
-            <Bot className="w-4 h-4 mr-2" />
+          <Button variant="outline" size="sm" className="w-full text-xs" onClick={() => navigate("/hub-ia")}>
+            <Bot className="w-3.5 h-3.5 mr-1.5" />
             Abrir Hub de IA
           </Button>
         </CardContent>
