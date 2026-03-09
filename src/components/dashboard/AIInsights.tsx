@@ -18,7 +18,7 @@ export function AIInsights() {
   const insights = [];
 
   // Check for inactive students
-  const alunosInativos = alunos?.filter(a => a.status === "inativo").length || 0;
+  const alunosInativos = alunos?.filter((a) => a.status === "inativo").length || 0;
   if (alunosInativos > 0) {
     insights.push({
       id: 1,
@@ -32,7 +32,7 @@ export function AIInsights() {
   }
 
   // Check for overdue payments
-  const pagamentosAtrasados = pagamentos?.filter(p => p.status === "atrasado").length || 0;
+  const pagamentosAtrasados = pagamentos?.filter((p) => p.status === "atrasado").length || 0;
   if (pagamentosAtrasados > 0) {
     insights.push({
       id: 2,
@@ -92,9 +92,9 @@ export function AIInsights() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.5 }}
     >
-      <Card variant="glow" className="overflow-hidden h-full flex flex-col min-h-[320px]">
+      <Card variant="glow" className="overflow-hidden h-full flex flex-col">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 pointer-events-none" />
-        <CardHeader className="relative py-3 px-4">
+        <CardHeader className="relative py-6 px-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
@@ -105,7 +105,9 @@ export function AIInsights() {
                 <Sparkles className="w-3.5 h-3.5 text-secondary animate-pulse-slow" />
               </CardTitle>
             </div>
-            <Badge variant="glow" className="text-xs">{insights.length}</Badge>
+            <Badge variant="glow" className="text-xs">
+              {insights.length}
+            </Badge>
           </div>
         </CardHeader>
         <CardContent className="relative space-y-2 px-4 pb-3 pt-0 flex-1 flex flex-col">
@@ -115,14 +117,24 @@ export function AIInsights() {
               className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
               onClick={() => navigate(insight.route)}
             >
-              <div className={`w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 ${
-                insight.type === "warning" ? "bg-warning/20" :
-                insight.type === "suggestion" ? "bg-primary/20" : "bg-destructive/20"
-              }`}>
-                <insight.icon className={`w-4 h-4 ${
-                  insight.type === "warning" ? "text-warning" :
-                  insight.type === "suggestion" ? "text-primary" : "text-destructive"
-                }`} />
+              <div
+                className={`w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 ${
+                  insight.type === "warning"
+                    ? "bg-warning/20"
+                    : insight.type === "suggestion"
+                      ? "bg-primary/20"
+                      : "bg-destructive/20"
+                }`}
+              >
+                <insight.icon
+                  className={`w-4 h-4 ${
+                    insight.type === "warning"
+                      ? "text-warning"
+                      : insight.type === "suggestion"
+                        ? "text-primary"
+                        : "text-destructive"
+                  }`}
+                />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium leading-tight">{insight.title}</p>
