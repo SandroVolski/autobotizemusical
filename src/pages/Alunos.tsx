@@ -296,6 +296,39 @@ export default function Alunos() {
               <DialogTitle>{editingAluno ? "Editar Aluno" : "Cadastrar Novo Aluno"}</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-4">
+              {/* Photo Upload */}
+              <div className="flex flex-col items-center gap-3">
+                <div 
+                  className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-dashed border-primary/40 hover:border-primary/70 cursor-pointer transition-colors group"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {photoPreview ? (
+                    <img src={photoPreview} alt="Foto do aluno" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-muted/50">
+                      <User className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Camera className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoSelect}
+                />
+                <button
+                  type="button"
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {photoPreview ? "Alterar foto" : "Adicionar foto"}
+                </button>
+              </div>
+
               <div className="grid gap-2">
                 <Label htmlFor="nome">Nome Completo *</Label>
                 <Input 
