@@ -119,14 +119,14 @@ export default function Dashboard() {
       </div>
 
       {/* Row 2 - Classes & AI Insights */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-6">
-        <div className="lg:col-span-2">
-          <UpcomingClasses />
-        </div>
-        <div>
-          <AIInsights />
-        </div>
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-6 overflow-visible">
+          <div className="lg:col-span-2">
+            <UpcomingClasses />
+          </div>
+          <div className="lg:-mb-20"> {/* Empurra para baixo */}
+            <AIInsights />
+          </div>
+        </div
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
