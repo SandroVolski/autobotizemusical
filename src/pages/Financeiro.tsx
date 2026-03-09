@@ -38,9 +38,23 @@ const filterOptions: FilterOption[] = [
   ]},
 ];
 
+const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
 export default function Financeiro() {
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filterValues, setFilterValues] = useState<FilterValues>({});
+
+  const prevMonth = () => {
+    if (selectedMonth === 0) { setSelectedMonth(11); setSelectedYear(y => y - 1); }
+    else setSelectedMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    if (selectedMonth === 11) { setSelectedMonth(0); setSelectedYear(y => y + 1); }
+    else setSelectedMonth(m => m + 1);
+  };
   const [newPagamento, setNewPagamento] = useState<NovoPagamento>({
     aluno_id: "", valor: 0, data_vencimento: "", status: "pendente", tipo: "mensalidade", metodo_pagamento: "", referencia: "",
   });
