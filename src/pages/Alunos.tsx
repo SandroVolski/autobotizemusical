@@ -18,7 +18,11 @@ import {
   ChevronDown,
   ChevronUp,
   Camera,
-  User
+  User,
+  UserCheck,
+  UserX,
+  LogOut,
+  RotateCcw,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
