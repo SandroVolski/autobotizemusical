@@ -742,6 +742,15 @@ export default function Alunos() {
                             Agendar Aula
                           </DropdownMenuItem>
                           <DropdownMenuItem 
+                            onClick={() => setStatusToggleAluno({ id: aluno.id, nome: aluno.nome, currentStatus: aluno.status || "ativo" })}
+                          >
+                            {aluno.status === "ativo" ? (
+                              <><UserX className="w-4 h-4 mr-2" /> Desativar Aluno</>
+                            ) : (
+                              <><RotateCcw className="w-4 h-4 mr-2" /> Reativar Aluno</>
+                            )}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
                             className="text-destructive"
                             onClick={() => deleteAlunoMutation.mutate(aluno.id)}
                             disabled={deleteAlunoMutation.isPending}
