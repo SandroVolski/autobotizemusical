@@ -11,12 +11,16 @@ import {
   Plus,
   Loader2,
   Trash2,
+  Receipt,
+  ShoppingCart,
+  Wallet,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +41,9 @@ import { useAlunos } from "@/hooks/useAlunos";
 import { toast } from "@/hooks/use-toast";
 import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
 import { exportPagamentos } from "@/lib/csv-export";
+import { ContasPagarTab } from "@/components/financeiro/ContasPagarTab";
+import { FluxoCaixaTab } from "@/components/financeiro/FluxoCaixaTab";
+import { PDVTab } from "@/components/financeiro/PDVTab";
 
 const filterOptions: FilterOption[] = [
   {
