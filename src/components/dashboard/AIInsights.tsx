@@ -96,7 +96,7 @@ export function AIInsights() {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 pointer-events-none" />
         <CardHeader className="relative py-6 px-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
                 <Bot className="w-4 h-4 text-primary-foreground" />
               </div>
