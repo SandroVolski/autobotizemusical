@@ -202,7 +202,7 @@ export function AppSidebar() {
           <img
             src={autobotizeLogo}
             alt="Autobotize"
-            className="w-10 h-10 object-contain flex-shrink-0 rounded-md" />
+            className="w-10 h-10 object-contain flex-shrink-0 rounded-sm" />
 
           }
           <AnimatePresence>
