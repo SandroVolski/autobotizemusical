@@ -119,11 +119,11 @@ export default function Dashboard() {
       </div>
 
       {/* Row 2 - Classes & AI Insights */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-6 relative">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-6">
         <div className="lg:col-span-2">
           <UpcomingClasses />
         </div>
-        <div className="lg:absolute lg:right-0 lg:top-0 lg:bottom-[-80px] lg:w-[calc(33.333%-12px)]">
+        <div>
           <AIInsights />
         </div>
       </div>
