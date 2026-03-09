@@ -83,8 +83,8 @@ export default function Confirmacoes() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-500/10">
-              <Send className="w-5 h-5 text-blue-500" />
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Send className="w-5 h-5 text-primary" />
             </div>
             <div>
               <p className="text-2xl font-bold">{totalEnviados}</p>
@@ -94,8 +94,8 @@ export default function Confirmacoes() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-green-500/10">
-              <CheckCircle2 className="w-5 h-5 text-green-500" />
+            <div className="p-2 rounded-lg bg-secondary/10">
+              <CheckCircle2 className="w-5 h-5 text-secondary" />
             </div>
             <div>
               <p className="text-2xl font-bold">{totalConfirmados}</p>
