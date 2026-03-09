@@ -739,6 +739,24 @@ export default function Alunos() {
           onOpenChange={(open) => !open && setEnrollmentAluno(null)}
         />
       )}
+
+      {/* Photo Preview Dialog */}
+      <Dialog open={!!previewPhoto} onOpenChange={(open) => !open && setPreviewPhoto(null)}>
+        <DialogContent className="sm:max-w-md p-2 bg-background/95 backdrop-blur-sm">
+          <DialogHeader>
+            <DialogTitle className="text-center">{previewPhoto?.nome}</DialogTitle>
+          </DialogHeader>
+          {previewPhoto && (
+            <div className="flex items-center justify-center p-2">
+              <img
+                src={previewPhoto.url}
+                alt={previewPhoto.nome}
+                className="max-w-full max-h-[70vh] rounded-lg object-contain"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
