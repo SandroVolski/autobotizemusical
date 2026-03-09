@@ -355,15 +355,17 @@ export default function Instrumentos() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem>Editar</DropdownMenuItem>
-                        <DropdownMenuItem>Emprestar</DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setSellInstrumento(instrumento);
-                            setSellDialogOpen(true);
-                          }}
-                        >
-                          Vender / Negociar
-                        </DropdownMenuItem>
+                        <DropdownMenuItem disabled={instrumento.status === "vendido"}>Emprestar</DropdownMenuItem>
+                        {instrumento.status !== "vendido" && (
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSellInstrumento(instrumento);
+                              setSellDialogOpen(true);
+                            }}
+                          >
+                            Vender / Negociar
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem>Registrar Manutenção</DropdownMenuItem>
                         <DropdownMenuItem>Histórico</DropdownMenuItem>
                         <DropdownMenuItem 

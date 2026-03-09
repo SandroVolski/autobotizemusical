@@ -1922,7 +1922,7 @@ export const PricingSection = () => {
   const [billingCycle, setBillingCycle] = useState<"mensal" | "anual">("mensal");
   const WHATSAPP_NUMBER = "5542998005326";
   const SUPPORT_LINK =
-    "https://api.whatsapp.com/send/?phone=5542998005326&text=Ol%C3%A1%21+Gostaria+de+saber+mais+sobre+os+planos+do+Autobotize+-+Gest%C3%A3o+Musical.+Tenho+interesse+no+plano+Professional.&type=phone_number&app_absent=0";
+    `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent("Olá! Gostaria de saber mais sobre os planos do Autobotize - Gestão Musical. Tenho interesse no plano Professional.")}`;
 
   const pricing = {
     mensal: { price: "197", period: "/mês", mainColor: "#8000FF", contrastColor: "#00F69C" },
