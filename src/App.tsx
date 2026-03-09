@@ -190,6 +190,14 @@ const App = () => (
                 </AuthenticatedPage>
               }
             />
+            <Route
+              path="/confirmacoes"
+              element={
+                <AuthenticatedPage>
+                  <Confirmacoes />
+                </AuthenticatedPage>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
