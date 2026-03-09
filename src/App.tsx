@@ -157,6 +157,38 @@ const App = () => (
                 </AuthenticatedPage>
               }
             />
+            <Route
+              path="/turmas"
+              element={
+                <AuthenticatedPage>
+                  <Turmas />
+                </AuthenticatedPage>
+              }
+            />
+            <Route
+              path="/reposicoes"
+              element={
+                <AuthenticatedPage>
+                  <Reposicoes />
+                </AuthenticatedPage>
+              }
+            />
+            <Route
+              path="/contratos"
+              element={
+                <AuthenticatedPage>
+                  <Contratos />
+                </AuthenticatedPage>
+              }
+            />
+            <Route
+              path="/crm"
+              element={
+                <AuthenticatedPage>
+                  <CRM />
+                </AuthenticatedPage>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
