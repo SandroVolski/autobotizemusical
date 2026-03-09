@@ -24,6 +24,10 @@ import Pedagogico from "./pages/Pedagogico";
 import Professores from "./pages/Professores";
 import Comunicacao from "./pages/Comunicacao";
 import Configuracoes from "./pages/Configuracoes";
+import Turmas from "./pages/Turmas";
+import Reposicoes from "./pages/Reposicoes";
+import Contratos from "./pages/Contratos";
+import CRM from "./pages/CRM";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
