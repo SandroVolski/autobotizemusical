@@ -517,13 +517,17 @@ export default function Alunos() {
                       {/* Contact */}
                       <div className="hidden md:flex items-center gap-4">
                         {aluno.telefone && (
-                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                            <Phone className="w-4 h-4" />
+                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" asChild>
+                            <a href={`tel:${aluno.telefone}`}>
+                              <Phone className="w-4 h-4" />
+                            </a>
                           </Button>
                         )}
                         {aluno.email && (
-                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                            <Mail className="w-4 h-4" />
+                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" asChild>
+                            <a href={`mailto:${aluno.email}`}>
+                              <Mail className="w-4 h-4" />
+                            </a>
                           </Button>
                         )}
                       </div>
