@@ -14,8 +14,12 @@ import {
   MessageSquare,
   Settings,
   LogOut,
-  X } from
-"lucide-react";
+  X,
+  UsersRound,
+  RefreshCw,
+  FileText,
+  UserPlus,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
