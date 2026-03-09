@@ -79,6 +79,7 @@ const filterOptions: FilterOption[] = [
 ];
 
 export default function Alunos() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAluno, setEditingAluno] = useState<string | null>(null);
