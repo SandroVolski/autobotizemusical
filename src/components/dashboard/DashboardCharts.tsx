@@ -26,14 +26,24 @@ const tooltipStyle = {
   padding: "10px",
 };
 
+const themedTooltipStyle = {
+  backgroundColor: "hsl(var(--popover))",
+  border: "1px solid hsl(var(--border))",
+  borderRadius: "8px",
+  padding: "10px",
+  color: "hsl(var(--popover-foreground))",
+};
+
 export function StudentsByLevelChart() {
   const { data: alunos } = useAlunos();
 
   const nivelData = [
-    { name: "Iniciante", value: alunos?.filter(a => (a.nivel || "iniciante") === "iniciante" && a.status === "ativo").length || 0 },
-    { name: "Intermediário", value: alunos?.filter(a => a.nivel === "intermediario" && a.status === "ativo").length || 0 },
-    { name: "Avançado", value: alunos?.filter(a => a.nivel === "avancado" && a.status === "ativo").length || 0 },
+    { name: "Iniciante", value: alunos?.filter(a => (a.nivel || "iniciante") === "iniciante" && a.status === "ativo").length || 0, color: COLORS[0] },
+    { name: "Intermediário", value: alunos?.filter(a => a.nivel === "intermediario" && a.status === "ativo").length || 0, color: COLORS[1] },
+    { name: "Avançado", value: alunos?.filter(a => a.nivel === "avancado" && a.status === "ativo").length || 0, color: COLORS[2] },
   ].filter(d => d.value > 0);
+
+  const total = nivelData.reduce((s, d) => s + d.value, 0);
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.5 }}>
@@ -47,25 +57,40 @@ export function StudentsByLevelChart() {
         <CardContent>
           <div className="h-[220px]">
             {nivelData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={nivelData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                    label={({ name, value }) => `${name}: ${value}`}
-                  >
-                    {nivelData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={tooltipStyle} />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="flex items-center h-full gap-4">
+                <div className="flex-1 h-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={nivelData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={55}
+                        outerRadius={85}
+                        paddingAngle={4}
+                        dataKey="value"
+                        strokeWidth={0}
+                      >
+                        {nivelData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={themedTooltipStyle} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex flex-col gap-3 min-w-[120px]">
+                  {nivelData.map((entry) => (
+                    <div key={entry.name} className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
+                      <div className="flex flex-col">
+                        <span className="text-xs font-medium text-foreground">{entry.name}</span>
+                        <span className="text-xs text-muted-foreground">{entry.value} ({total > 0 ? Math.round((entry.value / total) * 100) : 0}%)</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             ) : (
               <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
                 Sem dados de alunos
