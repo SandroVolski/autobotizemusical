@@ -243,24 +243,39 @@ export default function Turmas() {
                 <Input placeholder="Ex: Sala 3" value={newTurma.sala}
                   onChange={(e) => setNewTurma(p => ({ ...p, sala: e.target.value }))} />
               </div>
-              {/* Student selection */}
+              {/* Student selection with search */}
               <div className="grid gap-2">
                 <Label>Alunos Participantes</Label>
+                <Input
+                  placeholder="Buscar aluno por nome..."
+                  value={studentSearch}
+                  onChange={(e) => setStudentSearch(e.target.value)}
+                  className="mb-1"
+                />
                 <div className="border border-border rounded-lg max-h-[200px] overflow-y-auto p-2 space-y-1">
-                  {alunos?.filter(a => a.status === "ativo").map(a => (
-                    <div key={a.id} className="flex items-center gap-2 p-2 rounded-md hover:bg-muted/50 cursor-pointer"
+                  {selectedAlunosIds.length > 0 && (
+                    <div className="mb-2 pb-2 border-b border-border">
+                      <p className="text-xs text-muted-foreground mb-1 font-medium">Selecionados ({selectedAlunosIds.length})</p>
+                      {alunos?.filter(a => selectedAlunosIds.includes(a.id)).map(a => (
+                        <div key={a.id} className="flex items-center gap-2 p-1.5 rounded-md bg-primary/10 cursor-pointer"
+                          onClick={() => toggleAlunoSelection(a.id)}>
+                          <Checkbox checked={true} />
+                          <span className="text-sm">{a.nome}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {alunos?.filter(a => a.status === "ativo" && !selectedAlunosIds.includes(a.id) && a.nome.toLowerCase().includes(studentSearch.toLowerCase())).map(a => (
+                    <div key={a.id} className="flex items-center gap-2 p-1.5 rounded-md hover:bg-muted/50 cursor-pointer"
                       onClick={() => toggleAlunoSelection(a.id)}>
-                      <Checkbox checked={selectedAlunosIds.includes(a.id)} />
+                      <Checkbox checked={false} />
                       <span className="text-sm">{a.nome}</span>
                     </div>
                   ))}
-                  {(!alunos || alunos.filter(a => a.status === "ativo").length === 0) && (
-                    <p className="text-sm text-muted-foreground text-center py-2">Nenhum aluno ativo</p>
+                  {(!alunos || alunos.filter(a => a.status === "ativo" && !selectedAlunosIds.includes(a.id) && a.nome.toLowerCase().includes(studentSearch.toLowerCase())).length === 0) && selectedAlunosIds.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-2">Nenhum aluno encontrado</p>
                   )}
                 </div>
-                {selectedAlunosIds.length > 0 && (
-                  <p className="text-xs text-muted-foreground">{selectedAlunosIds.length} aluno(s) selecionado(s)</p>
-                )}
               </div>
               <Button onClick={handleCreate} disabled={createTurma.isPending} className="w-full mt-2">
                 {createTurma.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
