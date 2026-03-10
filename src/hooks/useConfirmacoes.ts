@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -43,6 +44,25 @@ export function useConfirmacaoConfigs() {
 }
 
 export function useConfirmacaoMensagens() {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("confirmacao-mensagens-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "confirmacao_aula_mensagens" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["confirmacao-mensagens"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   return useQuery({
     queryKey: ["confirmacao-mensagens"],
     queryFn: async () => {
