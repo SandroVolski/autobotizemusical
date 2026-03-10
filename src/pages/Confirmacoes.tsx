@@ -159,7 +159,7 @@ function WhatsAppConnectionCard() {
                 </p>
                 <div className="bg-background p-4 rounded-xl border shadow-sm">
                   <img
-                    src={qrCode.startsWith("data:") ? qrCode : `data:image/png;base64,${qrCode}`}
+                    src={typeof qrCode === 'string' && qrCode.startsWith("data:") ? qrCode : `data:image/png;base64,${qrCode}`}
                     alt="QR Code WhatsApp"
                     className="w-64 h-64 object-contain"
                   />
