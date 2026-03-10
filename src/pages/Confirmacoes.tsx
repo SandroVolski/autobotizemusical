@@ -318,7 +318,7 @@ export default function Confirmacoes() {
         </Card>
       </div>
 
-      <Tabs defaultValue="conexao" className="space-y-4">
+      <Tabs defaultValue={defaultTab} key={defaultTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="conexao" className="gap-2">
             <Smartphone className="w-4 h-4" /> Conexão
