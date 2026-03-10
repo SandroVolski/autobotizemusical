@@ -213,12 +213,32 @@ function WhatsAppConnectionCard() {
 
 export default function Confirmacoes() {
   const [search, setSearch] = useState("");
+  const [whatsappConnected, setWhatsappConnected] = useState(false);
   const { data: alunos, isLoading: loadingAlunos } = useAlunos();
   const { data: configs, isLoading: loadingConfigs } = useConfirmacaoConfigs();
   useConfirmacaoMensagensRealtime();
   const { data: mensagens, isLoading: loadingMensagens } = useConfirmacaoMensagens();
   const toggleMutation = useToggleConfirmacao();
   const bulkEnableMutation = useBulkEnableConfirmacao();
+  const updateStatusMutation = useUpdateMensagemStatus();
+
+  // Check WhatsApp connection to determine default tab
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const { data } = await supabase.functions.invoke("whatsapp-connection", {
+          body: { action: "status" },
+        });
+        const state = data?.state || data?.instance?.state;
+        setWhatsappConnected(state === "open");
+      } catch {
+        setWhatsappConnected(false);
+      }
+    };
+    checkConnection();
+  }, []);
+
+  const defaultTab = whatsappConnected ? "historico" : "conexao";
 
   const activeAlunos = alunos?.filter((a) => a.status === "ativo") || [];
   const configMap = new Map(configs?.map((c) => [c.aluno_id, c]) || []);
