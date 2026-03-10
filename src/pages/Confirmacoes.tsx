@@ -416,9 +416,9 @@ export default function Confirmacoes() {
                   </TableHeader>
                   <TableBody>
                     {loadingMensagens ? (
-                      <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
                     ) : !mensagens || mensagens.length === 0 ? (
-                      <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhuma mensagem enviada ainda</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Nenhuma mensagem enviada ainda</TableCell></TableRow>
                     ) : (
                       mensagens.map((msg) => {
                         const sc = statusConfig[msg.status] || statusConfig.pendente;
