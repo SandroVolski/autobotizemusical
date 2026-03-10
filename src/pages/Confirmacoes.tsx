@@ -77,7 +77,10 @@ function WhatsAppConnectionCard() {
         toast({ title: "WhatsApp já conectado!" });
       } else {
         setStatus("connecting");
-        setQrCode(data?.qrcode || null);
+        // Ensure qrCode is always a string
+        const qr = data?.qrcode;
+        const qrStr = typeof qr === 'string' ? qr : (qr?.base64 || qr?.qr_code_string || JSON.stringify(qr));
+        setQrCode(qrStr || null);
         setPairingCode(data?.pairingCode || null);
       }
     } catch (err: any) {
@@ -156,7 +159,7 @@ function WhatsAppConnectionCard() {
                 </p>
                 <div className="bg-background p-4 rounded-xl border shadow-sm">
                   <img
-                    src={qrCode.startsWith("data:") ? qrCode : `data:image/png;base64,${qrCode}`}
+                    src={typeof qrCode === 'string' && qrCode.startsWith("data:") ? qrCode : `data:image/png;base64,${qrCode}`}
                     alt="QR Code WhatsApp"
                     className="w-64 h-64 object-contain"
                   />
