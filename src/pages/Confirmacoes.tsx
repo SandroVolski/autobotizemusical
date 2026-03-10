@@ -411,6 +411,7 @@ export default function Confirmacoes() {
                       <TableHead>Enviado em</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Resposta</TableHead>
+                      <TableHead className="text-center">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
