@@ -11,6 +11,17 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Validate the request comes from Evolution API
+    const apiKey = req.headers.get("apikey") || new URL(req.url).searchParams.get("apikey");
+    const expectedKey = Deno.env.get("EVOLUTION_API_KEY");
+    if (expectedKey && apiKey !== expectedKey) {
+      console.log("Unauthorized webhook call");
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json();
     console.log("Webhook received:", JSON.stringify(body).substring(0, 500));
 
