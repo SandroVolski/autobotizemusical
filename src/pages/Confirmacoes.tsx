@@ -214,6 +214,7 @@ export default function Confirmacoes() {
   const [search, setSearch] = useState("");
   const { data: alunos, isLoading: loadingAlunos } = useAlunos();
   const { data: configs, isLoading: loadingConfigs } = useConfirmacaoConfigs();
+  useConfirmacaoMensagensRealtime();
   const { data: mensagens, isLoading: loadingMensagens } = useConfirmacaoMensagens();
   const toggleMutation = useToggleConfirmacao();
   const bulkEnableMutation = useBulkEnableConfirmacao();
