@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { useAlunos } from "@/hooks/useAlunos";
-import { useConfirmacaoConfigs, useConfirmacaoMensagens, useToggleConfirmacao, useBulkEnableConfirmacao } from "@/hooks/useConfirmacoes";
+import { useConfirmacaoConfigs, useConfirmacaoMensagens, useConfirmacaoMensagensRealtime, useToggleConfirmacao, useBulkEnableConfirmacao } from "@/hooks/useConfirmacoes";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -214,6 +214,7 @@ export default function Confirmacoes() {
   const [search, setSearch] = useState("");
   const { data: alunos, isLoading: loadingAlunos } = useAlunos();
   const { data: configs, isLoading: loadingConfigs } = useConfirmacaoConfigs();
+  useConfirmacaoMensagensRealtime();
   const { data: mensagens, isLoading: loadingMensagens } = useConfirmacaoMensagens();
   const toggleMutation = useToggleConfirmacao();
   const bulkEnableMutation = useBulkEnableConfirmacao();

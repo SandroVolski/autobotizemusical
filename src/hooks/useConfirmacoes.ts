@@ -43,7 +43,7 @@ export function useConfirmacaoConfigs() {
   });
 }
 
-export function useConfirmacaoMensagens() {
+export function useConfirmacaoMensagensRealtime() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -62,7 +62,9 @@ export function useConfirmacaoMensagens() {
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
+}
 
+export function useConfirmacaoMensagens() {
   return useQuery({
     queryKey: ["confirmacao-mensagens"],
     queryFn: async () => {
