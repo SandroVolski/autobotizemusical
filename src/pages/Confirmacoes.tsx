@@ -431,6 +431,22 @@ export default function Confirmacoes() {
                             <TableCell className="text-sm">{msg.enviado_em ? format(new Date(msg.enviado_em), "dd/MM HH:mm", { locale: ptBR }) : "—"}</TableCell>
                             <TableCell><Badge variant={sc.variant} className="gap-1"><StatusIcon className="w-3 h-3" />{sc.label}</Badge></TableCell>
                             <TableCell className="text-sm">{msg.resposta_aluno || "—"}</TableCell>
+                            <TableCell className="text-center">
+                              <Select
+                                value={msg.status}
+                                onValueChange={(value) => updateStatusMutation.mutate({ id: msg.id, status: value })}
+                              >
+                                <SelectTrigger className="w-[130px] h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="pendente">Pendente</SelectItem>
+                                  <SelectItem value="enviado">Enviado</SelectItem>
+                                  <SelectItem value="confirmado">Confirmado</SelectItem>
+                                  <SelectItem value="cancelado">Cancelado</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
                           </TableRow>
                         );
                       })
