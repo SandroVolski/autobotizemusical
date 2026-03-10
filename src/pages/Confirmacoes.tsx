@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useAlunos } from "@/hooks/useAlunos";
 import { useConfirmacaoConfigs, useConfirmacaoMensagens, useConfirmacaoMensagensRealtime, useToggleConfirmacao, useBulkEnableConfirmacao } from "@/hooks/useConfirmacoes";
