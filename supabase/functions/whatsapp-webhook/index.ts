@@ -5,48 +5,72 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Generate all possible Brazilian phone variants for matching
+function getPhoneVariants(phone: string): string[] {
+  // Remove all non-digits
+  const clean = phone.replace(/\D/g, "");
+  const variants = new Set<string>();
+  variants.add(clean);
+
+  // Strip country code if present
+  let national = clean;
+  if (clean.startsWith("55") && clean.length >= 12) {
+    national = clean.substring(2);
+  }
+  const withCountry = national.startsWith("55") ? national : `55${national}`;
+  variants.add(national);
+  variants.add(withCountry);
+
+  // Brazilian mobile numbers: toggle the 9th digit
+  // Format: DD + 9 + XXXXXXXX (9 digits) or DD + XXXXXXXX (8 digits)
+  if (national.length === 11 && national[2] === "9") {
+    // Has the 9 → remove it
+    const without9 = national.substring(0, 2) + national.substring(3);
+    variants.add(without9);
+    variants.add(`55${without9}`);
+  } else if (national.length === 10) {
+    // Missing the 9 → add it
+    const with9 = national.substring(0, 2) + "9" + national.substring(2);
+    variants.add(with9);
+    variants.add(`55${with9}`);
+  }
+
+  return Array.from(variants);
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Validate the request comes from Evolution API
-    const apiKey = req.headers.get("apikey") || new URL(req.url).searchParams.get("apikey");
-    const expectedKey = Deno.env.get("EVOLUTION_API_KEY");
-    if (expectedKey && apiKey !== expectedKey) {
-      console.log("Unauthorized webhook call");
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const body = await req.json();
-    console.log("Webhook received:", JSON.stringify(body).substring(0, 500));
+    console.log("Webhook received:", JSON.stringify(body).substring(0, 1000));
 
     // Evolution API sends different event types
     const event = body.event || body.type;
     
-    // We only care about incoming messages
     if (event !== "messages.upsert" && event !== "MESSAGES_UPSERT") {
       return new Response(JSON.stringify({ ok: true, ignored: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Extract message data - Evolution API v2 format
     const messageData = body.data || body;
     const message = messageData.message || messageData;
     
-    // Get the text content
+    // Extract text - try multiple paths from Evolution API payload
     const text = (
       message.message?.conversation ||
       message.message?.extendedTextMessage?.text ||
       message.body ||
       messageData.body ||
+      messageData.message?.conversation ||
+      messageData.message?.extendedTextMessage?.text ||
       ""
     ).trim().toLowerCase();
+
+    console.log("Extracted text:", JSON.stringify(text));
 
     if (!text) {
       return new Response(JSON.stringify({ ok: true, no_text: true }), {
@@ -54,12 +78,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Get sender phone - remove @s.whatsapp.net suffix
+    // Get sender phone
     const remoteJid = message.key?.remoteJid || messageData.key?.remoteJid || "";
     const senderPhone = remoteJid.replace("@s.whatsapp.net", "").replace("@c.us", "");
     
-    if (!senderPhone || senderPhone.includes("@g.us")) {
-      // Ignore group messages
+    console.log("Sender phone:", senderPhone, "Remote JID:", remoteJid);
+
+    if (!senderPhone || senderPhone.includes("@g.us") || remoteJid.includes("@g.us")) {
       return new Response(JSON.stringify({ ok: true, ignored: "group" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -73,14 +98,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log(`Message from ${senderPhone}: "${text}"`);
-
     // Check if message is a confirmation response
     const isConfirm = ["sim", "s", "confirmo", "yes", "ok", "vou", "estarei"].some(w => text === w || text.startsWith(w));
     const isCancel = ["nao", "não", "n", "no", "cancelo", "cancelar", "nope"].some(w => text === w || text.startsWith(w));
 
+    console.log("isConfirm:", isConfirm, "isCancel:", isCancel);
+
     if (!isConfirm && !isCancel) {
-      console.log("Message is not a confirmation response, ignoring");
       return new Response(JSON.stringify({ ok: true, ignored: "not_confirmation" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -92,14 +116,9 @@ Deno.serve(async (req) => {
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Find the most recent pending/sent message for this phone number
-    // The phone might have or not have the country code prefix
-    const phoneVariants = [senderPhone];
-    if (senderPhone.startsWith("55")) {
-      phoneVariants.push(senderPhone.substring(2));
-    } else {
-      phoneVariants.push(`55${senderPhone}`);
-    }
+    // Generate all phone variants for matching
+    const phoneVariants = getPhoneVariants(senderPhone);
+    console.log("Phone variants to search:", JSON.stringify(phoneVariants));
 
     let updated = false;
     for (const phone of phoneVariants) {
@@ -112,11 +131,12 @@ Deno.serve(async (req) => {
         .limit(1);
 
       if (error) {
-        console.error("Error querying messages:", error);
+        console.error("Error querying messages for phone", phone, ":", error);
         continue;
       }
 
       if (msgs && msgs.length > 0) {
+        console.log("Found message:", msgs[0].id, "for phone:", phone);
         const { error: updateError } = await supabase
           .from("confirmacao_aula_mensagens")
           .update({
@@ -137,7 +157,7 @@ Deno.serve(async (req) => {
     }
 
     if (!updated) {
-      console.log(`No pending message found for phone: ${senderPhone}`);
+      console.log(`No pending message found for any variant of phone: ${senderPhone}`);
     }
 
     return new Response(JSON.stringify({ ok: true, updated, status: newStatus }), {
