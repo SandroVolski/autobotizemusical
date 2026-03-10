@@ -77,7 +77,10 @@ function WhatsAppConnectionCard() {
         toast({ title: "WhatsApp já conectado!" });
       } else {
         setStatus("connecting");
-        setQrCode(data?.qrcode || null);
+        // Ensure qrCode is always a string
+        const qr = data?.qrcode;
+        const qrStr = typeof qr === 'string' ? qr : (qr?.base64 || qr?.qr_code_string || JSON.stringify(qr));
+        setQrCode(qrStr || null);
         setPairingCode(data?.pairingCode || null);
       }
     } catch (err: any) {
