@@ -99,6 +99,26 @@ export function useToggleConfirmacao() {
   });
 }
 
+export function useUpdateMensagemStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const { error } = await supabase
+        .from("confirmacao_aula_mensagens")
+        .update({ status, respondido_em: new Date().toISOString() })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["confirmacao-mensagens"] });
+      toast({ title: "Status atualizado!" });
+    },
+    onError: (error) => {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+    },
+  });
+}
+
 export function useBulkEnableConfirmacao() {
   const queryClient = useQueryClient();
   return useMutation({

@@ -1,14 +1,15 @@
-import { useState, useEffect, useCallback } from "react";
-import { MessageSquare, Send, CheckCircle2, XCircle, Clock, Users, Settings2, History, ToggleRight, AlertCircle, Phone, Wifi, WifiOff, QrCode, Loader2, Smartphone, Unplug } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { MessageSquare, Send, CheckCircle2, XCircle, Clock, Users, Settings2, History, ToggleRight, AlertCircle, Phone, Wifi, WifiOff, QrCode, Loader2, Smartphone, Unplug, Pencil } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useAlunos } from "@/hooks/useAlunos";
-import { useConfirmacaoConfigs, useConfirmacaoMensagens, useConfirmacaoMensagensRealtime, useToggleConfirmacao, useBulkEnableConfirmacao } from "@/hooks/useConfirmacoes";
+import { useConfirmacaoConfigs, useConfirmacaoMensagens, useConfirmacaoMensagensRealtime, useToggleConfirmacao, useBulkEnableConfirmacao, useUpdateMensagemStatus } from "@/hooks/useConfirmacoes";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -212,12 +213,32 @@ function WhatsAppConnectionCard() {
 
 export default function Confirmacoes() {
   const [search, setSearch] = useState("");
+  const [whatsappConnected, setWhatsappConnected] = useState(false);
   const { data: alunos, isLoading: loadingAlunos } = useAlunos();
   const { data: configs, isLoading: loadingConfigs } = useConfirmacaoConfigs();
   useConfirmacaoMensagensRealtime();
   const { data: mensagens, isLoading: loadingMensagens } = useConfirmacaoMensagens();
   const toggleMutation = useToggleConfirmacao();
   const bulkEnableMutation = useBulkEnableConfirmacao();
+  const updateStatusMutation = useUpdateMensagemStatus();
+
+  // Check WhatsApp connection to determine default tab
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const { data } = await supabase.functions.invoke("whatsapp-connection", {
+          body: { action: "status" },
+        });
+        const state = data?.state || data?.instance?.state;
+        setWhatsappConnected(state === "open");
+      } catch {
+        setWhatsappConnected(false);
+      }
+    };
+    checkConnection();
+  }, []);
+
+  const defaultTab = whatsappConnected ? "historico" : "conexao";
 
   const activeAlunos = alunos?.filter((a) => a.status === "ativo") || [];
   const configMap = new Map(configs?.map((c) => [c.aluno_id, c]) || []);
@@ -297,7 +318,7 @@ export default function Confirmacoes() {
         </Card>
       </div>
 
-      <Tabs defaultValue="conexao" className="space-y-4">
+      <Tabs defaultValue={defaultTab} key={defaultTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="conexao" className="gap-2">
             <Smartphone className="w-4 h-4" /> Conexão
@@ -390,13 +411,14 @@ export default function Confirmacoes() {
                       <TableHead>Enviado em</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Resposta</TableHead>
+                      <TableHead className="text-center">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {loadingMensagens ? (
-                      <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
                     ) : !mensagens || mensagens.length === 0 ? (
-                      <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhuma mensagem enviada ainda</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Nenhuma mensagem enviada ainda</TableCell></TableRow>
                     ) : (
                       mensagens.map((msg) => {
                         const sc = statusConfig[msg.status] || statusConfig.pendente;
@@ -409,6 +431,22 @@ export default function Confirmacoes() {
                             <TableCell className="text-sm">{msg.enviado_em ? format(new Date(msg.enviado_em), "dd/MM HH:mm", { locale: ptBR }) : "—"}</TableCell>
                             <TableCell><Badge variant={sc.variant} className="gap-1"><StatusIcon className="w-3 h-3" />{sc.label}</Badge></TableCell>
                             <TableCell className="text-sm">{msg.resposta_aluno || "—"}</TableCell>
+                            <TableCell className="text-center">
+                              <Select
+                                value={msg.status}
+                                onValueChange={(value) => updateStatusMutation.mutate({ id: msg.id, status: value })}
+                              >
+                                <SelectTrigger className="w-[130px] h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="pendente">Pendente</SelectItem>
+                                  <SelectItem value="enviado">Enviado</SelectItem>
+                                  <SelectItem value="confirmado">Confirmado</SelectItem>
+                                  <SelectItem value="cancelado">Cancelado</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
                           </TableRow>
                         );
                       })
