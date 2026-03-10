@@ -67,6 +67,8 @@ function WhatsAppConnectionCard() {
 
   const handleConnect = async () => {
     setLoading(true);
+    setQrCode(null);
+    setPairingCode(null);
     try {
       const { data, error } = await supabase.functions.invoke("whatsapp-connection", {
         body: { action: "connect" },
@@ -76,38 +78,18 @@ function WhatsAppConnectionCard() {
       if (data?.state === "open") {
         setStatus("connected");
         toast({ title: "WhatsApp já conectado!" });
+      } else if (data?.state === "error" || !data?.qrcode) {
+        toast({ 
+          title: "Não foi possível gerar o QR Code", 
+          description: data?.message || "A Evolution API pode estar indisponível. Verifique se a URL e API Key estão corretas. Tente novamente em alguns segundos.",
+          variant: "destructive" 
+        });
       } else {
         setStatus("connecting");
-        const qr = data?.qrcode;
-        let qrStr: string | null = null;
-        if (typeof qr === 'string' && qr.length > 10) {
-          qrStr = qr;
-        } else if (qr && typeof qr === 'object') {
-          qrStr = qr.base64 || qr.qr_code_string || qr.code || null;
-        }
+        const qr = data.qrcode;
+        const qrStr = typeof qr === 'string' && qr.length > 10 ? qr : null;
         setQrCode(qrStr);
         setPairingCode(data?.pairingCode || null);
-        
-        // If no QR returned, retry once after a short delay
-        if (!qrStr) {
-          setTimeout(async () => {
-            try {
-              const { data: retryData } = await supabase.functions.invoke("whatsapp-connection", {
-                body: { action: "connect" },
-              });
-              console.log("WhatsApp retry response:", JSON.stringify(retryData));
-              const retryQr = retryData?.qrcode;
-              let retryQrStr: string | null = null;
-              if (typeof retryQr === 'string' && retryQr.length > 10) {
-                retryQrStr = retryQr;
-              } else if (retryQr && typeof retryQr === 'object') {
-                retryQrStr = retryQr.base64 || retryQr.qr_code_string || retryQr.code || null;
-              }
-              if (retryQrStr) setQrCode(retryQrStr);
-              if (retryData?.pairingCode) setPairingCode(retryData.pairingCode);
-            } catch { /* ignore retry error */ }
-          }, 3000);
-        }
       }
     } catch (err: any) {
       toast({ title: "Erro ao conectar", description: err.message, variant: "destructive" });

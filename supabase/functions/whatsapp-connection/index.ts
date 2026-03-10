@@ -5,6 +5,16 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+async function extractQr(data: any): Promise<string | null> {
+  if (!data) return null;
+  if (typeof data === "string" && data.length > 50) return data;
+  if (typeof data.base64 === "string" && data.base64.length > 50) return data.base64;
+  if (typeof data.qrcode === "string" && data.qrcode.length > 50) return data.qrcode;
+  if (data.qrcode?.base64 && typeof data.qrcode.base64 === "string") return data.qrcode.base64;
+  if (typeof data.code === "string" && data.code.length > 50) return data.code;
+  return null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -22,7 +32,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Verify auth
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -48,38 +57,28 @@ Deno.serve(async (req) => {
       "Content-Type": "application/json",
       apikey: EVOLUTION_API_KEY,
     };
-
     const baseUrl = EVOLUTION_API_URL.replace(/\/$/, "");
 
-    // ACTION: check status
     if (action === "status") {
       try {
-        const res = await fetch(
-          `${baseUrl}/instance/connectionState/${EVOLUTION_INSTANCE}`,
-          { headers: apiHeaders }
-        );
+        const res = await fetch(`${baseUrl}/instance/connectionState/${EVOLUTION_INSTANCE}`, { headers: apiHeaders });
         const data = await res.json();
         console.log("Status response:", JSON.stringify(data));
         return new Response(JSON.stringify(data), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       } catch (e) {
-        console.error("Status error:", e);
         return new Response(JSON.stringify({ state: "close" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
     }
 
-    // ACTION: connect - delete instance if stuck, then create fresh with QR
     if (action === "connect") {
       // Step 1: Check current state
       let currentState = "unknown";
       try {
-        const checkRes = await fetch(
-          `${baseUrl}/instance/connectionState/${EVOLUTION_INSTANCE}`,
-          { headers: apiHeaders }
-        );
+        const checkRes = await fetch(`${baseUrl}/instance/connectionState/${EVOLUTION_INSTANCE}`, { headers: apiHeaders });
         const checkData = await checkRes.json();
         console.log("Check state:", JSON.stringify(checkData));
         currentState = checkData?.state || checkData?.instance?.state || "unknown";
@@ -94,30 +93,14 @@ Deno.serve(async (req) => {
         currentState = "not_found";
       }
 
-      // Step 2: If instance exists but not connected, delete it completely
-      if (currentState !== "not_found" && currentState !== "unknown") {
-        console.log("Deleting stuck instance...");
-        try {
-          // First try logout
-          await fetch(`${baseUrl}/instance/logout/${EVOLUTION_INSTANCE}`, {
-            method: "DELETE",
-            headers: apiHeaders,
-          });
-        } catch { /* ignore */ }
+      // Step 2: Delete existing instance completely
+      console.log("Cleaning up instance, current state:", currentState);
+      try { await fetch(`${baseUrl}/instance/logout/${EVOLUTION_INSTANCE}`, { method: "DELETE", headers: apiHeaders }); } catch {}
+      await new Promise((r) => setTimeout(r, 1000));
+      try { await fetch(`${baseUrl}/instance/delete/${EVOLUTION_INSTANCE}`, { method: "DELETE", headers: apiHeaders }); } catch {}
+      await new Promise((r) => setTimeout(r, 2000));
 
-        try {
-          // Then delete the instance
-          await fetch(`${baseUrl}/instance/delete/${EVOLUTION_INSTANCE}`, {
-            method: "DELETE",
-            headers: apiHeaders,
-          });
-        } catch { /* ignore */ }
-
-        // Wait for cleanup
-        await new Promise((r) => setTimeout(r, 2000));
-      }
-
-      // Step 3: Create a fresh instance with QR code enabled
+      // Step 3: Create fresh instance
       console.log("Creating fresh instance...");
       const createRes = await fetch(`${baseUrl}/instance/create`, {
         method: "POST",
@@ -131,74 +114,44 @@ Deno.serve(async (req) => {
       const createData = await createRes.json();
       console.log("Create response:", JSON.stringify(createData));
 
-      // Extract QR from creation response
-      let qrCode = null;
-      if (createData?.qrcode) {
-        if (typeof createData.qrcode === "string") {
-          qrCode = createData.qrcode;
-        } else if (createData.qrcode.base64) {
-          qrCode = createData.qrcode.base64;
-        }
-      }
-      // Some versions return it at top level
-      if (!qrCode && createData?.base64) {
-        qrCode = createData.base64;
-      }
+      let qrCode = await extractQr(createData);
 
-      // If QR not in create response, try connect endpoint
+      // Step 4: Poll the connect endpoint up to 5 times with increasing delays
       if (!qrCode) {
-        console.log("QR not in create response, trying connect endpoint...");
-        await new Promise((r) => setTimeout(r, 1000));
-        
-        const qrRes = await fetch(
-          `${baseUrl}/instance/connect/${EVOLUTION_INSTANCE}`,
-          { headers: apiHeaders }
-        );
-        const qrData = await qrRes.json();
-        console.log("Connect response:", JSON.stringify(qrData));
-        
-        if (qrData?.base64) {
-          qrCode = qrData.base64;
-        } else if (typeof qrData?.qrcode === "string" && qrData.qrcode.length > 50) {
-          qrCode = qrData.qrcode;
-        } else if (qrData?.qrcode?.base64) {
-          qrCode = qrData.qrcode.base64;
-        } else if (qrData?.code && qrData.code.length > 50) {
-          qrCode = qrData.code;
+        for (let attempt = 1; attempt <= 5; attempt++) {
+          const delay = attempt * 2000; // 2s, 4s, 6s, 8s, 10s
+          console.log(`QR poll attempt ${attempt}, waiting ${delay}ms...`);
+          await new Promise((r) => setTimeout(r, delay));
+
+          try {
+            const qrRes = await fetch(`${baseUrl}/instance/connect/${EVOLUTION_INSTANCE}`, { headers: apiHeaders });
+            const qrData = await qrRes.json();
+            console.log(`Connect attempt ${attempt} response:`, JSON.stringify(qrData));
+            
+            qrCode = await extractQr(qrData);
+            if (qrCode) {
+              console.log(`QR code found on attempt ${attempt}!`);
+              break;
+            }
+          } catch (e) {
+            console.error(`Connect attempt ${attempt} error:`, e);
+          }
         }
       }
 
       return new Response(
         JSON.stringify({
           qrcode: qrCode,
-          pairingCode: createData?.pairingCode || null,
-          state: "connecting",
-          debug: {
-            createKeys: Object.keys(createData || {}),
-            hasQr: !!qrCode,
-            createDataSample: JSON.stringify(createData).substring(0, 500),
-          },
+          state: qrCode ? "connecting" : "error",
+          message: qrCode ? null : "Não foi possível gerar o QR Code. A Evolution API pode estar indisponível. Tente novamente.",
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // ACTION: disconnect / logout
     if (action === "disconnect") {
-      try {
-        await fetch(`${baseUrl}/instance/logout/${EVOLUTION_INSTANCE}`, {
-          method: "DELETE",
-          headers: apiHeaders,
-        });
-      } catch { /* ignore */ }
-      
-      try {
-        await fetch(`${baseUrl}/instance/delete/${EVOLUTION_INSTANCE}`, {
-          method: "DELETE",
-          headers: apiHeaders,
-        });
-      } catch { /* ignore */ }
-
+      try { await fetch(`${baseUrl}/instance/logout/${EVOLUTION_INSTANCE}`, { method: "DELETE", headers: apiHeaders }); } catch {}
+      try { await fetch(`${baseUrl}/instance/delete/${EVOLUTION_INSTANCE}`, { method: "DELETE", headers: apiHeaders }); } catch {}
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
