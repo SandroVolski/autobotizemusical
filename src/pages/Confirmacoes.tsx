@@ -71,17 +71,43 @@ function WhatsAppConnectionCard() {
       const { data, error } = await supabase.functions.invoke("whatsapp-connection", {
         body: { action: "connect" },
       });
+      console.log("WhatsApp connect response:", JSON.stringify(data));
       if (error) throw error;
       if (data?.state === "open") {
         setStatus("connected");
         toast({ title: "WhatsApp já conectado!" });
       } else {
         setStatus("connecting");
-        // Ensure qrCode is always a string
         const qr = data?.qrcode;
-        const qrStr = typeof qr === 'string' ? qr : (qr?.base64 || qr?.qr_code_string || JSON.stringify(qr));
-        setQrCode(qrStr || null);
+        let qrStr: string | null = null;
+        if (typeof qr === 'string' && qr.length > 10) {
+          qrStr = qr;
+        } else if (qr && typeof qr === 'object') {
+          qrStr = qr.base64 || qr.qr_code_string || qr.code || null;
+        }
+        setQrCode(qrStr);
         setPairingCode(data?.pairingCode || null);
+        
+        // If no QR returned, retry once after a short delay
+        if (!qrStr) {
+          setTimeout(async () => {
+            try {
+              const { data: retryData } = await supabase.functions.invoke("whatsapp-connection", {
+                body: { action: "connect" },
+              });
+              console.log("WhatsApp retry response:", JSON.stringify(retryData));
+              const retryQr = retryData?.qrcode;
+              let retryQrStr: string | null = null;
+              if (typeof retryQr === 'string' && retryQr.length > 10) {
+                retryQrStr = retryQr;
+              } else if (retryQr && typeof retryQr === 'object') {
+                retryQrStr = retryQr.base64 || retryQr.qr_code_string || retryQr.code || null;
+              }
+              if (retryQrStr) setQrCode(retryQrStr);
+              if (retryData?.pairingCode) setPairingCode(retryData.pairingCode);
+            } catch { /* ignore retry error */ }
+          }, 3000);
+        }
       }
     } catch (err: any) {
       toast({ title: "Erro ao conectar", description: err.message, variant: "destructive" });
