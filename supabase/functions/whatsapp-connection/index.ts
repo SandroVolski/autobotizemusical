@@ -106,18 +106,41 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Instance exists but not connected - get QR code
+      // If stuck in "connecting" state, logout first to get a fresh QR
+      const currentState = checkData?.state || checkData?.instance?.state;
+      if (currentState === "connecting" || currentState === "close") {
+        // Logout/restart to force a new QR code
+        await fetch(
+          `${EVOLUTION_API_URL}/instance/logout/${EVOLUTION_INSTANCE}`,
+          { method: "DELETE", headers }
+        );
+        // Small delay to let it process
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+
+      // Get fresh QR code
       const qrRes = await fetch(
         `${EVOLUTION_API_URL}/instance/connect/${EVOLUTION_INSTANCE}`,
         { headers }
       );
       const qrData = await qrRes.json();
 
+      const qrcode = qrData?.base64 || qrData?.qrcode?.base64 || qrData?.qrcode || qrData?.code || null;
+
+      // If still null, try to extract from nested structures
+      let finalQr = null;
+      if (typeof qrcode === 'string' && qrcode.length > 50) {
+        finalQr = qrcode;
+      } else if (qrData?.qrcode && typeof qrData.qrcode === 'object') {
+        finalQr = qrData.qrcode.base64 || qrData.qrcode.code || null;
+      }
+
       return new Response(
         JSON.stringify({
-          qrcode: qrData?.base64 || qrData?.qrcode?.base64 || qrData?.code || null,
+          qrcode: finalQr,
           pairingCode: qrData?.pairingCode || null,
           state: "connecting",
+          debug: { keys: Object.keys(qrData || {}), hasQr: !!finalQr },
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
