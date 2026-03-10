@@ -10,9 +10,39 @@ export function UpcomingClasses() {
   const navigate = useNavigate();
   const { data: aulas, isLoading } = useAulas();
 
-  // Get today's classes
-  const today = new Date().getDay();
-  const todayClasses = aulas?.filter(a => a.dia_semana === today).slice(0, 4) || [];
+  // Get upcoming classes: today (remaining) + next days
+  const getUpcomingClasses = () => {
+    if (!aulas || aulas.length === 0) return [];
+    
+    const now = new Date();
+    const currentDay = now.getDay();
+    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    
+    const upcoming: (typeof aulas[number] & { _displayDay: number })[] = [];
+    
+    // Check today and next 7 days
+    for (let offset = 0; offset < 7 && upcoming.length < 6; offset++) {
+      const targetDay = (currentDay + offset) % 7;
+      const dayClasses = aulas
+        .filter(a => a.dia_semana === targetDay && a.status !== 'cancelada')
+        .filter(a => {
+          // If today, only show classes that haven't passed yet
+          if (offset === 0 && a.horario) {
+            return a.horario >= currentTime;
+          }
+          return true;
+        })
+        .sort((a, b) => (a.horario || '').localeCompare(b.horario || ''))
+        .map(a => ({ ...a, _displayDay: targetDay }));
+      
+      upcoming.push(...dayClasses);
+    }
+    
+    return upcoming.slice(0, 6);
+  };
+
+  const upcomingClasses = getUpcomingClasses();
+  const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
   if (isLoading) {
     return (
