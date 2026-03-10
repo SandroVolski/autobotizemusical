@@ -100,8 +100,13 @@ Deno.serve(async (req) => {
       try { await fetch(`${baseUrl}/instance/delete/${EVOLUTION_INSTANCE}`, { method: "DELETE", headers: apiHeaders }); } catch {}
       await new Promise((r) => setTimeout(r, 2000));
 
-      // Step 3: Create fresh instance
+      // Step 3: Create fresh instance with webhook
       console.log("Creating fresh instance...");
+      const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+      const SUPABASE_ANON_KEY_VAL = Deno.env.get("SUPABASE_ANON_KEY")!;
+      const webhookUrl = `${SUPABASE_URL}/functions/v1/whatsapp-webhook`;
+      console.log("Webhook URL:", webhookUrl);
+      
       const createRes = await fetch(`${baseUrl}/instance/create`, {
         method: "POST",
         headers: apiHeaders,
@@ -109,6 +114,16 @@ Deno.serve(async (req) => {
           instanceName: EVOLUTION_INSTANCE,
           integration: "WHATSAPP-BAILEYS",
           qrcode: true,
+          webhook: {
+            url: webhookUrl,
+            byEvents: false,
+            base64: false,
+            headers: {
+              "Content-Type": "application/json",
+              apikey: EVOLUTION_API_KEY,
+            },
+            events: ["MESSAGES_UPSERT"],
+          },
         }),
       });
       const createData = await createRes.json();
