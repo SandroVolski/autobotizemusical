@@ -504,6 +504,83 @@ export default function Alunos() {
                   />
                 </div>
               </div>
+              {/* Tipo de Aula */}
+              {!editingAluno && (
+                <div className="space-y-4 p-4 rounded-lg border border-primary/20 bg-primary/5">
+                  <Label className="text-sm font-semibold">Tipo de Aula</Label>
+                  <Select value={tipoAula} onValueChange={(v) => setTipoAula(v as any)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="individual">Individual</SelectItem>
+                      <SelectItem value="turma">Turma</SelectItem>
+                      <SelectItem value="avulso">Avulso</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {tipoAula !== "turma" && (
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                          <Label>Dia da Semana</Label>
+                          <Select value={String(aulaDiaSemana)} onValueChange={(v) => setAulaDiaSemana(Number(v))}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="0">Domingo</SelectItem>
+                              <SelectItem value="1">Segunda</SelectItem>
+                              <SelectItem value="2">Terça</SelectItem>
+                              <SelectItem value="3">Quarta</SelectItem>
+                              <SelectItem value="4">Quinta</SelectItem>
+                              <SelectItem value="5">Sexta</SelectItem>
+                              <SelectItem value="6">Sábado</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label>Horário</Label>
+                          <Input type="time" value={aulaHorario} onChange={(e) => setAulaHorario(e.target.value)} />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                          <Label>Duração</Label>
+                          <Select value={String(aulaDuracao)} onValueChange={(v) => setAulaDuracao(Number(v))}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="30">30 min</SelectItem>
+                              <SelectItem value="45">45 min</SelectItem>
+                              <SelectItem value="60">1 hora</SelectItem>
+                              <SelectItem value="90">1h30</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {tipoAula === "individual" && (
+                          <div className="grid gap-2">
+                            <Label>Recorrente?</Label>
+                            <Select value={aulaRecorrente ? "true" : "false"} onValueChange={(v) => setAulaRecorrente(v === "true")}>
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="true">Sim (Semanal)</SelectItem>
+                                <SelectItem value="false">Não</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {tipoAula === "individual" 
+                          ? "A aula será criada automaticamente na agenda." 
+                          : "Uma aula avulsa será criada na agenda."}
+                      </p>
+                    </>
+                  )}
+                  {tipoAula === "turma" && (
+                    <p className="text-xs text-muted-foreground">
+                      Adicione o aluno a uma turma pela tela de Turmas.
+                    </p>
+                  )}
+                </div>
+              )}
               <div className="grid gap-2">
                 <Label htmlFor="endereco">Endereço</Label>
                 <Input 
