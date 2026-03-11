@@ -57,6 +57,8 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useAlunos, useCreateAluno, useUpdateAluno, useDeleteAluno, type NovoAluno } from "@/hooks/useAlunos";
+import { usePaymentStatuses } from "@/hooks/usePaymentStatus";
+import { PaymentStatusDot } from "@/components/ui/payment-status-dot";
 import { useCreateAula } from "@/hooks/useAulas";
 import { useTurmas, useAddAlunoTurma } from "@/hooks/useTurmas";
 import { toast } from "@/hooks/use-toast";
