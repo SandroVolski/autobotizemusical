@@ -164,6 +164,30 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (action === "send") {
+      const { phone, message } = await req.json().catch(() => ({}));
+      if (!phone || !message) {
+        return new Response(JSON.stringify({ error: "phone e message são obrigatórios" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const sendRes = await fetch(`${baseUrl}/message/sendText/${EVOLUTION_INSTANCE}`, {
+        method: "POST",
+        headers: apiHeaders,
+        body: JSON.stringify({ number: phone, text: message }),
+      });
+      const sendData = await sendRes.json();
+      console.log("Send response:", JSON.stringify(sendData));
+      if (!sendRes.ok) {
+        return new Response(JSON.stringify({ error: sendData?.message || "Erro ao enviar mensagem" }), {
+          status: sendRes.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ success: true, data: sendData }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (action === "disconnect") {
       try { await fetch(`${baseUrl}/instance/logout/${EVOLUTION_INSTANCE}`, { method: "DELETE", headers: apiHeaders }); } catch {}
       try { await fetch(`${baseUrl}/instance/delete/${EVOLUTION_INSTANCE}`, { method: "DELETE", headers: apiHeaders }); } catch {}
