@@ -166,7 +166,6 @@ Deno.serve(async (req) => {
     }
 
     if (action === "send") {
-      const { phone, message } = await req.json().catch(() => ({}));
       if (!phone || !message) {
         return new Response(JSON.stringify({ error: "phone e message são obrigatórios" }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
