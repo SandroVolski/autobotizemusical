@@ -137,8 +137,7 @@ export function AppSidebar() {
           to={item.path}
           onClick={handleNavClick}
           className={cn(
-            "flex items-center rounded-lg transition-all duration-200 group relative text-sm h-10",
-            showLabel ? "gap-3 px-3" : "justify-center px-0",
+            "flex items-center rounded-lg transition-all duration-200 group relative text-sm h-10 px-3 gap-3",
             collapsed && !isMobile && "overflow-hidden",
             isActive
               ? "bg-primary/20 text-primary border border-primary/30"
@@ -161,8 +160,8 @@ export function AppSidebar() {
   };
 
   const renderGroups = (showLabel: boolean) => (
-    <nav className={cn("flex-1 py-2 transition-all duration-200", showLabel ? "px-2" : "px-2", collapsed && !isMobile ? "overflow-hidden" : "overflow-y-auto")}>
-      <div className={cn(showLabel ? "space-y-1" : "space-y-1")}>
+    <nav className={cn("flex-1 py-2 px-2 transition-all duration-200", collapsed && !isMobile ? "overflow-hidden" : "overflow-y-auto")}>
+      <div className="space-y-1">
         {menuGroups.map((group, groupIndex) => {
           const open = isGroupOpen(group);
           return (
@@ -180,10 +179,10 @@ export function AppSidebar() {
                   {group.label}
                 </p>
               ) : groupIndex > 0 ? (
-                <div className="my-2 mx-3 h-px bg-sidebar-border" />
+                <div className="my-1.5 mx-3 h-px bg-sidebar-border" />
               ) : null}
               {(open || !showLabel) && (
-                <ul className={cn(showLabel ? "space-y-0.5 mt-0.5" : "space-y-1")}>
+                <ul className="space-y-0.5 mt-0.5">
                   {group.items.map((item) => renderNavItem(item, showLabel))}
                 </ul>
               )}

@@ -1,32 +1,17 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import { motion } from "framer-motion";
-import { User, Menu, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { NotificationsDropdown } from "@/components/notifications/NotificationsDropdown";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { useAuth } from "@/contexts/AuthContext";
+
 interface AppLayoutProps {
   children: ReactNode;
 }
-
-const pageTitles: Record<string, string> = {
-  "/dashboard": "Dashboard",
-  "/alunos": "Gestão de Alunos",
-  "/instrumentos": "Instrumentos",
-  "/cursos": "Cursos",
-  "/financeiro": "Financeiro",
-  "/agenda": "Agenda",
-  "/relatorios": "Relatórios",
-  "/pedagogico": "Pedagógico",
-  "/hub-ia": "Hub IA",
-  "/professores": "Professores",
-  "/comunicacao": "Comunicação",
-  "/configuracoes": "Configurações",
-};
 
 export function AppLayout({ children }: AppLayoutProps) {
   const { collapsed, toggleCollapsed, isMobile, setMobileOpen } = useSidebar();
@@ -38,23 +23,6 @@ export function AppLayout({ children }: AppLayoutProps) {
   const sidebarWidth = isMobile ? 0 : (collapsed ? 72 : 280);
   const userName = user?.user_metadata?.nome || user?.email?.split("@")[0] || "Usuário";
   const initials = userName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
-
-  // Get page title from route
-  const basePath = "/" + location.pathname.split("/").filter(Boolean)[0];
-  const pageTitle = pageTitles[basePath] || "";
-
-  // Header background on scroll
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const mainEl = document.getElementById("main-scroll-area");
-    if (!mainEl) return;
-    const handleScroll = () => {
-      setScrolled(mainEl.scrollTop > 20);
-    };
-    mainEl.addEventListener("scroll", handleScroll, { passive: true });
-    return () => mainEl.removeEventListener("scroll", handleScroll);
-  }, []);
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -69,18 +37,10 @@ export function AppLayout({ children }: AppLayoutProps) {
           width: `calc(100% - ${sidebarWidth}px)`,
         }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="min-h-screen flex flex-col overflow-y-auto"
-        id="main-scroll-area"
+        className="min-h-screen flex flex-col"
       >
-        {/* Header - transparent at top, bg appears on scroll */}
-        <header
-          className={cn(
-            "sticky top-0 z-40 h-14 lg:h-16 transition-all duration-500 ease-in-out border-b",
-            scrolled
-              ? "bg-background/80 backdrop-blur-xl border-border/50 shadow-[0_1px_12px_hsl(0,0%,0%,0.2)]"
-              : "bg-transparent border-transparent"
-          )}
-        >
+        {/* Header - not sticky, transparent */}
+        <header className="z-40 h-14 lg:h-16 bg-transparent">
           <div className="flex items-center justify-between h-full px-4 lg:px-6">
             {/* Left: Mobile menu */}
             <div className="flex items-center gap-3">

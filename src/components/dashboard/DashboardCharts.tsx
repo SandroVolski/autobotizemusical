@@ -113,7 +113,7 @@ export function ClassesByDayChart() {
   const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
   const aulasPorDia = diasSemana.map((dia, index) => ({
     dia,
-    aulas: aulas?.filter(a => a.dia_semana === index && a.status === "ativo").length || 0,
+    aulas: aulas?.filter(a => a.dia_semana === index && a.status !== "cancelada").length || 0,
   }));
 
   return (
