@@ -111,17 +111,43 @@ export default function Financeiro() {
     return alunos?.find(a => a.id === alunoId)?.nome || "Aluno não encontrado";
   };
 
-  const handleCreatePagamento = () => {
+  const handleCreatePagamento = async () => {
     if (!newPagamento.valor || !newPagamento.data_vencimento) {
       toast({ title: "Erro", description: "Valor e data de vencimento são obrigatórios", variant: "destructive" });
       return;
     }
-    createPagamentoMutation.mutate({ ...newPagamento, aluno_id: newPagamento.aluno_id || undefined }, {
-      onSuccess: () => {
-        setIsDialogOpen(false);
-        setNewPagamento({ aluno_id: "", valor: 0, data_vencimento: "", status: "pendente", tipo: "mensalidade", metodo_pagamento: "", referencia: "" });
+    
+    const baseDate = new Date(newPagamento.data_vencimento + "T00:00:00");
+    const promises = [];
+    
+    for (let i = 0; i < numMeses; i++) {
+      const vencDate = new Date(baseDate);
+      vencDate.setMonth(vencDate.getMonth() + i);
+      const dateStr = vencDate.toISOString().split("T")[0];
+      const mesRef = vencDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+      const ref = numMeses > 1 ? `Mensalidade ${mesRef}` : (newPagamento.referencia || "");
+      
+      promises.push(
+        createPagamentoMutation.mutateAsync({
+          ...newPagamento,
+          aluno_id: newPagamento.aluno_id || undefined,
+          data_vencimento: dateStr,
+          referencia: ref,
+        })
+      );
+    }
+    
+    try {
+      await Promise.all(promises);
+      setIsDialogOpen(false);
+      setNewPagamento({ aluno_id: "", valor: 0, data_vencimento: "", status: "pendente", tipo: "mensalidade", metodo_pagamento: "", referencia: "" });
+      setNumMeses(1);
+      if (numMeses > 1) {
+        toast({ title: `${numMeses} pagamentos registrados!`, description: "Pagamentos adiantados criados com sucesso." });
       }
-    });
+    } catch {
+      // Error already handled by mutation
+    }
   };
 
   const handleExport = () => {
