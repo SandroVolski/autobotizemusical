@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import DOMPurify from "dompurify";
 import { motion } from "framer-motion";
 import {
   FileText, Plus, Loader2, Download, Printer, BookOpen, Guitar, Edit3
