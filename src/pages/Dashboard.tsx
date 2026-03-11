@@ -51,6 +51,11 @@ export default function Dashboard() {
   // Calculate retention rate (active / total)
   const taxaRetencao = totalAlunos > 0 ? Math.round((alunosAtivos / totalAlunos) * 100) : 0;
 
+  // Payment status summary
+  const alunosEmDia = Array.from(paymentStatuses.values()).filter(s => s.color === "green").length;
+  const alunosAlerta = Array.from(paymentStatuses.values()).filter(s => s.color === "yellow").length;
+  const alunosInadimplentes = Array.from(paymentStatuses.values()).filter(s => s.color === "red").length;
+
   // Get user name from metadata or email
   const userName = user?.user_metadata?.nome || user?.email?.split("@")[0] || "Usuário";
 
