@@ -611,7 +611,7 @@ export default function Alunos() {
                     <div className="grid gap-2">
                       <Label>Recorrente?</Label>
                       <Select value={aulaRecorrente ? "true" : "false"} onValueChange={(v) => setAulaRecorrente(v === "true")}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="true">Sim (Semanal)</SelectItem>
                           <SelectItem value="false">Não (Data específica)</SelectItem>
