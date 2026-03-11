@@ -189,8 +189,8 @@ export default function Alunos() {
       toast({ title: "Erro no upload da foto", description: error.message, variant: "destructive" });
       return null;
     }
-    const { data: urlData } = supabase.storage.from("alunos-fotos").getPublicUrl(filePath);
-    return urlData.publicUrl;
+    const { data: signedData } = await supabase.storage.from("alunos-fotos").createSignedUrl(filePath, 60 * 60 * 24 * 365);
+    return signedData?.signedUrl || null;
   };
 
   const { data: alunos, isLoading } = useAlunos();

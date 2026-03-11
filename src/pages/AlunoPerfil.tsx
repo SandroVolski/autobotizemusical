@@ -166,8 +166,12 @@ export default function AlunoPerfil() {
       setUploading(false);
       return;
     }
-    const { data: urlData } = supabase.storage.from("alunos-fotos").getPublicUrl(path);
-    updateAluno.mutate({ id, foto_url: urlData.publicUrl }, { onSettled: () => setUploading(false) });
+    const { data: signedData } = await supabase.storage.from("alunos-fotos").createSignedUrl(path, 60 * 60 * 24 * 365);
+    if (signedData?.signedUrl) {
+      updateAluno.mutate({ id, foto_url: signedData.signedUrl }, { onSettled: () => setUploading(false) });
+    } else {
+      setUploading(false);
+    }
   };
 
   const getInitials = (name: string) => name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
