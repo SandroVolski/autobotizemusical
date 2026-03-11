@@ -92,7 +92,9 @@ const App = () => (
               path="/financeiro"
               element={
                 <AuthenticatedPage>
-                  <Financeiro />
+                  <RoleRoute allowedRoles={['admin', 'secretaria']}>
+                    <Financeiro />
+                  </RoleRoute>
                 </AuthenticatedPage>
               }
             />
