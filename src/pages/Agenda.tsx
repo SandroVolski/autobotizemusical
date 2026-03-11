@@ -726,7 +726,7 @@ export default function Agenda() {
                   
                   const isToday = date.toDateString() === new Date().toDateString();
                   const isSelected = selectedMonthDay?.toDateString() === date.toDateString();
-                  const dayClasses = getClassesForDay(date.getDay());
+                  const dayClasses = getClassesForDate(date);
                   
                   return (
                     <div
