@@ -110,21 +110,24 @@ export default function Relatorios() {
       instrumentCount[instrumento] = (instrumentCount[instrumento] || 0) + 1;
     });
 
-    const colors = [
-      "hsl(var(--primary))",
-      "hsl(var(--secondary))",
-      "hsl(var(--warning))",
-      "hsl(var(--success))",
-      "hsl(var(--muted-foreground))",
+    const vibrantColors = [
+      "#8b5cf6", // violet
+      "#06b6d4", // cyan  
+      "#f59e0b", // amber
+      "#10b981", // emerald
+      "#f43f5e", // rose
+      "#3b82f6", // blue
+      "#ec4899", // pink
+      "#14b8a6", // teal
     ];
 
     return Object.entries(instrumentCount)
       .map(([name, value], index) => ({
         name,
         value,
-        color: colors[index % colors.length],
+        color: vibrantColors[index % vibrantColors.length],
       }))
-      .slice(0, 5);
+      .slice(0, 8);
   }, [cursos]);
 
   // Revenue data from pagamentos
