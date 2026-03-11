@@ -389,6 +389,45 @@ export default function Pedagogico() {
           <EvaluationsManager />
         </TabsContent>
       </Tabs>
+
+      {/* Detail Dialog */}
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="sm:max-w-[550px]">
+          <DialogHeader>
+            <DialogTitle>{selectedPlano?.titulo}</DialogTitle>
+          </DialogHeader>
+          {selectedPlano && (
+            <div className="space-y-4 py-2">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="capitalize">{selectedPlano.nivel}</Badge>
+                <Badge variant="secondary">{selectedPlano.instrumento}</Badge>
+                {selectedPlano.duracao && <Badge variant="outline">{selectedPlano.duracao}</Badge>}
+              </div>
+              {selectedPlano.objetivos && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-1">Objetivos</h4>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedPlano.objetivos}</p>
+                </div>
+              )}
+              {selectedPlano.conteudo && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-1">Conteúdo</h4>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedPlano.conteudo}</p>
+                </div>
+              )}
+              {selectedPlano.materiais && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-1">Materiais</h4>
+                  <p className="text-sm text-muted-foreground">{selectedPlano.materiais}</p>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Criado em {new Date(selectedPlano.created_at).toLocaleDateString("pt-BR")}
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }
