@@ -15,6 +15,7 @@ import {
 import { useAlunos } from "@/hooks/useAlunos";
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useAulas } from "@/hooks/useAulas";
+import { usePaymentStatuses } from "@/hooks/usePaymentStatus";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Dashboard() {
@@ -22,6 +23,7 @@ export default function Dashboard() {
   const { data: alunos, isLoading: loadingAlunos } = useAlunos();
   const { data: pagamentos, isLoading: loadingPagamentos } = usePagamentos();
   const { data: aulas, isLoading: loadingAulas } = useAulas();
+  const paymentStatuses = usePaymentStatuses(alunos);
 
   const isLoading = loadingAlunos || loadingPagamentos || loadingAulas;
 
@@ -48,6 +50,11 @@ export default function Dashboard() {
 
   // Calculate retention rate (active / total)
   const taxaRetencao = totalAlunos > 0 ? Math.round((alunosAtivos / totalAlunos) * 100) : 0;
+
+  // Payment status summary
+  const alunosEmDia = Array.from(paymentStatuses.values()).filter(s => s.color === "green").length;
+  const alunosAlerta = Array.from(paymentStatuses.values()).filter(s => s.color === "yellow").length;
+  const alunosInadimplentes = Array.from(paymentStatuses.values()).filter(s => s.color === "red").length;
 
   // Get user name from metadata or email
   const userName = user?.user_metadata?.nome || user?.email?.split("@")[0] || "Usuário";
@@ -100,9 +107,10 @@ export default function Dashboard() {
           delay={0.2}
         />
         <StatsCard
-          title="Taxa de Retenção"
-          value={`${taxaRetencao}%`}
+          title="Situação Pgto"
+          value={`${alunosEmDia}/${alunosAtivos}`}
           icon={TrendingUp}
+          description={`${alunosAlerta} em alerta, ${alunosInadimplentes} atrasados`}
           variant="primary"
           delay={0.3}
         />

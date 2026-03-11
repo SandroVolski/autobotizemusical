@@ -1,0 +1,1 @@
+ALTER TABLE public.alunos ALTER COLUMN dia_vencimento DROP DEFAULT;
