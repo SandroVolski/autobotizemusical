@@ -52,6 +52,22 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Require admin or secretaria role
+    const serviceClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+    const { data: roles } = await serviceClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .in("role", ["admin", "secretaria"]);
+    if (!roles || roles.length === 0) {
+      return new Response(JSON.stringify({ error: "Acesso negado" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json();
     const { action, phone, message } = body;
     const apiHeaders = {

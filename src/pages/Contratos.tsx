@@ -21,6 +21,20 @@ import { useCursos } from "@/hooks/useCursos";
 import { useInstrumentos } from "@/hooks/useInstrumentos";
 import { useConfiguracoes } from "@/hooks/useConfiguracoes";
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function esc(val: any, fallback = "—"): string {
+  if (val == null || val === "") return escapeHtml(fallback);
+  return escapeHtml(String(val));
+}
+
 function generateContractHTML(contrato: any, escola: any) {
   const aluno = contrato.alunos;
   const curso = contrato.cursos;
