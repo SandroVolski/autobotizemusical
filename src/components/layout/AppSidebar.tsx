@@ -146,7 +146,7 @@ export function AppSidebar() {
         >
           <item.icon className={cn("w-5 h-5 flex-shrink-0 transition-colors", isActive ? "text-primary" : "group-hover:text-secondary")} />
           {showLabel && (
-            <span className="flex-1 whitespace-nowrap font-medium">{item.label}</span>
+            <span className="flex-1 whitespace-nowrap text-[13px]">{item.label}</span>
           )}
           {showLabel && badgeValue !== undefined && badgeValue !== 0 && (
             <Badge variant="secondary" className="text-xs">{badgeValue}</Badge>
@@ -161,28 +161,45 @@ export function AppSidebar() {
 
   const renderGroups = (showLabel: boolean) => (
     <nav className={cn("flex-1 py-2 px-2 transition-all duration-200", collapsed && !isMobile ? "overflow-hidden" : "overflow-y-auto")}>
-      <div className="space-y-1">
-        {menuGroups.map((group, groupIndex) => {
+      <div className="space-y-0">
+        {menuGroups.map((group) => {
           const open = isGroupOpen(group);
           return (
             <div key={group.label}>
-              {showLabel && group.collapsible ? (
+              {/* Group header — same height in both modes for vertical alignment */}
+              {group.collapsible ? (
                 <button
-                  onClick={() => toggleGroup(group.label)}
-                  className="flex items-center justify-between w-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+                  onClick={() => showLabel ? toggleGroup(group.label) : undefined}
+                  className={cn(
+                    "flex items-center w-full h-8 transition-colors",
+                    showLabel
+                      ? "justify-between px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70 hover:text-muted-foreground"
+                      : "justify-center"
+                  )}
                 >
-                  {group.label}
-                  <ChevronDown className={cn("w-3 h-3 transition-transform", open && "rotate-180")} />
+                  {showLabel ? (
+                    <>
+                      {group.label}
+                      <ChevronDown className={cn("w-3 h-3 transition-transform", open && "rotate-180")} />
+                    </>
+                  ) : (
+                    <div className="w-5 h-px bg-sidebar-border" />
+                  )}
                 </button>
-              ) : showLabel ? (
-                <p className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
-                  {group.label}
-                </p>
-              ) : groupIndex > 0 ? (
-                <div className="my-1.5 mx-3 h-px bg-sidebar-border" />
-              ) : null}
+              ) : (
+                <div
+                  className={cn(
+                    "flex items-center h-8",
+                    showLabel
+                      ? "px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70"
+                      : "justify-center"
+                  )}
+                >
+                  {showLabel ? group.label : <div className="w-5 h-px bg-sidebar-border" />}
+                </div>
+              )}
               {(open || !showLabel) && (
-                <ul className="space-y-0.5 mt-0.5">
+                <ul className="space-y-0.5">
                   {group.items.map((item) => renderNavItem(item, showLabel))}
                 </ul>
               )}
@@ -194,7 +211,7 @@ export function AppSidebar() {
   );
 
   const renderLogo = (showLabel: boolean) => (
-    <div className={cn("border-b border-sidebar-border", showLabel ? "p-4" : "py-4 flex justify-center")}>
+    <div className="border-b border-sidebar-border p-4 h-[72px] flex items-center">
       <div className="flex items-center gap-3">
         {configuracoes?.logo_url ? (
           <img src={configuracoes.logo_url} alt="Logo" className="w-10 h-10 object-contain flex-shrink-0" />
@@ -273,13 +290,12 @@ export function AppSidebar() {
     >
       {renderLogo(!collapsed)}
       {renderGroups(!collapsed)}
-      <div className={cn("border-t border-sidebar-border", collapsed ? "py-3 flex justify-center" : "p-3")}>
+      <div className="border-t border-sidebar-border p-3">
         <Button
           variant="ghost"
           onClick={handleSignOut}
           className={cn(
-            "text-muted-foreground hover:text-destructive overflow-hidden",
-            collapsed ? "w-10 h-10 p-0 justify-center" : "w-full justify-start gap-3"
+            "w-full justify-start gap-3 text-muted-foreground hover:text-destructive overflow-hidden h-10 px-3"
           )}
         >
           <LogOut className="w-5 h-5 flex-shrink-0" />
