@@ -97,23 +97,23 @@ ${contrato.data_fim ? `<tr><td style="padding: 4px 0; color: #666;">Término:</t
   return `<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 750px; margin: 0 auto; padding: 50px; color: #1a1a2e;">
 <div style="text-align: center; border-bottom: 3px solid #0ea5e9; padding-bottom: 20px; margin-bottom: 30px;">
 <h1 style="font-size: 22px; font-weight: 700; color: #0ea5e9; margin: 0; letter-spacing: 2px;">TERMO DE EMPRÉSTIMO DE INSTRUMENTO</h1>
-<p style="font-size: 16px; color: #555; margin: 8px 0 0;">${escola?.nome || "Escola de Música"}</p>
-${escola?.cnpj ? `<p style="font-size: 12px; color: #888; margin: 4px 0 0;">CNPJ: ${escola.cnpj}</p>` : ""}
+<p style="font-size: 16px; color: #555; margin: 8px 0 0;">${esc(escola?.nome, "Escola de Música")}</p>
+${escola?.cnpj ? `<p style="font-size: 12px; color: #888; margin: 4px 0 0;">CNPJ: ${esc(escola.cnpj)}</p>` : ""}
 </div>
 <div style="background: #f0f9ff; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
 <h3 style="font-size: 13px; color: #0ea5e9; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 12px;">Responsável</h3>
 <table style="width: 100%; font-size: 14px;">
-<tr><td style="padding: 4px 0; color: #666; width: 140px;">Nome:</td><td style="font-weight: 600;">${aluno?.responsavel_nome || aluno?.nome || "—"}</td></tr>
-<tr><td style="padding: 4px 0; color: #666;">Aluno(a):</td><td>${aluno?.nome || "—"}</td></tr>
-<tr><td style="padding: 4px 0; color: #666;">Telefone:</td><td>${aluno?.telefone || "—"}</td></tr>
-<tr><td style="padding: 4px 0; color: #666;">Endereço:</td><td>${aluno?.endereco || "—"}</td></tr>
+<tr><td style="padding: 4px 0; color: #666; width: 140px;">Nome:</td><td style="font-weight: 600;">${esc(aluno?.responsavel_nome || aluno?.nome)}</td></tr>
+<tr><td style="padding: 4px 0; color: #666;">Aluno(a):</td><td>${esc(aluno?.nome)}</td></tr>
+<tr><td style="padding: 4px 0; color: #666;">Telefone:</td><td>${esc(aluno?.telefone)}</td></tr>
+<tr><td style="padding: 4px 0; color: #666;">Endereço:</td><td>${esc(aluno?.endereco)}</td></tr>
 </table></div>
 <div style="background: #fff7ed; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
 <h3 style="font-size: 13px; color: #ea580c; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 12px;">Instrumento</h3>
 <table style="width: 100%; font-size: 14px;">
-<tr><td style="padding: 4px 0; color: #666; width: 140px;">Instrumento:</td><td style="font-weight: 600;">${instrumento?.nome || "—"}</td></tr>
-<tr><td style="padding: 4px 0; color: #666;">Marca/Modelo:</td><td>${instrumento?.marca || "—"} ${instrumento?.modelo || ""}</td></tr>
-<tr><td style="padding: 4px 0; color: #666;">Nº Série:</td><td>${instrumento?.numero_serie || "—"}</td></tr>
+<tr><td style="padding: 4px 0; color: #666; width: 140px;">Instrumento:</td><td style="font-weight: 600;">${esc(instrumento?.nome)}</td></tr>
+<tr><td style="padding: 4px 0; color: #666;">Marca/Modelo:</td><td>${esc(instrumento?.marca)} ${esc(instrumento?.modelo, "")}</td></tr>
+<tr><td style="padding: 4px 0; color: #666;">Nº Série:</td><td>${esc(instrumento?.numero_serie)}</td></tr>
 ${instrumento?.valor_patrimonio ? `<tr><td style="padding: 4px 0; color: #666;">Valor:</td><td style="font-weight: 700; color: #ea580c;">R$ ${Number(instrumento.valor_patrimonio).toFixed(2)}</td></tr>` : ""}
 </table></div>
 <div style="margin-bottom: 30px;">
@@ -127,17 +127,17 @@ ${instrumento?.valor_patrimonio ? `<tr><td style="padding: 4px 0; color: #666;">
 <p><strong>6.</strong> Em caso de desistência, devolver imediatamente.</p>
 </div></div>
 <div style="margin-top: 60px;">
-<p style="text-align: center; color: #888; font-size: 12px; margin-bottom: 40px;">${escola?.cidade || "[Cidade]"}, ${today}</p>
+<p style="text-align: center; color: #888; font-size: 12px; margin-bottom: 40px;">${esc(escola?.cidade, "[Cidade]")}, ${today}</p>
 <div style="display: flex; justify-content: space-between; gap: 40px;">
 <div style="flex: 1; text-align: center;"><div style="border-top: 2px solid #1a1a2e; padding-top: 8px; margin-top: 50px;">
-<p style="font-size: 13px; font-weight: 600; margin: 0;">${aluno?.responsavel_nome || aluno?.nome || "RESPONSÁVEL"}</p>
+<p style="font-size: 13px; font-weight: 600; margin: 0;">${esc(aluno?.responsavel_nome || aluno?.nome, "RESPONSÁVEL")}</p>
 <p style="font-size: 11px; color: #888; margin: 2px 0 0;">Responsável</p></div></div>
 <div style="flex: 1; text-align: center;"><div style="border-top: 2px solid #1a1a2e; padding-top: 8px; margin-top: 50px;">
-<p style="font-size: 13px; font-weight: 600; margin: 0;">${escola?.nome || "ESCOLA"}</p>
+<p style="font-size: 13px; font-weight: 600; margin: 0;">${esc(escola?.nome, "ESCOLA")}</p>
 <p style="font-size: 11px; color: #888; margin: 2px 0 0;">Cedente</p></div></div>
 </div></div>
 <div style="text-align: center; margin-top: 40px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
-<p style="font-size: 10px; color: #aaa;">Documento gerado eletronicamente em ${today} — ${escola?.nome || "Escola de Música"} © ${year}</p>
+<p style="font-size: 10px; color: #aaa;">Documento gerado eletronicamente em ${today} — ${esc(escola?.nome, "Escola de Música")} © ${year}</p>
 </div></div>`;
 }
 
