@@ -52,7 +52,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { action } = await req.json();
+    const body = await req.json();
+    const { action, phone, message } = body;
     const apiHeaders = {
       "Content-Type": "application/json",
       apikey: EVOLUTION_API_KEY,
@@ -162,6 +163,29 @@ Deno.serve(async (req) => {
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    if (action === "send") {
+      if (!phone || !message) {
+        return new Response(JSON.stringify({ error: "phone e message são obrigatórios" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const sendRes = await fetch(`${baseUrl}/message/sendText/${EVOLUTION_INSTANCE}`, {
+        method: "POST",
+        headers: apiHeaders,
+        body: JSON.stringify({ number: phone, text: message }),
+      });
+      const sendData = await sendRes.json();
+      console.log("Send response:", JSON.stringify(sendData));
+      if (!sendRes.ok) {
+        return new Response(JSON.stringify({ error: sendData?.message || "Erro ao enviar mensagem" }), {
+          status: sendRes.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ success: true, data: sendData }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     if (action === "disconnect") {
