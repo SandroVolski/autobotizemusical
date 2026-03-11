@@ -181,16 +181,16 @@ export default function Agenda() {
     },
   ], [professores, cursos]);
 
-  // Apply filters
+  // Apply filters - combine aulas and turma virtual entries
   const filteredAulas = useMemo(() => {
-    if (!aulas) return [];
-    return aulas.filter(aula => {
+    const combined = [...(aulas || []), ...turmaAulas];
+    return combined.filter(aula => {
       if (filterValues.professor && aula.professor_id !== filterValues.professor) return false;
       if (filterValues.curso && aula.curso_id !== filterValues.curso) return false;
       if (filterValues.tipo && aula.tipo !== filterValues.tipo) return false;
       return true;
     });
-  }, [aulas, filterValues]);
+  }, [aulas, turmaAulas, filterValues]);
 
   const getWeekDates = () => {
     const dates = [];
