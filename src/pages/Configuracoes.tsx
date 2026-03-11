@@ -439,6 +439,11 @@ export default function Configuracoes() {
           </Card>
         </TabsContent>
 
+        {/* Conexão WhatsApp Tab */}
+        <TabsContent value="conexao" className="space-y-4">
+          <WhatsAppSettingsCard />
+        </TabsContent>
+
         {/* Segurança Tab */}
         <TabsContent value="seguranca" className="space-y-4">
           <Card className="glass-card">
