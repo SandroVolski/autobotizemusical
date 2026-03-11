@@ -2,12 +2,13 @@ import { motion } from "framer-motion";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DollarSign, ChevronRight, AlertCircle, CheckCircle, Clock } from "lucide-react";
+import { DollarSign, ChevronRight, AlertCircle, CheckCircle, Clock, UserRound } from "lucide-react";
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useAlunos } from "@/hooks/useAlunos";
 import { usePaymentStatuses } from "@/hooks/usePaymentStatus";
 import { PaymentStatusDot } from "@/components/ui/payment-status-dot";
 import { useNavigate } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function WeeklyPayments() {
   const navigate = useNavigate();
@@ -40,6 +41,34 @@ export function WeeklyPayments() {
   const totalPago = pagamentosSemana.filter(p => p.status === "pago").reduce((acc, p) => acc + Number(p.valor), 0);
   const totalPendente = totalSemana - totalPago;
 
+  // Students who need to pay this week (based on dia_vencimento)
+  const alunosDevedoresSemana = alunos?.filter(a => {
+    if (a.status !== "ativo" || !a.dia_vencimento) return false;
+    // Check if dia_vencimento falls within this week
+    for (let d = new Date(startOfWeek); d <= endOfWeek; d.setDate(d.getDate() + 1)) {
+      if (d.getDate() === a.dia_vencimento) {
+        // Check if there's already a payment for this month that is "pago"
+        const hasPaid = pagamentos?.some(p => {
+          if (p.aluno_id !== a.id || p.status === "pago" || !p.data_vencimento) return false;
+          // Actually check if NOT paid
+          return false;
+        });
+        // Check if payment for current month exists and is paid
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+        const isPaidThisMonth = pagamentos?.some(p =>
+          p.aluno_id === a.id &&
+          p.status === "pago" &&
+          p.data_vencimento &&
+          new Date(p.data_vencimento + "T00:00:00").getMonth() === currentMonth &&
+          new Date(p.data_vencimento + "T00:00:00").getFullYear() === currentYear
+        );
+        if (!isPaidThisMonth) return true;
+      }
+    }
+    return false;
+  }) || [];
+
   const getDayName = (dateStr: string) => {
     const date = new Date(dateStr + "T00:00:00");
     const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -59,6 +88,17 @@ export function WeeklyPayments() {
 
   const formatWeekRange = () => {
     return `${startOfWeek.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })} - ${endOfWeek.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}`;
+  };
+
+  const getDayOfWeekName = (diaVenc: number) => {
+    // Find which day of this week matches dia_vencimento
+    for (let d = new Date(startOfWeek); d <= endOfWeek; d.setDate(d.getDate() + 1)) {
+      if (d.getDate() === diaVenc) {
+        const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+        return days[d.getDay()];
+      }
+    }
+    return "";
   };
 
   return (
@@ -104,98 +144,150 @@ export function WeeklyPayments() {
             </div>
           </div>
 
-          {/* Payment list */}
-          <div className="space-y-2 max-h-[300px] overflow-y-auto">
-            {pagamentosSemana.length === 0 ? (
-              <div className="text-center py-6 text-muted-foreground">
-                <DollarSign className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                <p className="text-sm">Nenhum pagamento esta semana</p>
+          <Tabs defaultValue="pagamentos" className="w-full">
+            <TabsList className="w-full mb-3 bg-muted/50">
+              <TabsTrigger value="pagamentos" className="flex-1 text-xs">
+                <DollarSign className="w-3.5 h-3.5 mr-1" />Pagamentos ({pagamentosSemana.length})
+              </TabsTrigger>
+              <TabsTrigger value="cobrar" className="flex-1 text-xs">
+                <UserRound className="w-3.5 h-3.5 mr-1" />A Cobrar ({alunosDevedoresSemana.length})
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="pagamentos" className="mt-0">
+              <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                {pagamentosSemana.length === 0 ? (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <DollarSign className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                    <p className="text-sm">Nenhum pagamento esta semana</p>
+                  </div>
+                ) : (
+                  pagamentosSemana.map((pagamento, index) => (
+                    <motion.div
+                      key={pagamento.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.2, delay: 0.03 * index }}
+                      className={`flex items-center gap-3 p-3 rounded-lg transition-colors cursor-pointer ${
+                        isToday(pagamento.data_vencimento!)
+                          ? "bg-primary/10 border border-primary/20"
+                          : pagamento.status === "pago"
+                          ? "bg-success/5"
+                          : isPast(pagamento.data_vencimento!) && pagamento.status !== "pago"
+                          ? "bg-destructive/10 border border-destructive/20"
+                          : "bg-muted/30 hover:bg-muted/50"
+                      }`}
+                      onClick={() => navigate("/financeiro")}
+                    >
+                      <div className={`w-12 h-12 rounded-lg flex flex-col items-center justify-center flex-shrink-0 ${
+                        isToday(pagamento.data_vencimento!) 
+                          ? "bg-primary/20" 
+                          : pagamento.status === "pago"
+                          ? "bg-success/20"
+                          : isPast(pagamento.data_vencimento!) 
+                          ? "bg-destructive/20"
+                          : "bg-muted"
+                      }`}>
+                        <span className={`text-[10px] font-medium ${
+                          isToday(pagamento.data_vencimento!) ? "text-primary" : "text-muted-foreground"
+                        }`}>
+                          {getDayName(pagamento.data_vencimento!)}
+                        </span>
+                        <span className={`text-sm font-bold ${
+                          isToday(pagamento.data_vencimento!) ? "text-primary" : ""
+                        }`}>
+                          {new Date(pagamento.data_vencimento! + "T00:00:00").getDate()}
+                        </span>
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="font-medium text-sm truncate">
+                            {pagamento.alunos?.nome || "Aluno não identificado"}
+                          </p>
+                          {pagamento.aluno_id && (() => {
+                            const status = paymentStatuses.get(pagamento.aluno_id);
+                            return status ? <PaymentStatusDot color={status.color} label={status.label} size="sm" /> : null;
+                          })()}
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-xs text-muted-foreground">
+                            {pagamento.tipo || "Mensalidade"} • {pagamento.referencia || ""}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="text-right flex-shrink-0">
+                        <p className="font-bold text-sm">
+                          {Number(pagamento.valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                        </p>
+                        {pagamento.status === "pago" ? (
+                          <Badge variant="success" className="text-[10px] mt-0.5">
+                            <CheckCircle className="w-3 h-3 mr-0.5" /> Pago
+                          </Badge>
+                        ) : isPast(pagamento.data_vencimento!) ? (
+                          <Badge variant="destructive" className="text-[10px] mt-0.5">
+                            <AlertCircle className="w-3 h-3 mr-0.5" /> Atrasado
+                          </Badge>
+                        ) : isToday(pagamento.data_vencimento!) ? (
+                          <Badge variant="warning" className="text-[10px] mt-0.5">
+                            <Clock className="w-3 h-3 mr-0.5" /> Hoje
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] mt-0.5">
+                            <Clock className="w-3 h-3 mr-0.5" /> Pendente
+                          </Badge>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))
+                )}
               </div>
-            ) : (
-              pagamentosSemana.map((pagamento, index) => (
-                <motion.div
-                  key={pagamento.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.2, delay: 0.03 * index }}
-                  className={`flex items-center gap-3 p-3 rounded-lg transition-colors cursor-pointer ${
-                    isToday(pagamento.data_vencimento!)
-                      ? "bg-primary/10 border border-primary/20"
-                      : pagamento.status === "pago"
-                      ? "bg-success/5"
-                      : isPast(pagamento.data_vencimento!) && pagamento.status !== "pago"
-                      ? "bg-destructive/10 border border-destructive/20"
-                      : "bg-muted/30 hover:bg-muted/50"
-                  }`}
-                  onClick={() => navigate("/financeiro")}
-                >
-                  {/* Day indicator */}
-                  <div className={`w-12 h-12 rounded-lg flex flex-col items-center justify-center flex-shrink-0 ${
-                    isToday(pagamento.data_vencimento!) 
-                      ? "bg-primary/20" 
-                      : pagamento.status === "pago"
-                      ? "bg-success/20"
-                      : isPast(pagamento.data_vencimento!) 
-                      ? "bg-destructive/20"
-                      : "bg-muted"
-                  }`}>
-                    <span className={`text-[10px] font-medium ${
-                      isToday(pagamento.data_vencimento!) ? "text-primary" : "text-muted-foreground"
-                    }`}>
-                      {getDayName(pagamento.data_vencimento!)}
-                    </span>
-                    <span className={`text-sm font-bold ${
-                      isToday(pagamento.data_vencimento!) ? "text-primary" : ""
-                    }`}>
-                      {new Date(pagamento.data_vencimento! + "T00:00:00").getDate()}
-                    </span>
-                  </div>
+            </TabsContent>
 
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <p className="font-medium text-sm truncate">
-                        {pagamento.alunos?.nome || "Aluno não identificado"}
-                      </p>
-                      {pagamento.aluno_id && (() => {
-                        const status = paymentStatuses.get(pagamento.aluno_id);
-                        return status ? <PaymentStatusDot color={status.color} label={status.label} size="sm" /> : null;
-                      })()}
-                    </div>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs text-muted-foreground">
-                        {pagamento.tipo || "Mensalidade"} • {pagamento.referencia || ""}
-                      </span>
-                    </div>
+            <TabsContent value="cobrar" className="mt-0">
+              <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                {alunosDevedoresSemana.length === 0 ? (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <CheckCircle className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                    <p className="text-sm">Todos os alunos estão em dia esta semana! 🎉</p>
                   </div>
-
-                  {/* Value and Status */}
-                  <div className="text-right flex-shrink-0">
-                    <p className="font-bold text-sm">
-                      {Number(pagamento.valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                    </p>
-                    {pagamento.status === "pago" ? (
-                      <Badge variant="success" className="text-[10px] mt-0.5">
-                        <CheckCircle className="w-3 h-3 mr-0.5" /> Pago
-                      </Badge>
-                    ) : isPast(pagamento.data_vencimento!) ? (
-                      <Badge variant="destructive" className="text-[10px] mt-0.5">
-                        <AlertCircle className="w-3 h-3 mr-0.5" /> Atrasado
-                      </Badge>
-                    ) : isToday(pagamento.data_vencimento!) ? (
-                      <Badge variant="warning" className="text-[10px] mt-0.5">
-                        <Clock className="w-3 h-3 mr-0.5" /> Hoje
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-[10px] mt-0.5">
-                        <Clock className="w-3 h-3 mr-0.5" /> Pendente
-                      </Badge>
-                    )}
-                  </div>
-                </motion.div>
-              ))
-            )}
-          </div>
+                ) : (
+                  alunosDevedoresSemana.map((aluno, index) => {
+                    const status = paymentStatuses.get(aluno.id);
+                    return (
+                      <motion.div
+                        key={aluno.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.2, delay: 0.03 * index }}
+                        className="flex items-center gap-3 p-3 rounded-lg bg-warning/5 border border-warning/15 hover:bg-warning/10 transition-colors cursor-pointer"
+                        onClick={() => navigate(`/alunos/${aluno.id}`)}
+                      >
+                        <div className="w-10 h-10 rounded-full bg-warning/20 flex items-center justify-center flex-shrink-0">
+                          <UserRound className="w-5 h-5 text-warning" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-medium text-sm truncate">{aluno.nome}</p>
+                            {status && <PaymentStatusDot color={status.color} label={status.label} size="sm" />}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Vencimento dia {aluno.dia_vencimento} • {getDayOfWeekName(aluno.dia_vencimento!)}
+                          </p>
+                        </div>
+                        <div className="flex-shrink-0">
+                          <Badge variant="warning" className="text-[10px]">
+                            <AlertCircle className="w-3 h-3 mr-0.5" /> Cobrar
+                          </Badge>
+                        </div>
+                      </motion.div>
+                    );
+                  })
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </motion.div>

@@ -310,6 +310,21 @@ export default function Financeiro() {
                     )}
                   </div>
                 </div>
+                {numMeses > 1 && selectedStudentCourseValue !== null && newPagamento.valor > 0 && (() => {
+                  const expectedTotal = selectedStudentCourseValue * numMeses;
+                  const diff = expectedTotal - newPagamento.valor;
+                  if (diff > 0.01) {
+                    return (
+                      <div className="flex items-start gap-2 text-xs bg-warning/10 border border-warning/30 text-warning rounded-lg px-3 py-2.5">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <span>
+                          O valor esperado para {numMeses} meses seria <strong>{expectedTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong> ({selectedStudentCourseValue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} × {numMeses}), mas o valor informado é <strong>{newPagamento.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong>. Diferença: <strong>{diff.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong>.
+                        </span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
                 <Button className="w-full mt-2" onClick={handleCreatePagamento} disabled={createPagamentoMutation.isPending}>
                   {createPagamentoMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                   Registrar Pagamento
