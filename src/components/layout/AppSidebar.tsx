@@ -146,7 +146,7 @@ export function AppSidebar() {
         >
           <item.icon className={cn("w-5 h-5 flex-shrink-0 transition-colors", isActive ? "text-primary" : "group-hover:text-secondary")} />
           {showLabel && (
-            <span className="flex-1 whitespace-nowrap font-medium">{item.label}</span>
+            <span className="flex-1 whitespace-nowrap text-[13px]">{item.label}</span>
           )}
           {showLabel && badgeValue !== undefined && badgeValue !== 0 && (
             <Badge variant="secondary" className="text-xs">{badgeValue}</Badge>
