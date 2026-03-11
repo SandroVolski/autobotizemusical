@@ -215,6 +215,18 @@ export default function AlunoPerfil() {
                     {getInitials(aluno.nome)}
                   </div>
                 )}
+                {/* Payment status dot */}
+                {(() => {
+                  const payStatus = getStudentPaymentStatus(aluno, pagamentos || []);
+                  return (
+                    <PaymentStatusDot
+                      color={payStatus.color}
+                      label={payStatus.label}
+                      size="md"
+                      className="absolute bottom-1 right-1 border-2 border-background"
+                    />
+                  );
+                })()}
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}

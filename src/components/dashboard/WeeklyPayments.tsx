@@ -12,6 +12,8 @@ import { useNavigate } from "react-router-dom";
 export function WeeklyPayments() {
   const navigate = useNavigate();
   const { data: pagamentos } = usePagamentos();
+  const { data: alunos } = useAlunos();
+  const paymentStatuses = usePaymentStatuses(alunos);
 
   // Calculate week range (Sunday to Saturday)
   const today = new Date();
