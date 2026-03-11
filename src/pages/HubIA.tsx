@@ -162,11 +162,12 @@ export default function HubIA() {
   }) || [];
 
   const callAI = async (prompt: string, type: string): Promise<string> => {
+    const { data: { session } } = await supabase.auth.getSession();
     const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-ai`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        "Authorization": `Bearer ${session?.access_token}`,
       },
       body: JSON.stringify({
         messages: [{ role: "user", content: prompt }],
@@ -322,11 +323,12 @@ export default function HubIA() {
     setIsLoading(true);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-ai`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          "Authorization": `Bearer ${session?.access_token}`,
         },
         body: JSON.stringify({
           messages: [...chatHistory, userMessage].map(m => ({ role: m.role, content: m.content })),
