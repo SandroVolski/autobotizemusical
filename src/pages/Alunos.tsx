@@ -622,8 +622,8 @@ export default function Alunos() {
                       {aulaRecorrente ? (
                         <div className="grid gap-2">
                           <Label>Dia da Semana</Label>
-                          <Select value={String(aulaDiaSemana)} onValueChange={(v) => setAulaDiaSemana(Number(v))}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
+                          <Select value={aulaDiaSemana !== "" ? String(aulaDiaSemana) : ""} onValueChange={(v) => setAulaDiaSemana(Number(v))}>
+                            <SelectTrigger><SelectValue placeholder="Dia" /></SelectTrigger>
                             <SelectContent>
                               <SelectItem value="0">Domingo</SelectItem>
                               <SelectItem value="1">Segunda</SelectItem>
