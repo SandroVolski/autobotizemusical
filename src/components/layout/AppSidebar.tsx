@@ -107,7 +107,11 @@ export function AppSidebar() {
   };
 
   // Track which groups are open — auto-open group containing active route
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    menuGroups.forEach(g => { if (g.collapsible) initial[g.label] = true; });
+    return initial;
+  });
 
   const isGroupOpen = (group: MenuGroup) => {
     if (!group.collapsible) return true;
