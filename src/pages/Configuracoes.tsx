@@ -185,7 +185,7 @@ function WhatsAppSettingsCard() {
   );
 }
 
-  const { user } = useAuth();
+  export default function Configuracoes() {
   const { data: configuracoes, isLoading } = useConfiguracoes();
   const updateConfiguracoes = useUpdateConfiguracoes();
 
