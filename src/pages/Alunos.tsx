@@ -328,7 +328,6 @@ export default function Alunos() {
       nivel: "iniciante",
       objetivo: "",
       observacoes: "",
-      dia_vencimento: 10,
     });
     setPhotoFile(null);
     setPhotoPreview(null);
