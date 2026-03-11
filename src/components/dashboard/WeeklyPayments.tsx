@@ -4,6 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DollarSign, ChevronRight, AlertCircle, CheckCircle, Clock } from "lucide-react";
 import { usePagamentos } from "@/hooks/usePagamentos";
+import { useAlunos } from "@/hooks/useAlunos";
+import { usePaymentStatuses } from "@/hooks/usePaymentStatus";
+import { PaymentStatusDot } from "@/components/ui/payment-status-dot";
 import { useNavigate } from "react-router-dom";
 
 export function WeeklyPayments() {
