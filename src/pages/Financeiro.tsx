@@ -454,7 +454,7 @@ export default function Financeiro() {
                           <div>
                             <p className="font-medium">{getAlunoName(payment.aluno_id)}</p>
                             <p className="text-sm text-muted-foreground">
-                              {new Date(payment.data_vencimento).toLocaleDateString("pt-BR")} • {payment.metodo_pagamento || payment.tipo}
+                              {payment.data_vencimento ? new Date(payment.data_vencimento + "T00:00:00").toLocaleDateString("pt-BR") : "—"} • {payment.metodo_pagamento || payment.tipo}
                             </p>
                           </div>
                         </div>
