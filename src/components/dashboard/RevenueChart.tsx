@@ -7,9 +7,10 @@ import { Loader2 } from "lucide-react";
 export function RevenueChart() {
   const { data: pagamentos, isLoading } = usePagamentos();
 
-  // Calculate monthly data from real payments
   const monthlyData = pagamentos?.reduce((acc, pagamento) => {
-    const date = new Date(pagamento.data_vencimento);
+    if (!pagamento.data_vencimento) return acc;
+    const date = new Date(pagamento.data_vencimento + "T00:00:00");
+    if (isNaN(date.getTime())) return acc;
     const monthKey = date.toLocaleDateString("pt-BR", { month: "short" });
     const existing = acc.find(a => a.month === monthKey);
     
@@ -17,20 +18,13 @@ export function RevenueChart() {
     const isReceita = pagamento.status === "pago";
     
     if (existing) {
-      if (isReceita) {
-        existing.receita += valor;
-      }
+      if (isReceita) existing.receita += valor;
     } else {
-      acc.push({ 
-        month: monthKey, 
-        receita: isReceita ? valor : 0,
-        despesa: 0 // Would need a separate expenses table for real data
-      });
+      acc.push({ month: monthKey, receita: isReceita ? valor : 0, despesa: 0 });
     }
     return acc;
   }, [] as { month: string; receita: number; despesa: number }[]) || [];
 
-  // Sort by month order
   const monthOrder = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
   monthlyData.sort((a, b) => {
     const aIndex = monthOrder.findIndex(m => a.month.toLowerCase().startsWith(m));
@@ -65,44 +59,26 @@ export function RevenueChart() {
                 <AreaChart data={monthlyData}>
                   <defs>
                     <linearGradient id="colorReceita" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(270, 100%, 50%)" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="hsl(270, 100%, 50%)" stopOpacity={0} />
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(0, 0%, 20%)" />
-                  <XAxis 
-                    dataKey="month" 
-                    stroke="hsl(0, 0%, 60%)" 
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <YAxis 
-                    stroke="hsl(0, 0%, 60%)" 
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(value) => `R$${value / 1000}k`}
-                  />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false}
+                    tickFormatter={(value) => `R$${value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}`} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "hsl(0, 0%, 8%)",
-                      border: "1px solid hsl(0, 0%, 15%)",
+                      backgroundColor: "hsl(var(--popover))",
+                      border: "1px solid hsl(var(--border))",
                       borderRadius: "8px",
                       padding: "12px",
+                      color: "hsl(var(--popover-foreground))",
                     }}
                     formatter={(value: number) => [`R$ ${value.toLocaleString()}`, ""]}
-                    labelStyle={{ color: "hsl(0, 0%, 94%)" }}
+                    labelStyle={{ color: "hsl(var(--popover-foreground))" }}
                   />
-                  <Area
-                    type="monotone"
-                    dataKey="receita"
-                    stroke="hsl(270, 100%, 50%)"
-                    strokeWidth={2}
-                    fillOpacity={1}
-                    fill="url(#colorReceita)"
-                    name="Receita"
-                  />
+                  <Area type="monotone" dataKey="receita" stroke="hsl(var(--primary))" strokeWidth={2} fillOpacity={1} fill="url(#colorReceita)" name="Receita" />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (

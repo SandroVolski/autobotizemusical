@@ -58,6 +58,7 @@ export default function Financeiro() {
   const [newPagamento, setNewPagamento] = useState<NovoPagamento>({
     aluno_id: "", valor: 0, data_vencimento: "", status: "pendente", tipo: "mensalidade", metodo_pagamento: "", referencia: "",
   });
+  const [numMeses, setNumMeses] = useState(1);
 
   const { data: pagamentos, isLoading } = usePagamentos();
   const { data: alunos } = useAlunos();
@@ -82,7 +83,9 @@ export default function Financeiro() {
   const ticketMedio = pagamentos?.length ? pagamentos.reduce((acc, p) => acc + Number(p.valor), 0) / pagamentos.length : 0;
 
   const monthlyData = pagamentos?.reduce((acc, pagamento) => {
-    const date = new Date(pagamento.data_vencimento);
+    if (!pagamento.data_vencimento) return acc;
+    const date = new Date(pagamento.data_vencimento + "T00:00:00");
+    if (isNaN(date.getTime())) return acc;
     const monthKey = date.toLocaleDateString("pt-BR", { month: "short" });
     const existing = acc.find(a => a.month === monthKey);
     if (existing) existing.valor += Number(pagamento.valor);
@@ -108,17 +111,43 @@ export default function Financeiro() {
     return alunos?.find(a => a.id === alunoId)?.nome || "Aluno não encontrado";
   };
 
-  const handleCreatePagamento = () => {
+  const handleCreatePagamento = async () => {
     if (!newPagamento.valor || !newPagamento.data_vencimento) {
       toast({ title: "Erro", description: "Valor e data de vencimento são obrigatórios", variant: "destructive" });
       return;
     }
-    createPagamentoMutation.mutate({ ...newPagamento, aluno_id: newPagamento.aluno_id || undefined }, {
-      onSuccess: () => {
-        setIsDialogOpen(false);
-        setNewPagamento({ aluno_id: "", valor: 0, data_vencimento: "", status: "pendente", tipo: "mensalidade", metodo_pagamento: "", referencia: "" });
+    
+    const baseDate = new Date(newPagamento.data_vencimento + "T00:00:00");
+    const promises = [];
+    
+    for (let i = 0; i < numMeses; i++) {
+      const vencDate = new Date(baseDate);
+      vencDate.setMonth(vencDate.getMonth() + i);
+      const dateStr = vencDate.toISOString().split("T")[0];
+      const mesRef = vencDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+      const ref = numMeses > 1 ? `Mensalidade ${mesRef}` : (newPagamento.referencia || "");
+      
+      promises.push(
+        createPagamentoMutation.mutateAsync({
+          ...newPagamento,
+          aluno_id: newPagamento.aluno_id || undefined,
+          data_vencimento: dateStr,
+          referencia: ref,
+        })
+      );
+    }
+    
+    try {
+      await Promise.all(promises);
+      setIsDialogOpen(false);
+      setNewPagamento({ aluno_id: "", valor: 0, data_vencimento: "", status: "pendente", tipo: "mensalidade", metodo_pagamento: "", referencia: "" });
+      setNumMeses(1);
+      if (numMeses > 1) {
+        toast({ title: `${numMeses} pagamentos registrados!`, description: "Pagamentos adiantados criados com sucesso." });
       }
-    });
+    } catch {
+      // Error already handled by mutation
+    }
   };
 
   const handleExport = () => {
@@ -220,10 +249,22 @@ export default function Financeiro() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid gap-2">
-                  <Label>Referência</Label>
-                  <Input placeholder="Ex: Mensalidade Janeiro/2024" value={newPagamento.referencia}
-                    onChange={(e) => setNewPagamento(prev => ({ ...prev, referencia: e.target.value }))} />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label>Referência</Label>
+                    <Input placeholder="Ex: Mensalidade Janeiro/2024" value={newPagamento.referencia}
+                      onChange={(e) => setNewPagamento(prev => ({ ...prev, referencia: e.target.value }))} />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Qtd. de Meses</Label>
+                    <Input type="number" min={1} max={12} value={numMeses}
+                      onChange={(e) => setNumMeses(Math.max(1, Math.min(12, parseInt(e.target.value) || 1)))} />
+                    {numMeses > 1 && (
+                      <p className="text-xs text-muted-foreground">
+                        Serão criados {numMeses} pagamentos de {Number(newPagamento.valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} cada
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <Button className="w-full mt-2" onClick={handleCreatePagamento} disabled={createPagamentoMutation.isPending}>
                   {createPagamentoMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
@@ -413,7 +454,7 @@ export default function Financeiro() {
                           <div>
                             <p className="font-medium">{getAlunoName(payment.aluno_id)}</p>
                             <p className="text-sm text-muted-foreground">
-                              {new Date(payment.data_vencimento).toLocaleDateString("pt-BR")} • {payment.metodo_pagamento || payment.tipo}
+                              {payment.data_vencimento ? new Date(payment.data_vencimento + "T00:00:00").toLocaleDateString("pt-BR") : "—"} • {payment.metodo_pagamento || payment.tipo}
                             </p>
                           </div>
                         </div>

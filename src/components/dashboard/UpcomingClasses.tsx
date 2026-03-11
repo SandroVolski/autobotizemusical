@@ -10,7 +10,6 @@ export function UpcomingClasses() {
   const navigate = useNavigate();
   const { data: aulas, isLoading } = useAulas();
 
-  // Get upcoming classes: today (remaining) + next days
   const getUpcomingClasses = () => {
     if (!aulas || aulas.length === 0) return [];
     
@@ -20,13 +19,11 @@ export function UpcomingClasses() {
     
     const upcoming: (typeof aulas[number] & { _displayDay: number })[] = [];
     
-    // Check today and next 7 days
     for (let offset = 0; offset < 7 && upcoming.length < 6; offset++) {
       const targetDay = (currentDay + offset) % 7;
       const dayClasses = aulas
         .filter(a => a.dia_semana === targetDay && a.status !== 'cancelada')
         .filter(a => {
-          // If today, only show classes that haven't passed yet
           if (offset === 0 && a.horario) {
             return a.horario >= currentTime;
           }
@@ -91,10 +88,10 @@ export function UpcomingClasses() {
                   className="flex items-center gap-4 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer group"
                 >
                   <div className="w-14 h-12 rounded-lg bg-primary/20 flex flex-col items-center justify-center">
-                    <span className="text-[10px] font-semibold text-primary/70 uppercase">
+                    <span className="text-[10px] font-semibold text-foreground/60 uppercase">
                       {isToday ? 'Hoje' : diasSemana[classItem._displayDay]}
                     </span>
-                    <span className="text-sm font-bold text-primary">{classItem.horario?.slice(0, 5)}</span>
+                    <span className="text-sm font-bold text-foreground">{classItem.horario?.slice(0, 5)}</span>
                   </div>
                   
                   <div className="flex-1 min-w-0">

@@ -27,36 +27,32 @@ export default function Dashboard() {
 
   const isLoading = loadingAlunos || loadingPagamentos || loadingAulas;
 
-  // Calculate real stats
   const totalAlunos = alunos?.length || 0;
   const alunosAtivos = alunos?.filter((a) => a.status === "ativo").length || 0;
 
-  // Calculate monthly revenue
+  // Calculate monthly revenue - fix null date handling
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
   const receitaMensal =
     pagamentos
       ?.filter((p) => {
-        const date = new Date(p.data_vencimento);
+        if (!p.data_vencimento) return false;
+        const date = new Date(p.data_vencimento + "T00:00:00");
         return date.getMonth() === currentMonth && date.getFullYear() === currentYear && p.status === "pago";
       })
       .reduce((acc, p) => acc + Number(p.valor), 0) || 0;
 
-  // Get today's classes
   const today = new Date().getDay();
   const aulasHoje = aulas?.filter((a) => a.dia_semana === today) || [];
   const aulasConfirmadas = aulasHoje.filter((a) => a.status === "ativo").length;
   const aulasPendentes = aulasHoje.filter((a) => a.status !== "ativo").length;
 
-  // Calculate retention rate (active / total)
   const taxaRetencao = totalAlunos > 0 ? Math.round((alunosAtivos / totalAlunos) * 100) : 0;
 
-  // Payment status summary
   const alunosEmDia = Array.from(paymentStatuses.values()).filter(s => s.color === "green").length;
   const alunosAlerta = Array.from(paymentStatuses.values()).filter(s => s.color === "yellow").length;
   const alunosInadimplentes = Array.from(paymentStatuses.values()).filter(s => s.color === "red").length;
 
-  // Get user name from metadata or email
   const userName = user?.user_metadata?.nome || user?.email?.split("@")[0] || "Usuário";
 
   if (isLoading) {
@@ -69,7 +65,6 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -82,16 +77,8 @@ export default function Dashboard() {
         <p className="text-muted-foreground">Aqui está um resumo da sua escola de música</p>
       </motion.div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-        <StatsCard
-          title="Total de Alunos"
-          value={totalAlunos}
-          icon={Users}
-          description={`${alunosAtivos} ativos`}
-          variant="primary"
-          delay={0}
-        />
+        <StatsCard title="Total de Alunos" value={totalAlunos} icon={Users} description={`${alunosAtivos} ativos`} variant="primary" delay={0} />
         <StatsCard
           title="Receita Mensal"
           value={receitaMensal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
@@ -116,7 +103,6 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Main Content - Combined Rows */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
         <div className="lg:col-span-2 space-y-4 lg:space-y-6">
           <WeeklyPayments />
@@ -130,7 +116,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Charts Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
         <StudentsByLevelChart />
         <ClassesByDayChart />
