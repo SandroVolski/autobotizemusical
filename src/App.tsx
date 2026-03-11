@@ -199,6 +199,14 @@ const App = () => (
                 </AuthenticatedPage>
               }
             />
+            <Route
+              path="/cobrancas"
+              element={
+                <AuthenticatedPage>
+                  <Cobrancas />
+                </AuthenticatedPage>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
