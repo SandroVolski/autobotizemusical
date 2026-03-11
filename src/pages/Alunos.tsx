@@ -284,6 +284,11 @@ export default function Alunos() {
     });
     setPhotoFile(null);
     setPhotoPreview(null);
+    setTipoAula("individual");
+    setAulaDiaSemana(1);
+    setAulaHorario("09:00");
+    setAulaDuracao(60);
+    setAulaRecorrente(true);
   };
 
   const handleEdit = (aluno: typeof alunos extends (infer T)[] | undefined ? T : never) => {
