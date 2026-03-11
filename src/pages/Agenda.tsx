@@ -51,23 +51,9 @@ import { useTurmas } from "@/hooks/useTurmas";
 import { toast } from "@/hooks/use-toast";
 import { AttendanceDialog } from "@/components/agenda/AttendanceDialog";
 import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
+import { useConfiguracoes } from "@/hooks/useConfiguracoes";
 
 const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-// Generate 30-minute intervals from 8:00 to 20:00
-const timeSlots = Array.from({ length: 25 }, (_, i) => {
-  const hour = Math.floor(i / 2) + 8;
-  const minutes = (i % 2) * 30;
-  return { hour, minutes, label: `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}` };
-});
-
-const getClassPosition = (time: string) => {
-  const [hoursVal, minsVal] = time.split(":").map(Number);
-  return ((hoursVal - 8) * 2 + minsVal / 30) * 40; // 40px per 30-min slot
-};
-
-const getClassHeight = (duration: number) => {
-  return (duration / 30) * 40; // 40px per 30-min slot
-};
 
 // Generate color for each professor
 const professorColors = [
@@ -101,6 +87,44 @@ export default function Agenda() {
   });
 
   const todayStr = new Date().toISOString().split("T")[0];
+
+  const { data: configuracoes } = useConfiguracoes();
+
+  // Dynamic time range from school settings
+  const { startHour, endHour } = useMemo(() => {
+    let minStart = 8;
+    let maxEnd = 20;
+    if (configuracoes?.horario_funcionamento) {
+      const hf = configuracoes.horario_funcionamento as Record<string, { inicio: string; fim: string }>;
+      Object.values(hf).forEach(({ inicio, fim }) => {
+        const [sh] = inicio.split(":").map(Number);
+        const [eh] = fim.split(":").map(Number);
+        if (sh < minStart) minStart = sh;
+        if (eh > maxEnd) maxEnd = eh;
+      });
+    }
+    return { startHour: minStart, endHour: maxEnd };
+  }, [configuracoes]);
+
+  const timeSlots = useMemo(() => {
+    const slots = [];
+    const totalSlots = (endHour - startHour) * 2 + 1;
+    for (let i = 0; i < totalSlots; i++) {
+      const hour = Math.floor(i / 2) + startHour;
+      const minutes = (i % 2) * 30;
+      slots.push({ hour, minutes, label: `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}` });
+    }
+    return slots;
+  }, [startHour, endHour]);
+
+  const getClassPosition = (time: string) => {
+    const [hoursVal, minsVal] = time.split(":").map(Number);
+    return ((hoursVal - startHour) * 2 + minsVal / 30) * 40;
+  };
+
+  const getClassHeight = (duration: number) => {
+    return (duration / 30) * 40;
+  };
 
   const openCreateDialog = (dayIndex: number, time: string) => {
     setNewAula({
@@ -648,8 +672,8 @@ export default function Agenda() {
                               const now = new Date();
                               const currentHour = now.getHours();
                               const currentMinute = now.getMinutes();
-                              if (currentHour >= 8 && currentHour <= 20) {
-                                const topPos = ((currentHour - 8) * 2 + currentMinute / 30) * 40;
+                              if (currentHour >= startHour && currentHour <= endHour) {
+                                const topPos = ((currentHour - startHour) * 2 + currentMinute / 30) * 40;
                                 return (
                                   <div
                                     className="absolute left-0 right-0 z-20 pointer-events-none flex items-center"

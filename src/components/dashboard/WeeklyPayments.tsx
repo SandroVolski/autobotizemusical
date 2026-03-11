@@ -261,11 +261,17 @@ export function WeeklyPayments() {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.2, delay: 0.03 * index }}
-                        className="flex items-center gap-3 p-3 rounded-lg bg-warning/5 border border-warning/15 hover:bg-warning/10 transition-colors cursor-pointer"
+                        className={`flex items-center gap-3 p-3 rounded-lg transition-colors cursor-pointer ${
+                          status?.color === "red"
+                            ? "bg-destructive/10 border border-destructive/20 hover:bg-destructive/15"
+                            : "bg-warning/5 border border-warning/15 hover:bg-warning/10"
+                        }`}
                         onClick={() => navigate(`/alunos/${aluno.id}`)}
                       >
-                        <div className="w-10 h-10 rounded-full bg-warning/20 flex items-center justify-center flex-shrink-0">
-                          <UserRound className="w-5 h-5 text-warning" />
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          status?.color === "red" ? "bg-destructive/20" : "bg-warning/20"
+                        }`}>
+                          <UserRound className={`w-5 h-5 ${status?.color === "red" ? "text-destructive" : "text-warning"}`} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">
@@ -277,8 +283,8 @@ export function WeeklyPayments() {
                           </p>
                         </div>
                         <div className="flex-shrink-0">
-                          <Badge variant="warning" className="text-[10px]">
-                            <AlertCircle className="w-3 h-3 mr-0.5" /> Cobrar
+                          <Badge variant={status?.color === "red" ? "destructive" : "warning"} className="text-[10px]">
+                            <AlertCircle className="w-3 h-3 mr-0.5" /> {status?.color === "red" ? "Devendo" : "Cobrar"}
                           </Badge>
                         </div>
                       </motion.div>
