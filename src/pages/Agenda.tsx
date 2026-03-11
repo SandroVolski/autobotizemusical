@@ -635,7 +635,7 @@ export default function Agenda() {
                             {timeSlots.map((slot, index) => (
                               <div
                                 key={index}
-                                onClick={() => openCreateDialog(dayIndex, slot.label)}
+                                onClick={() => openCreateDialog(date.getDay(), slot.label)}
                                 className={`h-10 border-b hover:bg-primary/10 transition-colors cursor-pointer ${
                                   slot.minutes === 30 ? "border-dashed border-border/50" : "border-border"
                                 }`}
