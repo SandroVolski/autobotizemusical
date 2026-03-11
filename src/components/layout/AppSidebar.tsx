@@ -138,7 +138,7 @@ export function AppSidebar() {
           onClick={handleNavClick}
           className={cn(
             "flex items-center rounded-lg transition-all duration-200 group relative text-sm h-10 px-3 gap-3",
-            collapsed && !isMobile && "overflow-hidden",
+            collapsed && !isMobile && "justify-center overflow-hidden",
             isActive
               ? "bg-primary/20 text-primary border border-primary/30"
               : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"

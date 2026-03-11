@@ -19,6 +19,7 @@ export type Database = {
           created_at: string
           data_matricula: string | null
           data_nascimento: string | null
+          dia_vencimento: number | null
           email: string | null
           endereco: string | null
           foto_url: string | null
@@ -37,6 +38,7 @@ export type Database = {
           created_at?: string
           data_matricula?: string | null
           data_nascimento?: string | null
+          dia_vencimento?: number | null
           email?: string | null
           endereco?: string | null
           foto_url?: string | null
@@ -55,6 +57,7 @@ export type Database = {
           created_at?: string
           data_matricula?: string | null
           data_nascimento?: string | null
+          dia_vencimento?: number | null
           email?: string | null
           endereco?: string | null
           foto_url?: string | null
