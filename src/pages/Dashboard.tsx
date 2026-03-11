@@ -107,9 +107,10 @@ export default function Dashboard() {
           delay={0.2}
         />
         <StatsCard
-          title="Taxa de Retenção"
-          value={`${taxaRetencao}%`}
+          title="Situação Pgto"
+          value={`${alunosEmDia}/${alunosAtivos}`}
           icon={TrendingUp}
+          description={`${alunosAlerta} em alerta, ${alunosInadimplentes} atrasados`}
           variant="primary"
           delay={0.3}
         />
