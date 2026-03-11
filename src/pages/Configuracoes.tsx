@@ -244,6 +244,10 @@ export default function Configuracoes() {
             <Bell className="w-4 h-4" />
             <span className="hidden sm:inline">Notificações</span>
           </TabsTrigger>
+          <TabsTrigger value="conexao" className="gap-2">
+            <Smartphone className="w-4 h-4" />
+            <span className="hidden sm:inline">Conexão</span>
+          </TabsTrigger>
           <TabsTrigger value="seguranca" className="gap-2">
             <Shield className="w-4 h-4" />
             <span className="hidden sm:inline">Segurança</span>
