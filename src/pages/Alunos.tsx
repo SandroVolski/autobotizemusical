@@ -615,9 +615,6 @@ export default function Alunos() {
                   </div>
                 )}
               </div>
-                  )}
-                </div>
-              )}
               <div className="grid gap-2">
                 <Label htmlFor="endereco">Endereço</Label>
                 <Input 
