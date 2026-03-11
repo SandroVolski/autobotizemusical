@@ -45,7 +45,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const sidebarWidth = isMobile ? 0 : (collapsed ? 72 : 280);
+  const sidebarWidth = isMobile ? 0 : collapsed ? 72 : 280;
   const userName = user?.user_metadata?.nome || user?.email?.split("@")[0] || "Usuário";
   const initials = userName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
 
@@ -59,17 +59,17 @@ export function AppLayout({ children }: AppLayoutProps) {
         initial={false}
         animate={{
           marginLeft: sidebarWidth,
-          width: `calc(100% - ${sidebarWidth}px)`,
+          width: `calc(100% - ${sidebarWidth}px)`
         }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="min-h-screen flex flex-col"
-      >
+        className="min-h-screen flex flex-col">
+        
         {/* Header - sticky, transparent at top, gradient on scroll */}
         <header className={cn(
           "sticky top-0 z-40 h-14 lg:h-16 transition-all duration-500 ease-in-out border-b",
-          scrolled
-            ? "bg-background/80 backdrop-blur-xl border-border/50 shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.1)]"
-            : "bg-transparent border-transparent"
+          scrolled ?
+          "bg-background/80 backdrop-blur-xl border-border/50 shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.1)]" :
+          "bg-transparent border-transparent"
         )}>
           <div className="flex items-center justify-between h-full px-4 lg:px-6">
             {/* Left: Mobile menu */}
@@ -78,8 +78,8 @@ export function AppLayout({ children }: AppLayoutProps) {
                 variant="ghost"
                 size="icon"
                 className="lg:hidden flex-shrink-0 hover:bg-primary/10"
-                onClick={() => setMobileOpen(true)}
-              >
+                onClick={() => setMobileOpen(true)}>
+                
                 <Menu className="w-5 h-5" />
               </Button>
             </div>
@@ -92,30 +92,30 @@ export function AppLayout({ children }: AppLayoutProps) {
                 variant="ghost"
                 size="icon"
                 onClick={handleThemeToggle}
-                className="relative w-9 h-9 overflow-hidden hover:bg-primary/10"
-              >
+                className="relative w-9 h-9 overflow-hidden hover:bg-primary/10">
+                
                 <AnimatePresence mode="wait" initial={false}>
-                  {isDark ? (
-                    <motion.div
-                      key="moon"
-                      initial={{ y: -20, opacity: 0, rotate: -90 }}
-                      animate={{ y: 0, opacity: 1, rotate: 0 }}
-                      exit={{ y: 20, opacity: 0, rotate: 90 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                    >
-                      <Moon className="w-[18px] h-[18px] text-primary" />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="sun"
-                      initial={{ y: -20, opacity: 0, rotate: 90 }}
-                      animate={{ y: 0, opacity: 1, rotate: 0 }}
-                      exit={{ y: 20, opacity: 0, rotate: -90 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                    >
+                  {isDark ?
+                  <motion.div
+                    key="moon"
+                    initial={{ y: -20, opacity: 0, rotate: -90 }}
+                    animate={{ y: 0, opacity: 1, rotate: 0 }}
+                    exit={{ y: 20, opacity: 0, rotate: 90 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}>
+                    
+                      <Moon className="w-[18px] h-[18px] text-white" />
+                    </motion.div> :
+
+                  <motion.div
+                    key="sun"
+                    initial={{ y: -20, opacity: 0, rotate: 90 }}
+                    animate={{ y: 0, opacity: 1, rotate: 0 }}
+                    exit={{ y: 20, opacity: 0, rotate: -90 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}>
+                    
                       <Sun className="w-[18px] h-[18px] text-warning" />
                     </motion.div>
-                  )}
+                  }
                 </AnimatePresence>
               </Button>
 
@@ -139,6 +139,6 @@ export function AppLayout({ children }: AppLayoutProps) {
           {children}
         </div>
       </motion.main>
-    </div>
-  );
+    </div>);
+
 }
