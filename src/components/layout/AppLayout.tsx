@@ -19,6 +19,21 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { user } = useAuth();
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
+  const [isDark, setIsDark] = useState(() => !document.documentElement.classList.contains("light"));
+
+  const handleThemeToggle = () => {
+    const newDark = !isDark;
+    setIsDark(newDark);
+    if (newDark) {
+      document.documentElement.classList.remove("light");
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.add("light");
+      localStorage.setItem("theme", "light");
+    }
+  };
 
   useRealtimeNotifications();
 
