@@ -23,6 +23,7 @@ export default function Dashboard() {
   const { data: alunos, isLoading: loadingAlunos } = useAlunos();
   const { data: pagamentos, isLoading: loadingPagamentos } = usePagamentos();
   const { data: aulas, isLoading: loadingAulas } = useAulas();
+  const paymentStatuses = usePaymentStatuses(alunos);
 
   const isLoading = loadingAlunos || loadingPagamentos || loadingAulas;
 
