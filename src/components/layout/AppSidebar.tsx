@@ -275,7 +275,7 @@ export function AppSidebar() {
         <Button
           variant="ghost"
           onClick={handleSignOut}
-          className={cn("w-full justify-start gap-3 text-muted-foreground hover:text-destructive", collapsed && "justify-center")}
+          className={cn("w-full justify-start gap-3 text-muted-foreground hover:text-destructive overflow-hidden")}
         >
           <LogOut className="w-5 h-5" />
           {!collapsed && <span className="text-sm">Sair</span>}
