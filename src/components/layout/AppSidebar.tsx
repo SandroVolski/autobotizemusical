@@ -290,13 +290,12 @@ export function AppSidebar() {
     >
       {renderLogo(!collapsed)}
       {renderGroups(!collapsed)}
-      <div className={cn("border-t border-sidebar-border", collapsed ? "py-3 flex justify-center" : "p-3")}>
+      <div className="border-t border-sidebar-border p-3">
         <Button
           variant="ghost"
           onClick={handleSignOut}
           className={cn(
-            "text-muted-foreground hover:text-destructive overflow-hidden",
-            collapsed ? "w-10 h-10 p-0 justify-center" : "w-full justify-start gap-3"
+            "w-full justify-start gap-3 text-muted-foreground hover:text-destructive overflow-hidden h-10 px-3"
           )}
         >
           <LogOut className="w-5 h-5 flex-shrink-0" />
