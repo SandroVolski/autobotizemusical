@@ -159,7 +159,7 @@ export function AppSidebar() {
   };
 
   const renderGroups = (showLabel: boolean) => (
-    <nav className={cn("flex-1 p-3 transition-all duration-200", collapsed && !isMobile ? "overflow-hidden" : "overflow-y-auto")}>
+    <nav className={cn("flex-1 py-2 px-2 transition-all duration-200", collapsed && !isMobile ? "overflow-hidden" : "overflow-y-auto")}>
       <div className="space-y-4">
         {menuGroups.map((group) => {
           const open = isGroupOpen(group);
