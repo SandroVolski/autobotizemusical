@@ -46,6 +46,8 @@ import { AIAssistant } from "@/components/pedagogico/AIAssistant";
 export default function Pedagogico() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedPlano, setSelectedPlano] = useState<any>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [newPlano, setNewPlano] = useState<NovoPlanoAula>({
     titulo: "",
     instrumento: "",
