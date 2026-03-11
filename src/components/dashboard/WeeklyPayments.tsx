@@ -153,7 +153,8 @@ export function WeeklyPayments() {
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-xs text-muted-foreground">
-                        {pagamento.tipo || "Mensalidade"} • {pagamento.referencia || ""}
+                        {pagamento.tipo || "Mensalidade"} • {pagamento.referencia || ""} 
+                        {pagamento.alunos && (pagamento as any).dia_vencimento ? ` • Venc. dia ${(pagamento as any).dia_vencimento}` : ""}
                       </span>
                     </div>
                   </div>

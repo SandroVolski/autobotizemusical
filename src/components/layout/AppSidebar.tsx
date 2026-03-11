@@ -102,7 +102,7 @@ export function AppSidebar() {
   const { data: configuracoes } = useConfiguracoes();
 
   const badgeValues: Record<string, number | undefined> = {
-    alunos: alunos?.length,
+    alunos: alunos?.filter((a) => a.status === "ativo").length,
     financeiro: pagamentos?.filter((p) => p.status === "pendente").length,
   };
 
@@ -138,7 +138,7 @@ export function AppSidebar() {
           onClick={handleNavClick}
           className={cn(
             "flex items-center rounded-lg transition-all duration-200 group relative text-sm h-10 px-3 gap-3",
-            collapsed && !isMobile && "overflow-hidden",
+            collapsed && !isMobile && "justify-center overflow-hidden",
             isActive
               ? "bg-primary/20 text-primary border border-primary/30"
               : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
@@ -150,9 +150,6 @@ export function AppSidebar() {
           )}
           {showLabel && badgeValue !== undefined && badgeValue !== 0 && (
             <Badge variant="secondary" className="text-xs">{badgeValue}</Badge>
-          )}
-          {!showLabel && badgeValue !== undefined && badgeValue !== 0 && (
-            <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-secondary" />
           )}
         </NavLink>
       </li>

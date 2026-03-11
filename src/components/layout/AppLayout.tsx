@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import { motion } from "framer-motion";
@@ -8,6 +8,7 @@ import { useSidebar } from "@/contexts/SidebarContext";
 import { NotificationsDropdown } from "@/components/notifications/NotificationsDropdown";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -17,8 +18,17 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { collapsed, toggleCollapsed, isMobile, setMobileOpen } = useSidebar();
   const { user } = useAuth();
   const location = useLocation();
+  const [scrolled, setScrolled] = useState(false);
 
   useRealtimeNotifications();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const sidebarWidth = isMobile ? 0 : (collapsed ? 72 : 280);
   const userName = user?.user_metadata?.nome || user?.email?.split("@")[0] || "Usuário";
@@ -39,8 +49,13 @@ export function AppLayout({ children }: AppLayoutProps) {
         transition={{ duration: 0.3, ease: "easeInOut" }}
         className="min-h-screen flex flex-col"
       >
-        {/* Header - not sticky, transparent */}
-        <header className="z-40 h-14 lg:h-16 bg-transparent">
+        {/* Header - sticky, transparent at top, gradient on scroll */}
+        <header className={cn(
+          "sticky top-0 z-40 h-14 lg:h-16 transition-all duration-500 ease-in-out border-b",
+          scrolled
+            ? "bg-background/80 backdrop-blur-xl border-border/50 shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.1)]"
+            : "bg-transparent border-transparent"
+        )}>
           <div className="flex items-center justify-between h-full px-4 lg:px-6">
             {/* Left: Mobile menu */}
             <div className="flex items-center gap-3">

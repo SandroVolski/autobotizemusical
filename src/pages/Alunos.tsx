@@ -118,6 +118,7 @@ export default function Alunos() {
     nivel: "iniciante",
     objetivo: "",
     observacoes: "",
+    dia_vencimento: 10,
   });
   const [tipoAula, setTipoAula] = useState<"individual" | "turma" | "avulso" | "">(""); 
   const [aulaDiaSemana, setAulaDiaSemana] = useState<number | "">("");
@@ -328,6 +329,7 @@ export default function Alunos() {
       nivel: "iniciante",
       objetivo: "",
       observacoes: "",
+      dia_vencimento: 10,
     });
     setPhotoFile(null);
     setPhotoPreview(null);
@@ -353,6 +355,7 @@ export default function Alunos() {
       nivel: aluno.nivel || "iniciante",
       objetivo: aluno.objetivo || "",
       observacoes: aluno.observacoes || "",
+      dia_vencimento: aluno.dia_vencimento || 10,
     });
     setPhotoFile(null);
     setPhotoPreview(aluno.foto_url || null);
@@ -545,7 +548,7 @@ export default function Alunos() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="data_nascimento">Data de Nascimento</Label>
                   <Input 
@@ -553,6 +556,18 @@ export default function Alunos() {
                     type="date"
                     value={newAluno.data_nascimento}
                     onChange={(e) => setNewAluno(prev => ({ ...prev, data_nascimento: e.target.value }))}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="dia_vencimento">Dia de Vencimento</Label>
+                  <Input 
+                    id="dia_vencimento" 
+                    type="number"
+                    min={1}
+                    max={31}
+                    placeholder="Ex: 10"
+                    value={newAluno.dia_vencimento || ""}
+                    onChange={(e) => setNewAluno(prev => ({ ...prev, dia_vencimento: parseInt(e.target.value) || undefined }))}
                   />
                 </div>
                 <div className="grid gap-2">

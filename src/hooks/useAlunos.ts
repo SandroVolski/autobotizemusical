@@ -18,6 +18,7 @@ export interface Aluno {
   status: string;
   data_matricula: string | null;
   foto_url: string | null;
+  dia_vencimento: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -33,6 +34,7 @@ export interface NovoAluno {
   nivel?: string;
   objetivo?: string;
   observacoes?: string;
+  dia_vencimento?: number;
 }
 
 export function useAlunos() {

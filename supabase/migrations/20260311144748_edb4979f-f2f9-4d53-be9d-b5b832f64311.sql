@@ -1,0 +1,1 @@
+ALTER TABLE public.alunos ADD COLUMN dia_vencimento integer DEFAULT 10;
