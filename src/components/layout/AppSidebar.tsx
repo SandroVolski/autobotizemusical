@@ -161,29 +161,29 @@ export function AppSidebar() {
   };
 
   const renderGroups = (showLabel: boolean) => (
-    <nav className={cn("flex-1 py-2 transition-all duration-200", showLabel ? "px-2" : "px-1.5", collapsed && !isMobile ? "overflow-hidden" : "overflow-y-auto")}>
-      <div className={cn(showLabel ? "space-y-1" : "space-y-0.5")}>
-        {menuGroups.map((group) => {
+    <nav className={cn("flex-1 py-2 transition-all duration-200", showLabel ? "px-2" : "px-2", collapsed && !isMobile ? "overflow-hidden" : "overflow-y-auto")}>
+      <div className={cn(showLabel ? "space-y-1" : "space-y-1")}>
+        {menuGroups.map((group, groupIndex) => {
           const open = isGroupOpen(group);
           return (
             <div key={group.label}>
               {showLabel && group.collapsible ? (
                 <button
                   onClick={() => toggleGroup(group.label)}
-                  className="flex items-center justify-between w-full px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+                  className="flex items-center justify-between w-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70 hover:text-muted-foreground transition-colors"
                 >
                   {group.label}
                   <ChevronDown className={cn("w-3 h-3 transition-transform", open && "rotate-180")} />
                 </button>
               ) : showLabel ? (
-                <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
+                <p className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
                   {group.label}
                 </p>
-              ) : !showLabel ? (
-                <div className="my-1 mx-2 h-px bg-sidebar-border" />
+              ) : groupIndex > 0 ? (
+                <div className="my-2 mx-3 h-px bg-sidebar-border" />
               ) : null}
               {(open || !showLabel) && (
-                <ul className="space-y-0.5 mt-0.5">
+                <ul className={cn(showLabel ? "space-y-0.5 mt-0.5" : "space-y-1")}>
                   {group.items.map((item) => renderNavItem(item, showLabel))}
                 </ul>
               )}

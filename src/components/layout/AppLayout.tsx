@@ -1,8 +1,9 @@
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import { motion } from "framer-motion";
 import { User, Menu, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { NotificationsDropdown } from "@/components/notifications/NotificationsDropdown";
@@ -42,23 +43,14 @@ export function AppLayout({ children }: AppLayoutProps) {
   const basePath = "/" + location.pathname.split("/").filter(Boolean)[0];
   const pageTitle = pageTitles[basePath] || "";
 
-  // Auto-hide header on scroll
-  const [headerVisible, setHeaderVisible] = useState(true);
-  const lastScrollY = useRef(0);
+  // Header background on scroll
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const mainEl = document.getElementById("main-scroll-area");
     if (!mainEl) return;
     const handleScroll = () => {
-      const currentY = mainEl.scrollTop;
-      if (currentY <= 10) {
-        setHeaderVisible(true);
-      } else if (currentY > lastScrollY.current) {
-        setHeaderVisible(false);
-      } else {
-        setHeaderVisible(true);
-      }
-      lastScrollY.current = currentY;
+      setScrolled(mainEl.scrollTop > 20);
     };
     mainEl.addEventListener("scroll", handleScroll, { passive: true });
     return () => mainEl.removeEventListener("scroll", handleScroll);
@@ -80,12 +72,14 @@ export function AppLayout({ children }: AppLayoutProps) {
         className="min-h-screen flex flex-col overflow-y-auto"
         id="main-scroll-area"
       >
-        {/* Elegant Header - hides on scroll down */}
-        <motion.header
-          initial={false}
-          animate={{ y: headerVisible ? 0 : -64, opacity: headerVisible ? 1 : 0 }}
-          transition={{ duration: 0.25, ease: "easeInOut" }}
-          className="sticky top-0 z-40 h-14 lg:h-16 bg-transparent border-b border-transparent"
+        {/* Header - transparent at top, bg appears on scroll */}
+        <header
+          className={cn(
+            "sticky top-0 z-40 h-14 lg:h-16 transition-all duration-500 ease-in-out border-b",
+            scrolled
+              ? "bg-background/80 backdrop-blur-xl border-border/50 shadow-[0_1px_12px_hsl(0,0%,0%,0.2)]"
+              : "bg-transparent border-transparent"
+          )}
         >
           <div className="flex items-center justify-between h-full px-4 lg:px-6">
             {/* Left: Mobile menu */}
@@ -117,7 +111,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               </div>
             </div>
           </div>
-        </motion.header>
+        </header>
 
         {/* Page content */}
         <div className="flex-1 p-4 lg:p-6 max-w-full overflow-x-hidden">
