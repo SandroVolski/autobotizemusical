@@ -192,6 +192,7 @@ export default function Alunos() {
   const createAlunoMutation = useCreateAluno();
   const updateAlunoMutation = useUpdateAluno();
   const deleteAlunoMutation = useDeleteAluno();
+  const createAulaMutation = useCreateAula();
 
   const filteredAlunos = alunos?.filter(aluno => {
     // Text search
