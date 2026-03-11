@@ -88,6 +88,44 @@ export default function Agenda() {
 
   const todayStr = new Date().toISOString().split("T")[0];
 
+  const { data: configuracoes } = useConfiguracoes();
+
+  // Dynamic time range from school settings
+  const { startHour, endHour } = useMemo(() => {
+    let minStart = 8;
+    let maxEnd = 20;
+    if (configuracoes?.horario_funcionamento) {
+      const hf = configuracoes.horario_funcionamento as Record<string, { inicio: string; fim: string }>;
+      Object.values(hf).forEach(({ inicio, fim }) => {
+        const [sh] = inicio.split(":").map(Number);
+        const [eh] = fim.split(":").map(Number);
+        if (sh < minStart) minStart = sh;
+        if (eh > maxEnd) maxEnd = eh;
+      });
+    }
+    return { startHour: minStart, endHour: maxEnd };
+  }, [configuracoes]);
+
+  const timeSlots = useMemo(() => {
+    const slots = [];
+    const totalSlots = (endHour - startHour) * 2 + 1;
+    for (let i = 0; i < totalSlots; i++) {
+      const hour = Math.floor(i / 2) + startHour;
+      const minutes = (i % 2) * 30;
+      slots.push({ hour, minutes, label: `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}` });
+    }
+    return slots;
+  }, [startHour, endHour]);
+
+  const getClassPosition = (time: string) => {
+    const [hoursVal, minsVal] = time.split(":").map(Number);
+    return ((hoursVal - startHour) * 2 + minsVal / 30) * 40;
+  };
+
+  const getClassHeight = (duration: number) => {
+    return (duration / 30) * 40;
+  };
+
   const openCreateDialog = (dayIndex: number, time: string) => {
     setNewAula({
       aluno_id: "",
