@@ -119,11 +119,11 @@ export default function Alunos() {
     objetivo: "",
     observacoes: "",
   });
-  const [tipoAula, setTipoAula] = useState<"individual" | "turma" | "avulso">("individual");
-  const [aulaDiaSemana, setAulaDiaSemana] = useState(1);
-  const [aulaHorario, setAulaHorario] = useState("09:00");
-  const [aulaDuracao, setAulaDuracao] = useState(60);
-  const [aulaRecorrente, setAulaRecorrente] = useState(true);
+  const [tipoAula, setTipoAula] = useState<"individual" | "turma" | "avulso" | "">(""); 
+  const [aulaDiaSemana, setAulaDiaSemana] = useState<number | "">("");
+  const [aulaHorario, setAulaHorario] = useState("");
+  const [aulaDuracao, setAulaDuracao] = useState<number | "">(""); 
+  const [aulaRecorrente, setAulaRecorrente] = useState(false);
   const [aulaDataEspecifica, setAulaDataEspecifica] = useState("");
   const [selectedTurmaId, setSelectedTurmaId] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
