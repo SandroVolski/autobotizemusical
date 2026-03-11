@@ -42,6 +42,7 @@ import { toast } from "@/hooks/use-toast";
 import { MaterialsManager } from "@/components/pedagogico/MaterialsManager";
 import { EvaluationsManager } from "@/components/pedagogico/EvaluationsManager";
 import { AIAssistant } from "@/components/pedagogico/AIAssistant";
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 
 export default function Pedagogico() {
   const [searchTerm, setSearchTerm] = useState("");
