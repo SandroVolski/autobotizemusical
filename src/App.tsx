@@ -212,7 +212,9 @@ const App = () => (
               path="/cobrancas"
               element={
                 <AuthenticatedPage>
-                  <Cobrancas />
+                  <RoleRoute allowedRoles={['admin', 'secretaria']}>
+                    <Cobrancas />
+                  </RoleRoute>
                 </AuthenticatedPage>
               }
             />
