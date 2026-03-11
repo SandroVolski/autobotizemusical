@@ -57,6 +57,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useAlunos, useCreateAluno, useUpdateAluno, useDeleteAluno, type NovoAluno } from "@/hooks/useAlunos";
+import { useCreateAula } from "@/hooks/useAulas";
 import { toast } from "@/hooks/use-toast";
 import { EnrollmentDialog } from "@/components/alunos/EnrollmentDialog";
 import { StudentEnrollments } from "@/components/alunos/StudentEnrollments";
