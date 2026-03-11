@@ -137,14 +137,15 @@ export function AppSidebar() {
           to={item.path}
           onClick={handleNavClick}
           className={cn(
-            "flex items-center gap-3 rounded-lg transition-all duration-200 group relative text-sm px-3 py-2",
+            "flex items-center rounded-lg transition-all duration-200 group relative text-sm h-10",
+            showLabel ? "gap-3 px-3" : "justify-center px-0",
             collapsed && !isMobile && "overflow-hidden",
             isActive
               ? "bg-primary/20 text-primary border border-primary/30"
               : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
           )}
         >
-          <item.icon className={cn("w-4 h-4 flex-shrink-0 transition-colors", isActive ? "text-primary" : "group-hover:text-secondary")} />
+          <item.icon className={cn("w-5 h-5 flex-shrink-0 transition-colors", isActive ? "text-primary" : "group-hover:text-secondary")} />
           {showLabel && (
             <span className="flex-1 whitespace-nowrap font-medium">{item.label}</span>
           )}
