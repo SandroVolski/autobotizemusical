@@ -330,8 +330,7 @@ export default function Agenda() {
   // Classes for selected day in month view
   const selectedDayClasses = useMemo(() => {
     if (!selectedMonthDay) return [];
-    const dayIndex = selectedMonthDay.getDay();
-    return getClassesForDay(dayIndex);
+    return getClassesForDate(selectedMonthDay);
   }, [selectedMonthDay, filteredAulas]);
 
   if (isLoading) {
