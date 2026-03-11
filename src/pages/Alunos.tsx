@@ -595,11 +595,12 @@ export default function Alunos() {
               {/* Tipo de Aula */}
               <div className="space-y-4 p-4 rounded-lg border border-primary/20 bg-primary/5">
                 <Label className="text-sm font-semibold">Tipo de Aula</Label>
-                <Select value={tipoAula} onValueChange={(v) => setTipoAula(v as any)}>
+                <Select value={tipoAula || "__none__"} onValueChange={(v) => setTipoAula(v === "__none__" ? "" : v as any)}>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Selecione o tipo (opcional)" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="__none__">Não definido</SelectItem>
                     <SelectItem value="individual">Individual</SelectItem>
                     <SelectItem value="turma">Turma</SelectItem>
                     <SelectItem value="avulso">Avulso</SelectItem>
