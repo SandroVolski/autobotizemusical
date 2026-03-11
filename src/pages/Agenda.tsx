@@ -176,7 +176,7 @@ export default function Agenda() {
       type: "select",
       options: [
         { value: "individual", label: "Individual" },
-        { value: "grupo", label: "Grupo" },
+        { value: "grupo", label: "Grupo/Turma" },
       ],
     },
   ], [professores, cursos]);
