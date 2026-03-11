@@ -64,7 +64,126 @@ const estadosBrasileiros = [
   { value: "TO", label: "Tocantins" },
 ];
 
-export default function Configuracoes() {
+function WhatsAppSettingsCard() {
+  const [status, setStatus] = useState<"checking" | "disconnected" | "connecting" | "connected">("checking");
+  const [qrCode, setQrCode] = useState<string | null>(null);
+  const [pairingCode, setPairingCode] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const checkStatus = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke("whatsapp-connection", { body: { action: "status" } });
+      if (error) throw error;
+      const state = data?.state || data?.instance?.state;
+      setStatus(state === "open" ? "connected" : "disconnected");
+    } catch { setStatus("disconnected"); }
+  }, []);
+
+  useEffect(() => { checkStatus(); }, [checkStatus]);
+
+  useEffect(() => {
+    if (status !== "connecting") return;
+    const interval = setInterval(async () => {
+      try {
+        const { data } = await supabase.functions.invoke("whatsapp-connection", { body: { action: "status" } });
+        const state = data?.state || data?.instance?.state;
+        if (state === "open") {
+          setStatus("connected");
+          setQrCode(null);
+          setPairingCode(null);
+        }
+      } catch {}
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [status]);
+
+  const handleConnect = async () => {
+    setLoading(true); setQrCode(null); setPairingCode(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("whatsapp-connection", { body: { action: "connect" } });
+      if (error) throw error;
+      if (data?.state === "open") { setStatus("connected"); }
+      else if (data?.qrcode) {
+        setStatus("connecting");
+        const qr = data.qrcode;
+        setQrCode(typeof qr === 'string' && qr.length > 10 ? qr : null);
+        setPairingCode(data?.pairingCode || null);
+      }
+    } catch {}
+    finally { setLoading(false); }
+  };
+
+  const handleDisconnect = async () => {
+    setLoading(true);
+    try {
+      await supabase.functions.invoke("whatsapp-connection", { body: { action: "disconnect" } });
+      setStatus("disconnected"); setQrCode(null); setPairingCode(null);
+    } catch {}
+    finally { setLoading(false); }
+  };
+
+  return (
+    <Card className="glass-card">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${status === "connected" ? "bg-secondary/20" : "bg-primary/20"}`}>
+              <Smartphone className={`w-6 h-6 ${status === "connected" ? "text-secondary" : "text-primary"}`} />
+            </div>
+            <div>
+              <CardTitle className="text-lg">Conexão WhatsApp</CardTitle>
+              <CardDescription>
+                {status === "connected" ? "Seu WhatsApp está conectado e pronto para enviar confirmações e cobranças" : "Conecte para habilitar confirmações de aula e cobranças automáticas"}
+              </CardDescription>
+            </div>
+          </div>
+          <Badge variant={status === "connected" ? "default" : "outline"} className="gap-1">
+            {status === "connected" ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+            {status === "checking" ? "Verificando..." : status === "connected" ? "Conectado" : status === "connecting" ? "Aguardando..." : "Desconectado"}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {status === "checking" && <div className="flex items-center justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>}
+        {status === "disconnected" && (
+          <div className="flex flex-col items-center gap-4 py-4">
+            <p className="text-sm text-muted-foreground text-center max-w-md">Clique no botão abaixo para gerar um QR Code. Escaneie com seu WhatsApp para vincular ao sistema.</p>
+            <Button onClick={handleConnect} disabled={loading} className="gap-2">
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <QrCode className="w-4 h-4" />}
+              Conectar WhatsApp
+            </Button>
+          </div>
+        )}
+        {status === "connecting" && (
+          <div className="flex flex-col items-center gap-4 py-4">
+            {qrCode ? (
+              <>
+                <p className="text-sm text-muted-foreground text-center">Escaneie o QR Code abaixo com seu WhatsApp:</p>
+                <div className="bg-background p-4 rounded-xl border shadow-sm">
+                  <img src={typeof qrCode === 'string' && qrCode.startsWith("data:") ? qrCode : `data:image/png;base64,${qrCode}`} alt="QR Code" className="w-64 h-64 object-contain" />
+                </div>
+                {pairingCode && <p className="text-sm text-muted-foreground">Ou use o código: <span className="font-mono font-bold text-foreground">{pairingCode}</span></p>}
+                <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin" /> Aguardando leitura...</div>
+              </>
+            ) : (
+              <div className="flex items-center gap-2 py-8"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /><span className="text-sm text-muted-foreground">Gerando QR Code...</span></div>
+            )}
+          </div>
+        )}
+        {status === "connected" && (
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">As mensagens de confirmação e cobranças serão enviadas automaticamente.</p>
+            <Button variant="outline" size="sm" onClick={handleDisconnect} disabled={loading} className="gap-2 text-destructive hover:text-destructive">
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Unplug className="w-4 h-4" />}
+              Desconectar
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
   const { user } = useAuth();
   const { data: configuracoes, isLoading } = useConfiguracoes();
   const updateConfiguracoes = useUpdateConfiguracoes();
