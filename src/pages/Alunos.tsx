@@ -236,7 +236,40 @@ export default function Alunos() {
       const updateData: any = { id: editingAluno, ...newAluno };
       if (fotoUrl) updateData.foto_url = fotoUrl;
       updateAlunoMutation.mutate(updateData, {
-        onSuccess: () => {
+        onSuccess: async () => {
+          // Handle aula creation/update for edit mode
+          if (tipoAula && tipoAula !== "turma" && aulaHorario) {
+            // Delete existing aulas for this student and re-create
+            const { data: existingAulas } = await supabase
+              .from("aulas")
+              .select("id")
+              .eq("aluno_id", editingAluno);
+            
+            if (existingAulas && existingAulas.length > 0) {
+              for (const ea of existingAulas) {
+                await supabase.from("aulas").delete().eq("id", ea.id);
+              }
+            }
+            
+            const aulaData: any = {
+              aluno_id: editingAluno,
+              horario: aulaHorario,
+              duracao_minutos: aulaDuracao || 60,
+              tipo: "individual",
+            };
+            if (aulaRecorrente) {
+              aulaData.dia_semana = aulaDiaSemana;
+              aulaData.recorrente = true;
+            } else {
+              aulaData.data_especifica = aulaDataEspecifica || undefined;
+              aulaData.recorrente = false;
+            }
+            createAulaMutation.mutate(aulaData);
+          }
+          // Handle turma enrollment on edit
+          if (tipoAula === "turma" && selectedTurmaId) {
+            addAlunoTurmaMutation.mutate({ turma_id: selectedTurmaId, aluno_id: editingAluno });
+          }
           setIsDialogOpen(false);
           setEditingAluno(null);
           resetForm();
@@ -255,12 +288,12 @@ export default function Alunos() {
             }
             setIsUploading(false);
           }
-          // Auto-create aula for individual/avulso
-          if (data?.id && tipoAula !== "turma") {
+          // Auto-create aula for individual/avulso (only if fields are filled)
+          if (data?.id && tipoAula && tipoAula !== "turma" && aulaHorario) {
             const aulaData: any = {
               aluno_id: data.id,
               horario: aulaHorario,
-              duracao_minutos: aulaDuracao,
+              duracao_minutos: aulaDuracao || 60,
               tipo: "individual",
             };
             if (aulaRecorrente) {
