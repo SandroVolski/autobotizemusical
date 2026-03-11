@@ -7,6 +7,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { RoleRoute } from "@/components/RoleRoute";
 import LandingPage from "./pages/LandingPage";
 import SalesLandingPage from "./pages/SalesLandingPage";
 import Login from "./pages/Login";
