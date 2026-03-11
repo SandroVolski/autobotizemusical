@@ -33,6 +33,7 @@ export interface NovoAluno {
   nivel?: string;
   objetivo?: string;
   observacoes?: string;
+  dia_vencimento?: number;
 }
 
 export function useAlunos() {
