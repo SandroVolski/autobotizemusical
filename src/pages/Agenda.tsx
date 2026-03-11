@@ -47,6 +47,7 @@ import { useAulas, useCreateAula, useDeleteAula, type NovaAula, type Aula } from
 import { useAlunos } from "@/hooks/useAlunos";
 import { useProfessores } from "@/hooks/useProfessores";
 import { useCursos } from "@/hooks/useCursos";
+import { useTurmas } from "@/hooks/useTurmas";
 import { toast } from "@/hooks/use-toast";
 import { AttendanceDialog } from "@/components/agenda/AttendanceDialog";
 import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
