@@ -51,23 +51,9 @@ import { useTurmas } from "@/hooks/useTurmas";
 import { toast } from "@/hooks/use-toast";
 import { AttendanceDialog } from "@/components/agenda/AttendanceDialog";
 import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
+import { useConfiguracoes } from "@/hooks/useConfiguracoes";
 
 const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-// Generate 30-minute intervals from 8:00 to 20:00
-const timeSlots = Array.from({ length: 25 }, (_, i) => {
-  const hour = Math.floor(i / 2) + 8;
-  const minutes = (i % 2) * 30;
-  return { hour, minutes, label: `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}` };
-});
-
-const getClassPosition = (time: string) => {
-  const [hoursVal, minsVal] = time.split(":").map(Number);
-  return ((hoursVal - 8) * 2 + minsVal / 30) * 40; // 40px per 30-min slot
-};
-
-const getClassHeight = (duration: number) => {
-  return (duration / 30) * 40; // 40px per 30-min slot
-};
 
 // Generate color for each professor
 const professorColors = [

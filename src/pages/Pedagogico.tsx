@@ -407,19 +407,25 @@ export default function Pedagogico() {
               {selectedPlano.objetivos && (
                 <div>
                   <h4 className="text-sm font-semibold mb-1">Objetivos</h4>
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedPlano.objetivos}</p>
+                  <div className="text-sm text-muted-foreground prose prose-sm dark:prose-invert max-w-none">
+                    <MarkdownRenderer content={selectedPlano.objetivos} />
+                  </div>
                 </div>
               )}
               {selectedPlano.conteudo && (
                 <div>
                   <h4 className="text-sm font-semibold mb-1">Conteúdo</h4>
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedPlano.conteudo}</p>
+                  <div className="text-sm text-muted-foreground prose prose-sm dark:prose-invert max-w-none">
+                    <MarkdownRenderer content={selectedPlano.conteudo} />
+                  </div>
                 </div>
               )}
               {selectedPlano.materiais && (
                 <div>
                   <h4 className="text-sm font-semibold mb-1">Materiais</h4>
-                  <p className="text-sm text-muted-foreground">{selectedPlano.materiais}</p>
+                  <div className="text-sm text-muted-foreground prose prose-sm dark:prose-invert max-w-none">
+                    <MarkdownRenderer content={selectedPlano.materiais} />
+                  </div>
                 </div>
               )}
               <p className="text-xs text-muted-foreground">
