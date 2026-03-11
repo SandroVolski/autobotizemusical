@@ -124,6 +124,8 @@ export default function Alunos() {
   const [aulaHorario, setAulaHorario] = useState("09:00");
   const [aulaDuracao, setAulaDuracao] = useState(60);
   const [aulaRecorrente, setAulaRecorrente] = useState(true);
+  const [aulaDataEspecifica, setAulaDataEspecifica] = useState("");
+  const [selectedTurmaId, setSelectedTurmaId] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
