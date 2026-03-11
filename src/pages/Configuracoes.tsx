@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   Settings,
@@ -10,6 +10,11 @@ import {
   Loader2,
   Eye,
   EyeOff,
+  Smartphone,
+  Wifi,
+  WifiOff,
+  QrCode,
+  Unplug,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";

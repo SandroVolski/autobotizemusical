@@ -672,8 +672,8 @@ export default function Agenda() {
                               const now = new Date();
                               const currentHour = now.getHours();
                               const currentMinute = now.getMinutes();
-                              if (currentHour >= 8 && currentHour <= 20) {
-                                const topPos = ((currentHour - 8) * 2 + currentMinute / 30) * 40;
+                              if (currentHour >= startHour && currentHour <= endHour) {
+                                const topPos = ((currentHour - startHour) * 2 + currentMinute / 30) * 40;
                                 return (
                                   <div
                                     className="absolute left-0 right-0 z-20 pointer-events-none flex items-center"
