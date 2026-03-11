@@ -487,6 +487,21 @@ export default function Agenda() {
                     />
                   </div>
                 </div>
+                <div className="grid gap-2">
+                  <Label>Recorrente</Label>
+                  <Select
+                    value={newAula.recorrente === false ? "false" : "true"}
+                    onValueChange={(value) => setNewAula(prev => ({ ...prev, recorrente: value === "true" }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">Sim (Semanal)</SelectItem>
+                      <SelectItem value="false">Não (Avulsa)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 {hasConflict && (
                   <div className="flex items-center gap-2 p-3 rounded-lg bg-warning/20 border border-warning/40">
                     <AlertTriangle className="w-4 h-4 text-warning" />
