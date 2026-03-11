@@ -52,7 +52,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { action } = await req.json();
+    const body = await req.json();
+    const { action, phone, message } = body;
     const apiHeaders = {
       "Content-Type": "application/json",
       apikey: EVOLUTION_API_KEY,
