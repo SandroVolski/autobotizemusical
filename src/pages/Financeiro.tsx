@@ -83,7 +83,9 @@ export default function Financeiro() {
   const ticketMedio = pagamentos?.length ? pagamentos.reduce((acc, p) => acc + Number(p.valor), 0) / pagamentos.length : 0;
 
   const monthlyData = pagamentos?.reduce((acc, pagamento) => {
-    const date = new Date(pagamento.data_vencimento);
+    if (!pagamento.data_vencimento) return acc;
+    const date = new Date(pagamento.data_vencimento + "T00:00:00");
+    if (isNaN(date.getTime())) return acc;
     const monthKey = date.toLocaleDateString("pt-BR", { month: "short" });
     const existing = acc.find(a => a.month === monthKey);
     if (existing) existing.valor += Number(pagamento.valor);
