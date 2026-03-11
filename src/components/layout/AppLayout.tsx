@@ -42,23 +42,14 @@ export function AppLayout({ children }: AppLayoutProps) {
   const basePath = "/" + location.pathname.split("/").filter(Boolean)[0];
   const pageTitle = pageTitles[basePath] || "";
 
-  // Auto-hide header on scroll
-  const [headerVisible, setHeaderVisible] = useState(true);
-  const lastScrollY = useRef(0);
+  // Header background on scroll
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const mainEl = document.getElementById("main-scroll-area");
     if (!mainEl) return;
     const handleScroll = () => {
-      const currentY = mainEl.scrollTop;
-      if (currentY <= 10) {
-        setHeaderVisible(true);
-      } else if (currentY > lastScrollY.current) {
-        setHeaderVisible(false);
-      } else {
-        setHeaderVisible(true);
-      }
-      lastScrollY.current = currentY;
+      setScrolled(mainEl.scrollTop > 20);
     };
     mainEl.addEventListener("scroll", handleScroll, { passive: true });
     return () => mainEl.removeEventListener("scroll", handleScroll);
