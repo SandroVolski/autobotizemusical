@@ -266,7 +266,6 @@ export default function Financeiro() {
                     )}
                   </div>
                 </div>
-                </div>
                 <Button className="w-full mt-2" onClick={handleCreatePagamento} disabled={createPagamentoMutation.isPending}>
                   {createPagamentoMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                   Registrar Pagamento
