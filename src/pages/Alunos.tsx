@@ -356,10 +356,45 @@ export default function Alunos() {
     });
     setPhotoFile(null);
     setPhotoPreview(aluno.foto_url || null);
-    setTipoAula("individual");
-    setAulaRecorrente(true);
+    // Load existing aula data for this student
+    setTipoAula("");
+    setAulaDiaSemana("");
+    setAulaHorario("");
+    setAulaDuracao("");
+    setAulaRecorrente(false);
     setAulaDataEspecifica("");
     setSelectedTurmaId("");
+    
+    // Fetch existing aula for this student
+    const { data: existingAulas } = await supabase
+      .from("aulas")
+      .select("*")
+      .eq("aluno_id", aluno.id)
+      .limit(1);
+    
+    if (existingAulas && existingAulas.length > 0) {
+      const aula = existingAulas[0];
+      setTipoAula(aula.tipo === "individual" ? "individual" : "avulso");
+      setAulaRecorrente(aula.recorrente ?? false);
+      setAulaDiaSemana(aula.dia_semana ?? "");
+      setAulaHorario(aula.horario ?? "");
+      setAulaDuracao(aula.duracao_minutos ?? 60);
+      setAulaDataEspecifica(aula.data_especifica ?? "");
+    }
+    
+    // Check if student is in a turma
+    const { data: turmaAluno } = await supabase
+      .from("turma_alunos")
+      .select("turma_id")
+      .eq("aluno_id", aluno.id)
+      .eq("status", "ativo")
+      .limit(1);
+    
+    if (turmaAluno && turmaAluno.length > 0) {
+      setTipoAula("turma");
+      setSelectedTurmaId(turmaAluno[0].turma_id);
+    }
+    
     setIsDialogOpen(true);
   };
 
