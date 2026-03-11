@@ -284,7 +284,25 @@ export default function Agenda() {
     });
   };
 
-  // Get classes for a specific day of week
+  // Get classes for a specific date
+  const getClassesForDate = (date: Date) => {
+    const dayOfWeek = date.getDay();
+    const dateStr = date.toISOString().split("T")[0];
+    return filteredAulas?.filter(aula => {
+      // Non-recurring with specific date
+      if (aula.data_especifica && !aula.recorrente) {
+        return aula.data_especifica === dateStr;
+      }
+      // Recurring: match day of week
+      if (aula.recorrente || aula.recorrente === null) {
+        return aula.dia_semana === dayOfWeek;
+      }
+      // Fallback: match day of week
+      return aula.dia_semana === dayOfWeek;
+    }) || [];
+  };
+
+  // Legacy wrapper for backward compat (used in conflict check)
   const getClassesForDay = (dayIndex: number) => {
     return filteredAulas?.filter(aula => aula.dia_semana === dayIndex) || [];
   };
@@ -306,14 +324,13 @@ export default function Agenda() {
   };
 
   // Get today's classes (Monday = 1 in our system)
-  const today = new Date().getDay();
-  const todayClasses = filteredAulas?.filter(aula => aula.dia_semana === today) || [];
+  const today = new Date();
+  const todayClasses = getClassesForDate(today);
 
   // Classes for selected day in month view
   const selectedDayClasses = useMemo(() => {
     if (!selectedMonthDay) return [];
-    const dayIndex = selectedMonthDay.getDay();
-    return getClassesForDay(dayIndex);
+    return getClassesForDate(selectedMonthDay);
   }, [selectedMonthDay, filteredAulas]);
 
   if (isLoading) {
@@ -593,7 +610,7 @@ export default function Agenda() {
                   <div className="flex min-w-[700px]">
                     {weekDates.map((date, dayIndex) => {
                       const isToday = date.toDateString() === new Date().toDateString();
-                      const dayClasses = getClassesForDay(dayIndex);
+                      const dayClasses = getClassesForDate(date);
 
                       return (
                         <div key={dayIndex} className="flex-1 border-r border-border last:border-r-0">
@@ -709,7 +726,7 @@ export default function Agenda() {
                   
                   const isToday = date.toDateString() === new Date().toDateString();
                   const isSelected = selectedMonthDay?.toDateString() === date.toDateString();
-                  const dayClasses = getClassesForDay(date.getDay());
+                  const dayClasses = getClassesForDate(date);
                   
                   return (
                     <div
