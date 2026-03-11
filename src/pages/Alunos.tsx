@@ -643,7 +643,7 @@ export default function Alunos() {
                       )}
                       <div className="grid gap-2">
                         <Label>Horário</Label>
-                        <Input type="time" value={aulaHorario} onChange={(e) => setAulaHorario(e.target.value)} />
+                        <Input type="time" value={aulaHorario} onChange={(e) => setAulaHorario(e.target.value)} placeholder="Horário" />
                       </div>
                     </div>
                     <div className="grid gap-2">
