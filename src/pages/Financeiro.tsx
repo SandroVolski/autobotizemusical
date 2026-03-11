@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { 
   DollarSign, TrendingUp, CreditCard, AlertCircle, CheckCircle2, Clock, Download, Plus, Loader2, Trash2,
-  Receipt, ShoppingCart, Wallet, ChevronLeft, ChevronRight,
+  Receipt, ShoppingCart, Wallet, ChevronLeft, ChevronRight, Info,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,9 +16,11 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { usePagamentos, useCreatePagamento, useDeletePagamento, type NovoPagamento } from "@/hooks/usePagamentos";
 import { useAlunos } from "@/hooks/useAlunos";
+import { useMatriculas } from "@/hooks/useMatriculas";
+import { useCursos } from "@/hooks/useCursos";
 import { toast } from "@/hooks/use-toast";
 import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
 import { exportPagamentos } from "@/lib/csv-export";
@@ -39,6 +41,14 @@ const filterOptions: FilterOption[] = [
 ];
 
 const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+const themedTooltipStyle = {
+  backgroundColor: "hsl(var(--popover))",
+  border: "1px solid hsl(var(--border))",
+  borderRadius: "8px",
+  padding: "10px",
+  color: "hsl(var(--popover-foreground))",
+};
 
 export default function Financeiro() {
   const now = new Date();
@@ -62,54 +72,80 @@ export default function Financeiro() {
 
   const { data: pagamentos, isLoading } = usePagamentos();
   const { data: alunos } = useAlunos();
+  const { data: matriculas } = useMatriculas();
+  const { data: cursos } = useCursos();
   const createPagamentoMutation = useCreatePagamento();
   const deletePagamentoMutation = useDeletePagamento();
 
-  const filteredPagamentos = useMemo(() => {
+  // Filter payments by selected month/year
+  const monthPagamentos = useMemo(() => {
     if (!pagamentos) return [];
     return pagamentos.filter(p => {
+      if (!p.data_vencimento) return false;
+      const date = new Date(p.data_vencimento + "T00:00:00");
+      return date.getMonth() === selectedMonth && date.getFullYear() === selectedYear;
+    });
+  }, [pagamentos, selectedMonth, selectedYear]);
+
+  const filteredPagamentos = useMemo(() => {
+    return monthPagamentos.filter(p => {
       if (filterValues.status && p.status !== filterValues.status) return false;
       if (filterValues.tipo && p.tipo !== filterValues.tipo) return false;
       if (filterValues.metodo && p.metodo_pagamento !== filterValues.metodo) return false;
       return true;
     });
-  }, [pagamentos, filterValues]);
+  }, [monthPagamentos, filterValues]);
 
-  const totalRecebido = pagamentos?.filter(p => p.status === "pago").reduce((acc, p) => acc + Number(p.valor), 0) || 0;
-  const totalPendente = pagamentos?.filter(p => p.status === "pendente").reduce((acc, p) => acc + Number(p.valor), 0) || 0;
-  const totalAtrasado = pagamentos?.filter(p => p.status === "atrasado").reduce((acc, p) => acc + Number(p.valor), 0) || 0;
-  const qtdPendente = pagamentos?.filter(p => p.status === "pendente").length || 0;
-  const qtdAtrasado = pagamentos?.filter(p => p.status === "atrasado").length || 0;
-  const ticketMedio = pagamentos?.length ? pagamentos.reduce((acc, p) => acc + Number(p.valor), 0) / pagamentos.length : 0;
+  // Stats based on selected month
+  const totalRecebido = monthPagamentos.filter(p => p.status === "pago").reduce((acc, p) => acc + Number(p.valor), 0);
+  const totalPendente = monthPagamentos.filter(p => p.status === "pendente").reduce((acc, p) => acc + Number(p.valor), 0);
+  const totalAtrasado = monthPagamentos.filter(p => p.status === "atrasado").reduce((acc, p) => acc + Number(p.valor), 0);
+  const qtdPendente = monthPagamentos.filter(p => p.status === "pendente").length;
+  const qtdAtrasado = monthPagamentos.filter(p => p.status === "atrasado").length;
+  const ticketMedio = monthPagamentos.length ? monthPagamentos.reduce((acc, p) => acc + Number(p.valor), 0) / monthPagamentos.length : 0;
 
-  const monthlyData = pagamentos?.reduce((acc, pagamento) => {
-    if (!pagamento.data_vencimento) return acc;
-    const date = new Date(pagamento.data_vencimento + "T00:00:00");
-    if (isNaN(date.getTime())) return acc;
-    const monthKey = date.toLocaleDateString("pt-BR", { month: "short" });
-    const existing = acc.find(a => a.month === monthKey);
-    if (existing) existing.valor += Number(pagamento.valor);
-    else acc.push({ month: monthKey, valor: Number(pagamento.valor) });
-    return acc;
-  }, [] as { month: string; valor: number }[]) || [];
+  // Revenue chart: show all months of selected year
+  const monthOrder = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+  const yearlyChartData = useMemo(() => {
+    return monthOrder.map((month, index) => {
+      const mp = pagamentos?.filter(p => {
+        if (!p.data_vencimento) return false;
+        const date = new Date(p.data_vencimento + "T00:00:00");
+        return date.getMonth() === index && date.getFullYear() === selectedYear;
+      }) || [];
+      const recebido = mp.filter(p => p.status === "pago").reduce((acc, p) => acc + Number(p.valor), 0);
+      const pendente = mp.filter(p => p.status !== "pago").reduce((acc, p) => acc + Number(p.valor), 0);
+      return { mes: month, recebido, pendente };
+    }).filter(d => d.recebido > 0 || d.pendente > 0);
+  }, [pagamentos, selectedYear]);
 
-  const pagos = pagamentos?.filter(p => p.status === "pago").length || 0;
-  const pendentes = pagamentos?.filter(p => p.status === "pendente").length || 0;
-  const atrasados = pagamentos?.filter(p => p.status === "atrasado").length || 0;
+  // Payment status pie chart for selected month
+  const pagos = monthPagamentos.filter(p => p.status === "pago").length;
+  const pendentes = monthPagamentos.filter(p => p.status === "pendente").length;
+  const atrasados = monthPagamentos.filter(p => p.status === "atrasado").length;
   const total = pagos + pendentes + atrasados || 1;
 
   const paymentsByStatus = [
-    { name: "Pagos", value: Math.round((pagos / total) * 100), color: "hsl(142, 76%, 45%)" },
-    { name: "Pendentes", value: Math.round((pendentes / total) * 100), color: "hsl(38, 92%, 50%)" },
-    { name: "Atrasados", value: Math.round((atrasados / total) * 100), color: "hsl(0, 84%, 60%)" },
+    { name: "Pagos", value: pagos, percent: Math.round((pagos / total) * 100), color: "hsl(142, 76%, 45%)" },
+    { name: "Pendentes", value: pendentes, percent: Math.round((pendentes / total) * 100), color: "hsl(38, 92%, 50%)" },
+    { name: "Atrasados", value: atrasados, percent: Math.round((atrasados / total) * 100), color: "hsl(0, 84%, 60%)" },
   ];
 
-  const recentPayments = filteredPagamentos?.slice(0, 10) || [];
+  const recentPayments = filteredPagamentos.slice(0, 10);
 
   const getAlunoName = (alunoId: string | null) => {
     if (!alunoId) return "Sem aluno";
     return alunos?.find(a => a.id === alunoId)?.nome || "Aluno não encontrado";
   };
+
+  // Get course value for selected student
+  const selectedStudentCourseValue = useMemo(() => {
+    if (!newPagamento.aluno_id || !matriculas || !cursos) return null;
+    const mat = matriculas.find(m => m.aluno_id === newPagamento.aluno_id && m.status === "ativo");
+    if (!mat) return null;
+    const curso = cursos.find(c => c.id === mat.curso_id);
+    return curso?.valor_mensal ?? null;
+  }, [newPagamento.aluno_id, matriculas, cursos]);
 
   const handleCreatePagamento = async () => {
     if (!newPagamento.valor || !newPagamento.data_vencimento) {
@@ -118,6 +154,7 @@ export default function Financeiro() {
     }
     
     const baseDate = new Date(newPagamento.data_vencimento + "T00:00:00");
+    const valorPorMes = numMeses > 1 ? Number((newPagamento.valor / numMeses).toFixed(2)) : newPagamento.valor;
     const promises = [];
     
     for (let i = 0; i < numMeses; i++) {
@@ -131,6 +168,7 @@ export default function Financeiro() {
         createPagamentoMutation.mutateAsync({
           ...newPagamento,
           aluno_id: newPagamento.aluno_id || undefined,
+          valor: valorPorMes,
           data_vencimento: dateStr,
           referencia: ref,
         })
@@ -143,7 +181,7 @@ export default function Financeiro() {
       setNewPagamento({ aluno_id: "", valor: 0, data_vencimento: "", status: "pendente", tipo: "mensalidade", metodo_pagamento: "", referencia: "" });
       setNumMeses(1);
       if (numMeses > 1) {
-        toast({ title: `${numMeses} pagamentos registrados!`, description: "Pagamentos adiantados criados com sucesso." });
+        toast({ title: `${numMeses} pagamentos registrados!`, description: `Valor de ${valorPorMes.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} por mês.` });
       }
     } catch {
       // Error already handled by mutation
@@ -202,9 +240,15 @@ export default function Financeiro() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                    <Label>Valor (R$) *</Label>
+                    <Label>Valor Total (R$) *</Label>
                     <Input type="number" step="0.01" placeholder="0,00" value={newPagamento.valor || ""}
                       onChange={(e) => setNewPagamento(prev => ({ ...prev, valor: parseFloat(e.target.value) || 0 }))} />
+                    {selectedStudentCourseValue !== null && (
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 rounded-md px-2 py-1.5">
+                        <Info className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                        <span>Mensalidade do curso: <strong className="text-foreground">{selectedStudentCourseValue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong></span>
+                      </div>
+                    )}
                   </div>
                   <div className="grid gap-2">
                     <Label>Vencimento *</Label>
@@ -261,7 +305,7 @@ export default function Financeiro() {
                       onChange={(e) => setNumMeses(Math.max(1, Math.min(12, parseInt(e.target.value) || 1)))} />
                     {numMeses > 1 && (
                       <p className="text-xs text-muted-foreground">
-                        Serão criados {numMeses} pagamentos de {Number(newPagamento.valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} cada
+                        {numMeses} parcelas de <strong>{Number((newPagamento.valor / numMeses).toFixed(2)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong>
                       </p>
                     )}
                   </div>
@@ -302,7 +346,7 @@ export default function Financeiro() {
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground">Receita Total</p>
+                      <p className="text-sm text-muted-foreground">Receita ({meses[selectedMonth].slice(0, 3)})</p>
                       <p className="text-3xl font-bold mt-2">{totalRecebido.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
                       <div className="flex items-center gap-1 mt-2">
                         <TrendingUp className="w-4 h-4 text-success" />
@@ -373,53 +417,56 @@ export default function Financeiro() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="lg:col-span-2">
               <Card variant="glass">
-                <CardHeader><CardTitle className="text-lg">Evolução da Receita</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-lg">Recebido vs Pendente ({selectedYear})</CardTitle></CardHeader>
                 <CardContent>
                   <div className="h-[300px]">
-                    {monthlyData.length > 0 ? (
+                    {yearlyChartData.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={monthlyData}>
-                          <defs>
-                            <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="hsl(270, 100%, 50%)" stopOpacity={0.4} />
-                              <stop offset="95%" stopColor="hsl(270, 100%, 50%)" stopOpacity={0} />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(0, 0%, 20%)" />
-                          <XAxis dataKey="month" stroke="hsl(0, 0%, 60%)" fontSize={12} />
-                          <YAxis stroke="hsl(0, 0%, 60%)" fontSize={12} tickFormatter={(v) => `R$${v/1000}k`} />
-                          <Tooltip contentStyle={{ backgroundColor: "hsl(0, 0%, 8%)", border: "1px solid hsl(0, 0%, 15%)", borderRadius: "8px" }}
-                            formatter={(value: number) => [`R$ ${value.toLocaleString()}`, "Receita"]} />
-                          <Area type="monotone" dataKey="valor" stroke="hsl(270, 100%, 50%)" strokeWidth={2} fill="url(#colorValor)" />
-                        </AreaChart>
+                        <BarChart data={yearlyChartData} barGap={2}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="mes" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                          <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false}
+                            tickFormatter={(v) => `R$${v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}`} />
+                          <Tooltip contentStyle={themedTooltipStyle}
+                            formatter={(value: number) => [value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }), ""]} />
+                          <Legend />
+                          <Bar dataKey="recebido" fill="hsl(142, 76%, 45%)" radius={[4, 4, 0, 0]} name="Recebido" />
+                          <Bar dataKey="pendente" fill="hsl(38, 92%, 50%)" radius={[4, 4, 0, 0]} name="Pendente" />
+                        </BarChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="flex items-center justify-center h-full text-muted-foreground">Sem dados para exibir</div>
+                      <div className="flex items-center justify-center h-full text-muted-foreground">Sem dados para {selectedYear}</div>
                     )}
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
-              <Card variant="glass">
-                <CardHeader><CardTitle className="text-lg">Status dos Pagamentos</CardTitle></CardHeader>
+              <Card variant="glass" className="h-full">
+                <CardHeader><CardTitle className="text-lg">Status ({meses[selectedMonth].slice(0, 3)})</CardTitle></CardHeader>
                 <CardContent>
                   <div className="h-[200px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <Pie data={paymentsByStatus} cx="50%" cy="50%" innerRadius={60} outerRadius={80} dataKey="value" paddingAngle={5}>
+                        <Pie data={paymentsByStatus} cx="50%" cy="50%" innerRadius={55} outerRadius={80} dataKey="value" paddingAngle={4} strokeWidth={0}>
                           {paymentsByStatus.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
                         </Pie>
-                        <Tooltip contentStyle={{ backgroundColor: "hsl(0, 0%, 8%)", border: "1px solid hsl(0, 0%, 15%)", borderRadius: "8px" }}
-                          formatter={(value: number) => [`${value}%`, ""]} />
+                        <Tooltip contentStyle={themedTooltipStyle}
+                          formatter={(value: number, name: string) => [`${value} pagamentos`, name]} />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
-                  <div className="flex justify-center gap-4 mt-4">
+                  <div className="flex flex-col gap-2 mt-2">
                     {paymentsByStatus.map((item) => (
-                      <div key={item.name} className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                        <span className="text-sm text-muted-foreground">{item.name}</span>
+                      <div key={item.name} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+                          <span className="text-sm text-muted-foreground">{item.name}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-foreground">{item.value}</span>
+                          <span className="text-xs text-muted-foreground">({item.percent}%)</span>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -432,12 +479,12 @@ export default function Financeiro() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
             <Card variant="glass">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg">Últimos Pagamentos</CardTitle>
+                <CardTitle className="text-lg">Pagamentos de {meses[selectedMonth]} {selectedYear}</CardTitle>
                 <FilterPopover filters={filterOptions} values={filterValues} onChange={setFilterValues} />
               </CardHeader>
               <CardContent>
                 {recentPayments.length === 0 ? (
-                  <div className="py-8 text-center text-muted-foreground">Nenhum pagamento registrado</div>
+                  <div className="py-8 text-center text-muted-foreground">Nenhum pagamento em {meses[selectedMonth]} {selectedYear}</div>
                 ) : (
                   <div className="space-y-3">
                     {recentPayments.map((payment, index) => (
