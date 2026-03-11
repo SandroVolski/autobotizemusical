@@ -54,6 +54,8 @@ import { useMatriculas } from "@/hooks/useMatriculas";
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useAulas } from "@/hooks/useAulas";
 import { usePresencas } from "@/hooks/usePresencas";
+import { getStudentPaymentStatus } from "@/hooks/usePaymentStatus";
+import { PaymentStatusDot } from "@/components/ui/payment-status-dot";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { EnrollmentDialog } from "@/components/alunos/EnrollmentDialog";
