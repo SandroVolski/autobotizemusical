@@ -102,7 +102,7 @@ export function AppSidebar() {
   const { data: configuracoes } = useConfiguracoes();
 
   const badgeValues: Record<string, number | undefined> = {
-    alunos: alunos?.length,
+    alunos: alunos?.filter((a) => a.status === "ativo").length,
     financeiro: pagamentos?.filter((p) => p.status === "pendente").length,
   };
 
