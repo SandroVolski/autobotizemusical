@@ -353,7 +353,7 @@ export default function Alunos() {
       nivel: aluno.nivel || "iniciante",
       objetivo: aluno.objetivo || "",
       observacoes: aluno.observacoes || "",
-      dia_vencimento: aluno.dia_vencimento || 10,
+      dia_vencimento: aluno.dia_vencimento || undefined,
     });
     setPhotoFile(null);
     setPhotoPreview(aluno.foto_url || null);
