@@ -648,8 +648,8 @@ export default function Alunos() {
                     </div>
                     <div className="grid gap-2">
                       <Label>Duração</Label>
-                      <Select value={String(aulaDuracao)} onValueChange={(v) => setAulaDuracao(Number(v))}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                      <Select value={aulaDuracao !== "" ? String(aulaDuracao) : ""} onValueChange={(v) => setAulaDuracao(Number(v))}>
+                        <SelectTrigger><SelectValue placeholder="Duração" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="30">30 min</SelectItem>
                           <SelectItem value="45">45 min</SelectItem>

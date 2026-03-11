@@ -24,6 +24,15 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Parse optional body params for manual dispatch
+    let manualAlunoId: string | null = null;
+    let forceManual = false;
+    try {
+      const body = await req.json();
+      manualAlunoId = body?.aluno_id || null;
+      forceManual = !!body?.aluno_id || body?.force === true;
+    } catch { /* no body = cron call */ }
+
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     const now = new Date();
@@ -31,19 +40,22 @@ Deno.serve(async (req) => {
     const currentDayOfWeek = in24h.getDay();
 
     // 1) Get RECURRING classes for the day 24h from now
-    const { data: recurringAulas, error: recurringError } = await supabase
+    let recurringQuery = supabase
       .from("aulas")
       .select("id, aluno_id, horario, dia_semana, alunos(nome, telefone, responsavel_telefone)")
       .eq("status", "agendada")
       .eq("recorrente", true)
       .eq("dia_semana", currentDayOfWeek);
 
+    if (manualAlunoId) recurringQuery = recurringQuery.eq("aluno_id", manualAlunoId);
+
+    const { data: recurringAulas, error: recurringError } = await recurringQuery;
     if (recurringError) throw recurringError;
 
     // 2) Get ONE-OFF classes (data_especifica) within next 24h
     const nowISO = now.toISOString().split("T")[0];
     const in24hISO = in24h.toISOString().split("T")[0];
-    const { data: oneOffAulas, error: oneOffError } = await supabase
+    let oneOffQuery = supabase
       .from("aulas")
       .select("id, aluno_id, horario, dia_semana, data_especifica, alunos(nome, telefone, responsavel_telefone)")
       .eq("status", "agendada")
@@ -51,6 +63,9 @@ Deno.serve(async (req) => {
       .gte("data_especifica", nowISO)
       .lte("data_especifica", in24hISO);
 
+    if (manualAlunoId) oneOffQuery = oneOffQuery.eq("aluno_id", manualAlunoId);
+
+    const { data: oneOffAulas, error: oneOffError } = await oneOffQuery;
     if (oneOffError) throw oneOffError;
 
     // Combine both lists, deduplicating by id
@@ -62,15 +77,18 @@ Deno.serve(async (req) => {
       return true;
     });
 
-    // Get enabled configs
-    const { data: configs, error: configsError } = await supabase
-      .from("confirmacao_aula_config")
-      .select("aluno_id, habilitado, telefone_override")
-      .eq("habilitado", true);
+    // Get enabled configs (skip this filter for manual sends)
+    let configs: any[] = [];
+    if (!forceManual) {
+      const { data: cfgs, error: configsError } = await supabase
+        .from("confirmacao_aula_config")
+        .select("aluno_id, habilitado, telefone_override")
+        .eq("habilitado", true);
+      if (configsError) throw configsError;
+      configs = cfgs || [];
+    }
 
-    if (configsError) throw configsError;
-
-    // Get custom message template (from first configuracoes_escola record)
+    // Get custom message template
     const { data: escolaConfig } = await supabase
       .from("configuracoes_escola")
       .select("mensagem_confirmacao")
@@ -80,22 +98,27 @@ Deno.serve(async (req) => {
     const defaultMsg = `Olá {nome}! 🎵\n\nLembramos que você tem aula amanhã ({dia}) às {horario}.\n\nVocê confirma presença?\n\n✅ Responda *SIM* para confirmar\n❌ Responda *NÃO* para cancelar`;
     const msgTemplate = (escolaConfig as any)?.mensagem_confirmacao || defaultMsg;
 
-    const enabledSet = new Map(configs?.map((c: any) => [c.aluno_id, c]) || []);
+    const enabledSet = new Map(configs.map((c: any) => [c.aluno_id, c]));
     let sent = 0;
     let errors = 0;
 
     const diasSemana = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
     for (const aula of aulas) {
-      const config = enabledSet.get(aula.aluno_id);
-      if (!config) continue;
-
       const aluno = aula.alunos as any;
       if (!aluno) continue;
 
-      const telefone = config.telefone_override || aluno.telefone || aluno.responsavel_telefone;
-      if (!telefone) continue;
+      // For manual sends, use aluno's phone directly; for auto, check config
+      let telefone: string;
+      if (forceManual) {
+        telefone = aluno.telefone || aluno.responsavel_telefone || "";
+      } else {
+        const config = enabledSet.get(aula.aluno_id);
+        if (!config) continue;
+        telefone = config.telefone_override || aluno.telefone || aluno.responsavel_telefone || "";
+      }
 
+      if (!telefone) continue;
       const cleanPhone = telefone.replace(/\D/g, "");
       if (cleanPhone.length < 10) continue;
       const phoneWithCountry = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
@@ -123,17 +146,19 @@ Deno.serve(async (req) => {
         .replace(/\{dia\}/g, diaNome)
         .replace(/\{horario\}/g, horarioFormatado);
 
-      // Check if already sent today for this class
-      const today = now.toISOString().split("T")[0];
-      const { data: existing } = await supabase
-        .from("confirmacao_aula_mensagens")
-        .select("id")
-        .eq("aluno_id", aula.aluno_id)
-        .eq("aula_id", aula.id)
-        .gte("created_at", `${today}T00:00:00`)
-        .limit(1);
+      // Check if already sent today for this class (skip for manual force)
+      if (!forceManual) {
+        const today = now.toISOString().split("T")[0];
+        const { data: existing } = await supabase
+          .from("confirmacao_aula_mensagens")
+          .select("id")
+          .eq("aluno_id", aula.aluno_id)
+          .eq("aula_id", aula.id)
+          .gte("created_at", `${today}T00:00:00`)
+          .limit(1);
 
-      if (existing && existing.length > 0) continue;
+        if (existing && existing.length > 0) continue;
+      }
 
       let status = "enviado";
       let erro = null;
