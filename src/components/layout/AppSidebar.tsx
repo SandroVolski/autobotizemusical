@@ -137,14 +137,15 @@ export function AppSidebar() {
           to={item.path}
           onClick={handleNavClick}
           className={cn(
-            "flex items-center gap-3 rounded-lg transition-all duration-200 group relative text-sm px-3 py-2",
+            "flex items-center rounded-lg transition-all duration-200 group relative text-sm h-10",
+            showLabel ? "gap-3 px-3" : "justify-center px-0",
             collapsed && !isMobile && "overflow-hidden",
             isActive
               ? "bg-primary/20 text-primary border border-primary/30"
               : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
           )}
         >
-          <item.icon className={cn("w-4 h-4 flex-shrink-0 transition-colors", isActive ? "text-primary" : "group-hover:text-secondary")} />
+          <item.icon className={cn("w-5 h-5 flex-shrink-0 transition-colors", isActive ? "text-primary" : "group-hover:text-secondary")} />
           {showLabel && (
             <span className="flex-1 whitespace-nowrap font-medium">{item.label}</span>
           )}
@@ -160,8 +161,8 @@ export function AppSidebar() {
   };
 
   const renderGroups = (showLabel: boolean) => (
-    <nav className={cn("flex-1 py-2 px-2 transition-all duration-200", collapsed && !isMobile ? "overflow-hidden" : "overflow-y-auto")}>
-      <div className="space-y-1">
+    <nav className={cn("flex-1 py-2 transition-all duration-200", showLabel ? "px-2" : "px-1.5", collapsed && !isMobile ? "overflow-hidden" : "overflow-y-auto")}>
+      <div className={cn(showLabel ? "space-y-1" : "space-y-0.5")}>
         {menuGroups.map((group) => {
           const open = isGroupOpen(group);
           return (
@@ -178,9 +179,11 @@ export function AppSidebar() {
                 <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
                   {group.label}
                 </p>
+              ) : !showLabel ? (
+                <div className="my-1 mx-2 h-px bg-sidebar-border" />
               ) : null}
               {(open || !showLabel) && (
-                <ul className="space-y-0.5 mt-1">
+                <ul className="space-y-0.5 mt-0.5">
                   {group.items.map((item) => renderNavItem(item, showLabel))}
                 </ul>
               )}
@@ -192,7 +195,7 @@ export function AppSidebar() {
   );
 
   const renderLogo = (showLabel: boolean) => (
-    <div className="p-4 border-b border-sidebar-border">
+    <div className={cn("border-b border-sidebar-border", showLabel ? "p-4" : "py-4 flex justify-center")}>
       <div className="flex items-center gap-3">
         {configuracoes?.logo_url ? (
           <img src={configuracoes.logo_url} alt="Logo" className="w-10 h-10 object-contain flex-shrink-0" />
@@ -271,13 +274,16 @@ export function AppSidebar() {
     >
       {renderLogo(!collapsed)}
       {renderGroups(!collapsed)}
-      <div className="p-3 border-t border-sidebar-border">
+      <div className={cn("border-t border-sidebar-border", collapsed ? "py-3 flex justify-center" : "p-3")}>
         <Button
           variant="ghost"
           onClick={handleSignOut}
-          className={cn("w-full justify-start gap-3 text-muted-foreground hover:text-destructive overflow-hidden")}
+          className={cn(
+            "text-muted-foreground hover:text-destructive overflow-hidden",
+            collapsed ? "w-10 h-10 p-0 justify-center" : "w-full justify-start gap-3"
+          )}
         >
-          <LogOut className="w-5 h-5" />
+          <LogOut className="w-5 h-5 flex-shrink-0" />
           {!collapsed && <span className="text-sm">Sair</span>}
         </Button>
       </div>

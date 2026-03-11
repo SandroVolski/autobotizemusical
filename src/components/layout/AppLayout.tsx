@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import { motion } from "framer-motion";
@@ -8,7 +8,6 @@ import { useSidebar } from "@/contexts/SidebarContext";
 import { NotificationsDropdown } from "@/components/notifications/NotificationsDropdown";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { useAuth } from "@/contexts/AuthContext";
-
 interface AppLayoutProps {
   children: ReactNode;
 }
@@ -43,6 +42,28 @@ export function AppLayout({ children }: AppLayoutProps) {
   const basePath = "/" + location.pathname.split("/").filter(Boolean)[0];
   const pageTitle = pageTitles[basePath] || "";
 
+  // Auto-hide header on scroll
+  const [headerVisible, setHeaderVisible] = useState(true);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const mainEl = document.getElementById("main-scroll-area");
+    if (!mainEl) return;
+    const handleScroll = () => {
+      const currentY = mainEl.scrollTop;
+      if (currentY <= 10) {
+        setHeaderVisible(true);
+      } else if (currentY > lastScrollY.current) {
+        setHeaderVisible(false);
+      } else {
+        setHeaderVisible(true);
+      }
+      lastScrollY.current = currentY;
+    };
+    mainEl.addEventListener("scroll", handleScroll, { passive: true });
+    return () => mainEl.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background relative">
       {/* Full-page gradient overlay */}
@@ -56,12 +77,18 @@ export function AppLayout({ children }: AppLayoutProps) {
           width: `calc(100% - ${sidebarWidth}px)`,
         }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="min-h-screen flex flex-col"
+        className="min-h-screen flex flex-col overflow-y-auto"
+        id="main-scroll-area"
       >
-        {/* Elegant Header */}
-        <header className="sticky top-0 z-40 h-14 lg:h-16 bg-transparent border-b border-transparent">
+        {/* Elegant Header - hides on scroll down */}
+        <motion.header
+          initial={false}
+          animate={{ y: headerVisible ? 0 : -64, opacity: headerVisible ? 1 : 0 }}
+          transition={{ duration: 0.25, ease: "easeInOut" }}
+          className="sticky top-0 z-40 h-14 lg:h-16 bg-transparent border-b border-transparent"
+        >
           <div className="flex items-center justify-between h-full px-4 lg:px-6">
-            {/* Left: Mobile menu + Page context */}
+            {/* Left: Mobile menu */}
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
@@ -71,8 +98,6 @@ export function AppLayout({ children }: AppLayoutProps) {
               >
                 <Menu className="w-5 h-5" />
               </Button>
-
-              
             </div>
 
             {/* Right: Actions + Profile */}
@@ -92,7 +117,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               </div>
             </div>
           </div>
-        </header>
+        </motion.header>
 
         {/* Page content */}
         <div className="flex-1 p-4 lg:p-6 max-w-full overflow-x-hidden">
