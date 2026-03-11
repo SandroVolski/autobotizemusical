@@ -118,6 +118,7 @@ export default function Alunos() {
     nivel: "iniciante",
     objetivo: "",
     observacoes: "",
+    dia_vencimento: 10,
   });
   const [tipoAula, setTipoAula] = useState<"individual" | "turma" | "avulso" | "">(""); 
   const [aulaDiaSemana, setAulaDiaSemana] = useState<number | "">("");
