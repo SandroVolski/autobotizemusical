@@ -58,6 +58,7 @@ export default function Financeiro() {
   const [newPagamento, setNewPagamento] = useState<NovoPagamento>({
     aluno_id: "", valor: 0, data_vencimento: "", status: "pendente", tipo: "mensalidade", metodo_pagamento: "", referencia: "",
   });
+  const [numMeses, setNumMeses] = useState(1);
 
   const { data: pagamentos, isLoading } = usePagamentos();
   const { data: alunos } = useAlunos();
