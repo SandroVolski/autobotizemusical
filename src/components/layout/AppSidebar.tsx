@@ -211,7 +211,7 @@ export function AppSidebar() {
   );
 
   const renderLogo = (showLabel: boolean) => (
-    <div className={cn("border-b border-sidebar-border", showLabel ? "p-4" : "py-4 flex justify-center")}>
+    <div className="border-b border-sidebar-border p-4 h-[72px] flex items-center">
       <div className="flex items-center gap-3">
         {configuracoes?.logo_url ? (
           <img src={configuracoes.logo_url} alt="Logo" className="w-10 h-10 object-contain flex-shrink-0" />
