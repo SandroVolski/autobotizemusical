@@ -77,12 +77,18 @@ export function AppLayout({ children }: AppLayoutProps) {
           width: `calc(100% - ${sidebarWidth}px)`,
         }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="min-h-screen flex flex-col"
+        className="min-h-screen flex flex-col overflow-y-auto"
+        id="main-scroll-area"
       >
-        {/* Elegant Header */}
-        <header className="sticky top-0 z-40 h-14 lg:h-16 bg-transparent border-b border-transparent">
+        {/* Elegant Header - hides on scroll down */}
+        <motion.header
+          initial={false}
+          animate={{ y: headerVisible ? 0 : -64, opacity: headerVisible ? 1 : 0 }}
+          transition={{ duration: 0.25, ease: "easeInOut" }}
+          className="sticky top-0 z-40 h-14 lg:h-16 bg-transparent border-b border-transparent"
+        >
           <div className="flex items-center justify-between h-full px-4 lg:px-6">
-            {/* Left: Mobile menu + Page context */}
+            {/* Left: Mobile menu */}
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
@@ -92,8 +98,6 @@ export function AppLayout({ children }: AppLayoutProps) {
               >
                 <Menu className="w-5 h-5" />
               </Button>
-
-              
             </div>
 
             {/* Right: Actions + Profile */}
@@ -113,7 +117,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               </div>
             </div>
           </div>
-        </header>
+        </motion.header>
 
         {/* Page content */}
         <div className="flex-1 p-4 lg:p-6 max-w-full overflow-x-hidden">
