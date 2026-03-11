@@ -358,7 +358,10 @@ export default function Pedagogico() {
                         <p className="text-sm text-muted-foreground line-clamp-2">{plano.objetivos}</p>
                       )}
                       <div className="flex gap-2 pt-2">
-                        <Button variant="outline" className="flex-1">
+                        <Button variant="outline" className="flex-1" onClick={() => {
+                          setSelectedPlano(plano);
+                          setIsDetailsOpen(true);
+                        }}>
                           Ver Detalhes
                         </Button>
                         <Button 
