@@ -19,27 +19,48 @@ Deno.serve(async (req) => {
 
     if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY || !EVOLUTION_INSTANCE) {
       return new Response(
-        JSON.stringify({ error: "Evolution API não configurada. Configure EVOLUTION_API_URL, EVOLUTION_API_KEY e EVOLUTION_INSTANCE." }),
+        JSON.stringify({ error: "Evolution API não configurada." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Get current time and 24h window
     const now = new Date();
     const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-    const currentDayOfWeek = in24h.getDay(); // 0=Sunday
+    const currentDayOfWeek = in24h.getDay();
 
-    // Get all recurring classes that happen on the day 24h from now
-    const { data: aulas, error: aulasError } = await supabase
+    // 1) Get RECURRING classes for the day 24h from now
+    const { data: recurringAulas, error: recurringError } = await supabase
       .from("aulas")
       .select("id, aluno_id, horario, dia_semana, alunos(nome, telefone, responsavel_telefone)")
       .eq("status", "agendada")
       .eq("recorrente", true)
       .eq("dia_semana", currentDayOfWeek);
 
-    if (aulasError) throw aulasError;
+    if (recurringError) throw recurringError;
+
+    // 2) Get ONE-OFF classes (data_especifica) within next 24h
+    const nowISO = now.toISOString().split("T")[0];
+    const in24hISO = in24h.toISOString().split("T")[0];
+    const { data: oneOffAulas, error: oneOffError } = await supabase
+      .from("aulas")
+      .select("id, aluno_id, horario, dia_semana, data_especifica, alunos(nome, telefone, responsavel_telefone)")
+      .eq("status", "agendada")
+      .or(`recorrente.eq.false,recorrente.is.null`)
+      .gte("data_especifica", nowISO)
+      .lte("data_especifica", in24hISO);
+
+    if (oneOffError) throw oneOffError;
+
+    // Combine both lists, deduplicating by id
+    const allAulas = [...(recurringAulas || []), ...(oneOffAulas || [])];
+    const seen = new Set<string>();
+    const aulas = allAulas.filter(a => {
+      if (seen.has(a.id)) return false;
+      seen.add(a.id);
+      return true;
+    });
 
     // Get enabled configs
     const { data: configs, error: configsError } = await supabase
@@ -49,11 +70,23 @@ Deno.serve(async (req) => {
 
     if (configsError) throw configsError;
 
+    // Get custom message template (from first configuracoes_escola record)
+    const { data: escolaConfig } = await supabase
+      .from("configuracoes_escola")
+      .select("mensagem_confirmacao")
+      .limit(1)
+      .maybeSingle();
+
+    const defaultMsg = `Olá {nome}! 🎵\n\nLembramos que você tem aula amanhã ({dia}) às {horario}.\n\nVocê confirma presença?\n\n✅ Responda *SIM* para confirmar\n❌ Responda *NÃO* para cancelar`;
+    const msgTemplate = (escolaConfig as any)?.mensagem_confirmacao || defaultMsg;
+
     const enabledSet = new Map(configs?.map((c: any) => [c.aluno_id, c]) || []);
     let sent = 0;
     let errors = 0;
 
-    for (const aula of (aulas || [])) {
+    const diasSemana = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+
+    for (const aula of aulas) {
       const config = enabledSet.get(aula.aluno_id);
       if (!config) continue;
 
@@ -63,23 +96,32 @@ Deno.serve(async (req) => {
       const telefone = config.telefone_override || aluno.telefone || aluno.responsavel_telefone;
       if (!telefone) continue;
 
-      // Clean phone number
       const cleanPhone = telefone.replace(/\D/g, "");
       if (cleanPhone.length < 10) continue;
       const phoneWithCountry = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
 
-      // Build date for data_aula
-      const aulaDate = new Date(in24h);
+      // Determine the actual date of the class
+      let aulaDate: Date;
+      if (aula.data_especifica) {
+        aulaDate = new Date(aula.data_especifica + "T00:00:00");
+      } else {
+        aulaDate = new Date(in24h);
+      }
+      
       if (aula.horario) {
         const [h, m] = aula.horario.split(":");
         aulaDate.setHours(parseInt(h), parseInt(m), 0, 0);
       }
 
+      const dayIndex = aula.data_especifica ? new Date(aula.data_especifica).getDay() : currentDayOfWeek;
       const horarioFormatado = aula.horario ? aula.horario.substring(0, 5) : "";
-      const diasSemana = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
-      const diaNome = diasSemana[currentDayOfWeek];
+      const diaNome = diasSemana[dayIndex];
 
-      const mensagem = `Olá ${aluno.nome}! 🎵\n\nLembramos que você tem aula amanhã (${diaNome}) às ${horarioFormatado}.\n\nVocê confirma presença?\n\n✅ Responda *SIM* para confirmar\n❌ Responda *NÃO* para cancelar`;
+      // Build message from template
+      const mensagem = msgTemplate
+        .replace(/\{nome\}/g, aluno.nome)
+        .replace(/\{dia\}/g, diaNome)
+        .replace(/\{horario\}/g, horarioFormatado);
 
       // Check if already sent today for this class
       const today = now.toISOString().split("T")[0];
@@ -93,7 +135,6 @@ Deno.serve(async (req) => {
 
       if (existing && existing.length > 0) continue;
 
-      // Send via Evolution API
       let status = "enviado";
       let erro = null;
 
@@ -125,7 +166,6 @@ Deno.serve(async (req) => {
         errors++;
       }
 
-      // Log the message
       await supabase.from("confirmacao_aula_mensagens").insert({
         aluno_id: aula.aluno_id,
         aula_id: aula.id,

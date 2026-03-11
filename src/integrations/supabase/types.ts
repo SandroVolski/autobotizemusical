@@ -259,6 +259,7 @@ export type Database = {
           horario_funcionamento: Json | null
           id: string
           logo_url: string | null
+          mensagem_confirmacao: string | null
           nome: string
           telefone: string | null
           updated_at: string | null
@@ -276,6 +277,7 @@ export type Database = {
           horario_funcionamento?: Json | null
           id?: string
           logo_url?: string | null
+          mensagem_confirmacao?: string | null
           nome?: string
           telefone?: string | null
           updated_at?: string | null
@@ -293,6 +295,7 @@ export type Database = {
           horario_funcionamento?: Json | null
           id?: string
           logo_url?: string | null
+          mensagem_confirmacao?: string | null
           nome?: string
           telefone?: string | null
           updated_at?: string | null

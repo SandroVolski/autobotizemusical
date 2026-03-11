@@ -47,6 +47,7 @@ import { useAulas, useCreateAula, useDeleteAula, type NovaAula, type Aula } from
 import { useAlunos } from "@/hooks/useAlunos";
 import { useProfessores } from "@/hooks/useProfessores";
 import { useCursos } from "@/hooks/useCursos";
+import { useTurmas } from "@/hooks/useTurmas";
 import { toast } from "@/hooks/use-toast";
 import { AttendanceDialog } from "@/components/agenda/AttendanceDialog";
 import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
@@ -123,8 +124,37 @@ export default function Agenda() {
   const { data: alunos } = useAlunos();
   const { data: professores } = useProfessores();
   const { data: cursos } = useCursos();
+  const { data: turmas } = useTurmas();
   const createAulaMutation = useCreateAula();
   const deleteAulaMutation = useDeleteAula();
+
+  // Convert turmas to virtual aula entries for display
+  const turmaAulas: Aula[] = useMemo(() => {
+    if (!turmas) return [];
+    return turmas.map((t: any) => ({
+      id: `turma-${t.id}`,
+      aluno_id: null,
+      professor_id: t.professor_id,
+      curso_id: t.curso_id,
+      tipo: "grupo",
+      dia_semana: t.dia_semana,
+      horario: t.horario,
+      duracao_minutos: t.duracao_minutos || 60,
+      sala: t.sala,
+      data_especifica: null,
+      data_inicio: null,
+      data_fim: null,
+      recorrente: true,
+      status: t.status === "ativa" ? "agendada" : "cancelada",
+      observacoes: null,
+      valor: null,
+      created_at: t.created_at,
+      updated_at: t.updated_at,
+      alunos: { nome: t.nome },
+      professores: t.professores || null,
+      cursos: t.cursos || null,
+    }));
+  }, [turmas]);
 
   // Filter options
   const filterOptions: FilterOption[] = useMemo(() => [
@@ -146,21 +176,21 @@ export default function Agenda() {
       type: "select",
       options: [
         { value: "individual", label: "Individual" },
-        { value: "grupo", label: "Grupo" },
+        { value: "grupo", label: "Grupo/Turma" },
       ],
     },
   ], [professores, cursos]);
 
-  // Apply filters
+  // Apply filters - combine aulas and turma virtual entries
   const filteredAulas = useMemo(() => {
-    if (!aulas) return [];
-    return aulas.filter(aula => {
+    const combined = [...(aulas || []), ...turmaAulas];
+    return combined.filter(aula => {
       if (filterValues.professor && aula.professor_id !== filterValues.professor) return false;
       if (filterValues.curso && aula.curso_id !== filterValues.curso) return false;
       if (filterValues.tipo && aula.tipo !== filterValues.tipo) return false;
       return true;
     });
-  }, [aulas, filterValues]);
+  }, [aulas, turmaAulas, filterValues]);
 
   const getWeekDates = () => {
     const dates = [];
@@ -456,6 +486,21 @@ export default function Agenda() {
                       onChange={(e) => setNewAula(prev => ({ ...prev, sala: e.target.value }))}
                     />
                   </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label>Recorrente</Label>
+                  <Select
+                    value={newAula.recorrente === false ? "false" : "true"}
+                    onValueChange={(value) => setNewAula(prev => ({ ...prev, recorrente: value === "true" }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">Sim (Semanal)</SelectItem>
+                      <SelectItem value="false">Não (Avulsa)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 {hasConflict && (
                   <div className="flex items-center gap-2 p-3 rounded-lg bg-warning/20 border border-warning/40">
