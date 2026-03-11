@@ -44,6 +44,16 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Validate webhook authenticity via API key header
+    const webhookApiKey = req.headers.get("apikey");
+    const expectedKey = Deno.env.get("EVOLUTION_API_KEY");
+    if (!webhookApiKey || webhookApiKey !== expectedKey) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json();
     console.log("Webhook received:", JSON.stringify(body).substring(0, 1000));
 

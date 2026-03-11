@@ -7,6 +7,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { RoleRoute } from "@/components/RoleRoute";
 import LandingPage from "./pages/LandingPage";
 import SalesLandingPage from "./pages/SalesLandingPage";
 import Login from "./pages/Login";
@@ -91,7 +92,9 @@ const App = () => (
               path="/financeiro"
               element={
                 <AuthenticatedPage>
-                  <Financeiro />
+                  <RoleRoute allowedRoles={['admin', 'secretaria']}>
+                    <Financeiro />
+                  </RoleRoute>
                 </AuthenticatedPage>
               }
             />
@@ -139,7 +142,9 @@ const App = () => (
               path="/professores"
               element={
                 <AuthenticatedPage>
-                  <Professores />
+                  <RoleRoute allowedRoles={['admin', 'secretaria']}>
+                    <Professores />
+                  </RoleRoute>
                 </AuthenticatedPage>
               }
             />
@@ -155,7 +160,9 @@ const App = () => (
               path="/configuracoes"
               element={
                 <AuthenticatedPage>
-                  <Configuracoes />
+                  <RoleRoute allowedRoles={['admin']}>
+                    <Configuracoes />
+                  </RoleRoute>
                 </AuthenticatedPage>
               }
             />
@@ -187,7 +194,9 @@ const App = () => (
               path="/crm"
               element={
                 <AuthenticatedPage>
-                  <CRM />
+                  <RoleRoute allowedRoles={['admin', 'secretaria']}>
+                    <CRM />
+                  </RoleRoute>
                 </AuthenticatedPage>
               }
             />
@@ -203,7 +212,9 @@ const App = () => (
               path="/cobrancas"
               element={
                 <AuthenticatedPage>
-                  <Cobrancas />
+                  <RoleRoute allowedRoles={['admin', 'secretaria']}>
+                    <Cobrancas />
+                  </RoleRoute>
                 </AuthenticatedPage>
               }
             />
