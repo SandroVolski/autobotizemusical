@@ -331,16 +331,16 @@ export default function Alunos() {
     });
     setPhotoFile(null);
     setPhotoPreview(null);
-    setTipoAula("individual");
-    setAulaDiaSemana(1);
-    setAulaHorario("09:00");
-    setAulaDuracao(60);
-    setAulaRecorrente(true);
+    setTipoAula("");
+    setAulaDiaSemana("");
+    setAulaHorario("");
+    setAulaDuracao("");
+    setAulaRecorrente(false);
     setAulaDataEspecifica("");
     setSelectedTurmaId("");
   };
 
-  const handleEdit = (aluno: typeof alunos extends (infer T)[] | undefined ? T : never) => {
+  const handleEdit = async (aluno: typeof alunos extends (infer T)[] | undefined ? T : never) => {
     setEditingAluno(aluno.id);
     setNewAluno({
       nome: aluno.nome,
