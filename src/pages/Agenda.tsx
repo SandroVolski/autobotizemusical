@@ -324,8 +324,8 @@ export default function Agenda() {
   };
 
   // Get today's classes (Monday = 1 in our system)
-  const today = new Date().getDay();
-  const todayClasses = filteredAulas?.filter(aula => aula.dia_semana === today) || [];
+  const today = new Date();
+  const todayClasses = getClassesForDate(today);
 
   // Classes for selected day in month view
   const selectedDayClasses = useMemo(() => {
