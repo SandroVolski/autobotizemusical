@@ -249,10 +249,23 @@ export default function Financeiro() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid gap-2">
-                  <Label>Referência</Label>
-                  <Input placeholder="Ex: Mensalidade Janeiro/2024" value={newPagamento.referencia}
-                    onChange={(e) => setNewPagamento(prev => ({ ...prev, referencia: e.target.value }))} />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label>Referência</Label>
+                    <Input placeholder="Ex: Mensalidade Janeiro/2024" value={newPagamento.referencia}
+                      onChange={(e) => setNewPagamento(prev => ({ ...prev, referencia: e.target.value }))} />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Qtd. de Meses</Label>
+                    <Input type="number" min={1} max={12} value={numMeses}
+                      onChange={(e) => setNumMeses(Math.max(1, Math.min(12, parseInt(e.target.value) || 1)))} />
+                    {numMeses > 1 && (
+                      <p className="text-xs text-muted-foreground">
+                        Serão criados {numMeses} pagamentos de {Number(newPagamento.valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} cada
+                      </p>
+                    )}
+                  </div>
+                </div>
                 </div>
                 <Button className="w-full mt-2" onClick={handleCreatePagamento} disabled={createPagamentoMutation.isPending}>
                   {createPagamentoMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
