@@ -255,7 +255,7 @@ export default function Confirmacoes() {
     const key = alunoId || "__all__";
     setSendingFor(key);
     try {
-      const body: any = {};
+      const body: any = { force: true };
       if (alunoId) body.aluno_id = alunoId;
       const { data, error } = await supabase.functions.invoke("send-class-confirmations", { body });
       if (error) throw error;
