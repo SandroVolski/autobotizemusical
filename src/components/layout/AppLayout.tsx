@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import { motion } from "framer-motion";
 import { User, Menu, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { NotificationsDropdown } from "@/components/notifications/NotificationsDropdown";
