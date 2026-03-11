@@ -15,6 +15,7 @@ import {
 import { useAlunos } from "@/hooks/useAlunos";
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useAulas } from "@/hooks/useAulas";
+import { usePaymentStatuses } from "@/hooks/usePaymentStatus";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Dashboard() {
