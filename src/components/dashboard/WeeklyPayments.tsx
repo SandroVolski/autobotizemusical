@@ -153,13 +153,18 @@ export function WeeklyPayments() {
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">
-                      {pagamento.alunos?.nome || "Aluno não identificado"}
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-medium text-sm truncate">
+                        {pagamento.alunos?.nome || "Aluno não identificado"}
+                      </p>
+                      {pagamento.aluno_id && (() => {
+                        const status = paymentStatuses.get(pagamento.aluno_id);
+                        return status ? <PaymentStatusDot color={status.color} label={status.label} size="sm" /> : null;
+                      })()}
+                    </div>
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-xs text-muted-foreground">
-                        {pagamento.tipo || "Mensalidade"} • {pagamento.referencia || ""} 
-                        {pagamento.alunos && (pagamento as any).dia_vencimento ? ` • Venc. dia ${(pagamento as any).dia_vencimento}` : ""}
+                        {pagamento.tipo || "Mensalidade"} • {pagamento.referencia || ""}
                       </span>
                     </div>
                   </div>
