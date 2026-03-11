@@ -71,12 +71,14 @@ export function AppLayout({ children }: AppLayoutProps) {
         className="min-h-screen flex flex-col overflow-y-auto"
         id="main-scroll-area"
       >
-        {/* Elegant Header - hides on scroll down */}
-        <motion.header
-          initial={false}
-          animate={{ y: headerVisible ? 0 : -64, opacity: headerVisible ? 1 : 0 }}
-          transition={{ duration: 0.25, ease: "easeInOut" }}
-          className="sticky top-0 z-40 h-14 lg:h-16 bg-transparent border-b border-transparent"
+        {/* Header - transparent at top, bg appears on scroll */}
+        <header
+          className={cn(
+            "sticky top-0 z-40 h-14 lg:h-16 transition-all duration-500 ease-in-out border-b",
+            scrolled
+              ? "bg-background/80 backdrop-blur-xl border-border/50 shadow-[0_1px_12px_hsl(0,0%,0%,0.2)]"
+              : "bg-transparent border-transparent"
+          )}
         >
           <div className="flex items-center justify-between h-full px-4 lg:px-6">
             {/* Left: Mobile menu */}
@@ -108,7 +110,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               </div>
             </div>
           </div>
-        </motion.header>
+        </header>
 
         {/* Page content */}
         <div className="flex-1 p-4 lg:p-6 max-w-full overflow-x-hidden">
