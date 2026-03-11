@@ -303,6 +303,8 @@ export default function Alunos() {
     setAulaHorario("09:00");
     setAulaDuracao(60);
     setAulaRecorrente(true);
+    setAulaDataEspecifica("");
+    setSelectedTurmaId("");
   };
 
   const handleEdit = (aluno: typeof alunos extends (infer T)[] | undefined ? T : never) => {
@@ -321,6 +323,10 @@ export default function Alunos() {
     });
     setPhotoFile(null);
     setPhotoPreview(aluno.foto_url || null);
+    setTipoAula("individual");
+    setAulaRecorrente(true);
+    setAulaDataEspecifica("");
+    setSelectedTurmaId("");
     setIsDialogOpen(true);
   };
 
