@@ -124,8 +124,37 @@ export default function Agenda() {
   const { data: alunos } = useAlunos();
   const { data: professores } = useProfessores();
   const { data: cursos } = useCursos();
+  const { data: turmas } = useTurmas();
   const createAulaMutation = useCreateAula();
   const deleteAulaMutation = useDeleteAula();
+
+  // Convert turmas to virtual aula entries for display
+  const turmaAulas: Aula[] = useMemo(() => {
+    if (!turmas) return [];
+    return turmas.map((t: any) => ({
+      id: `turma-${t.id}`,
+      aluno_id: null,
+      professor_id: t.professor_id,
+      curso_id: t.curso_id,
+      tipo: "grupo",
+      dia_semana: t.dia_semana,
+      horario: t.horario,
+      duracao_minutos: t.duracao_minutos || 60,
+      sala: t.sala,
+      data_especifica: null,
+      data_inicio: null,
+      data_fim: null,
+      recorrente: true,
+      status: t.status === "ativa" ? "agendada" : "cancelada",
+      observacoes: null,
+      valor: null,
+      created_at: t.created_at,
+      updated_at: t.updated_at,
+      alunos: { nome: t.nome },
+      professores: t.professores || null,
+      cursos: t.cursos || null,
+    }));
+  }, [turmas]);
 
   // Filter options
   const filterOptions: FilterOption[] = useMemo(() => [
