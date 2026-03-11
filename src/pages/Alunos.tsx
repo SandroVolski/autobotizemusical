@@ -847,22 +847,35 @@ export default function Alunos() {
                 <Card variant="interactive" className={aluno.status !== "ativo" ? "opacity-50" : ""}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigate(`/alunos/${aluno.id}`)}>
-                      {/* Avatar */}
-                      {aluno.foto_url ? (
-                        <img
-                          src={aluno.foto_url}
-                          alt={aluno.nome}
-                          className="w-12 h-12 rounded-full object-cover border border-primary/30 hover:ring-2 hover:ring-primary/50 transition-all"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setPreviewPhoto({ url: aluno.foto_url!, nome: aluno.nome });
-                          }}
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-semibold">
-                          {getInitials(aluno.nome)}
-                        </div>
-                      )}
+                      {/* Avatar with Payment Status */}
+                      <div className="relative flex-shrink-0">
+                        {aluno.foto_url ? (
+                          <img
+                            src={aluno.foto_url}
+                            alt={aluno.nome}
+                            className="w-12 h-12 rounded-full object-cover border border-primary/30 hover:ring-2 hover:ring-primary/50 transition-all"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPreviewPhoto({ url: aluno.foto_url!, nome: aluno.nome });
+                            }}
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-semibold">
+                            {getInitials(aluno.nome)}
+                          </div>
+                        )}
+                        {(() => {
+                          const status = paymentStatuses.get(aluno.id);
+                          return status ? (
+                            <PaymentStatusDot
+                              color={status.color}
+                              label={status.label}
+                              size="md"
+                              className="absolute -bottom-0.5 -right-0.5 border-background"
+                            />
+                          ) : null;
+                        })()}
+                      </div>
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
