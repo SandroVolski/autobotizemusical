@@ -251,6 +251,17 @@ export default function Alunos() {
             }
             setIsUploading(false);
           }
+          // Auto-create aula for individual/avulso
+          if (data?.id && tipoAula !== "turma") {
+            createAulaMutation.mutate({
+              aluno_id: data.id,
+              dia_semana: aulaDiaSemana,
+              horario: aulaHorario,
+              duracao_minutos: aulaDuracao,
+              recorrente: tipoAula === "individual" ? aulaRecorrente : false,
+              tipo: tipoAula === "individual" ? "individual" : "individual",
+            });
+          }
           setIsDialogOpen(false);
           resetForm();
         }
