@@ -284,7 +284,25 @@ export default function Agenda() {
     });
   };
 
-  // Get classes for a specific day of week
+  // Get classes for a specific date
+  const getClassesForDate = (date: Date) => {
+    const dayOfWeek = date.getDay();
+    const dateStr = date.toISOString().split("T")[0];
+    return filteredAulas?.filter(aula => {
+      // Non-recurring with specific date
+      if (aula.data_especifica && !aula.recorrente) {
+        return aula.data_especifica === dateStr;
+      }
+      // Recurring: match day of week
+      if (aula.recorrente || aula.recorrente === null) {
+        return aula.dia_semana === dayOfWeek;
+      }
+      // Fallback: match day of week
+      return aula.dia_semana === dayOfWeek;
+    }) || [];
+  };
+
+  // Legacy wrapper for backward compat (used in conflict check)
   const getClassesForDay = (dayIndex: number) => {
     return filteredAulas?.filter(aula => aula.dia_semana === dayIndex) || [];
   };
