@@ -611,7 +611,7 @@ export default function Agenda() {
                   <div className="flex min-w-[700px]">
                     {weekDates.map((date, dayIndex) => {
                       const isToday = date.toDateString() === new Date().toDateString();
-                      const dayClasses = getClassesForDay(dayIndex);
+                      const dayClasses = getClassesForDate(date);
 
                       return (
                         <div key={dayIndex} className="flex-1 border-r border-border last:border-r-0">
