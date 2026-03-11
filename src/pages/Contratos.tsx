@@ -145,7 +145,8 @@ ${instrumento?.valor_patrimonio ? `<tr><td style="padding: 4px 0; color: #666;">
 function printContract(html: string) {
   const win = window.open("", "_blank");
   if (!win) return;
-  win.document.write(`<html><head><title>Contrato</title><style>@media print { body { margin: 0; } } @page { margin: 15mm; }</style></head><body>${html}</body></html>`);
+  const sanitized = DOMPurify.sanitize(html, { FORBID_TAGS: ['script', 'iframe', 'object', 'embed'], FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'] });
+  win.document.write(`<html><head><title>Contrato</title><style>@media print { body { margin: 0; } } @page { margin: 15mm; }</style></head><body>${sanitized}</body></html>`);
   win.document.close();
   win.print();
 }
