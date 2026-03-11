@@ -257,14 +257,24 @@ export default function Alunos() {
           }
           // Auto-create aula for individual/avulso
           if (data?.id && tipoAula !== "turma") {
-            createAulaMutation.mutate({
+            const aulaData: any = {
               aluno_id: data.id,
-              dia_semana: aulaDiaSemana,
               horario: aulaHorario,
               duracao_minutos: aulaDuracao,
-              recorrente: tipoAula === "individual" ? aulaRecorrente : false,
-              tipo: tipoAula === "individual" ? "individual" : "individual",
-            });
+              tipo: "individual",
+            };
+            if (aulaRecorrente) {
+              aulaData.dia_semana = aulaDiaSemana;
+              aulaData.recorrente = true;
+            } else {
+              aulaData.data_especifica = aulaDataEspecifica || undefined;
+              aulaData.recorrente = false;
+            }
+            createAulaMutation.mutate(aulaData);
+          }
+          // Add to turma if type is turma
+          if (data?.id && tipoAula === "turma" && selectedTurmaId) {
+            addAlunoTurmaMutation.mutate({ turma_id: selectedTurmaId, aluno_id: data.id });
           }
           setIsDialogOpen(false);
           resetForm();
