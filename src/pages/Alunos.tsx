@@ -525,22 +525,32 @@ export default function Alunos() {
                 </div>
               </div>
               {/* Tipo de Aula */}
-              {!editingAluno && (
-                <div className="space-y-4 p-4 rounded-lg border border-primary/20 bg-primary/5">
-                  <Label className="text-sm font-semibold">Tipo de Aula</Label>
-                  <Select value={tipoAula} onValueChange={(v) => setTipoAula(v as any)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="individual">Individual</SelectItem>
-                      <SelectItem value="turma">Turma</SelectItem>
-                      <SelectItem value="avulso">Avulso</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {tipoAula !== "turma" && (
-                    <>
-                      <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4 p-4 rounded-lg border border-primary/20 bg-primary/5">
+                <Label className="text-sm font-semibold">Tipo de Aula</Label>
+                <Select value={tipoAula} onValueChange={(v) => setTipoAula(v as any)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="individual">Individual</SelectItem>
+                    <SelectItem value="turma">Turma</SelectItem>
+                    <SelectItem value="avulso">Avulso</SelectItem>
+                  </SelectContent>
+                </Select>
+                {tipoAula !== "turma" && (
+                  <>
+                    <div className="grid gap-2">
+                      <Label>Recorrente?</Label>
+                      <Select value={aulaRecorrente ? "true" : "false"} onValueChange={(v) => setAulaRecorrente(v === "true")}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="true">Sim (Semanal)</SelectItem>
+                          <SelectItem value="false">Não (Data específica)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      {aulaRecorrente ? (
                         <div className="grid gap-2">
                           <Label>Dia da Semana</Label>
                           <Select value={String(aulaDiaSemana)} onValueChange={(v) => setAulaDiaSemana(Number(v))}>
@@ -556,48 +566,55 @@ export default function Alunos() {
                             </SelectContent>
                           </Select>
                         </div>
+                      ) : (
                         <div className="grid gap-2">
-                          <Label>Horário</Label>
-                          <Input type="time" value={aulaHorario} onChange={(e) => setAulaHorario(e.target.value)} />
+                          <Label>Data da Aula</Label>
+                          <Input type="date" value={aulaDataEspecifica} onChange={(e) => setAulaDataEspecifica(e.target.value)} />
                         </div>
+                      )}
+                      <div className="grid gap-2">
+                        <Label>Horário</Label>
+                        <Input type="time" value={aulaHorario} onChange={(e) => setAulaHorario(e.target.value)} />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="grid gap-2">
-                          <Label>Duração</Label>
-                          <Select value={String(aulaDuracao)} onValueChange={(v) => setAulaDuracao(Number(v))}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="30">30 min</SelectItem>
-                              <SelectItem value="45">45 min</SelectItem>
-                              <SelectItem value="60">1 hora</SelectItem>
-                              <SelectItem value="90">1h30</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        {tipoAula === "individual" && (
-                          <div className="grid gap-2">
-                            <Label>Recorrente?</Label>
-                            <Select value={aulaRecorrente ? "true" : "false"} onValueChange={(v) => setAulaRecorrente(v === "true")}>
-                              <SelectTrigger><SelectValue /></SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="true">Sim (Semanal)</SelectItem>
-                                <SelectItem value="false">Não</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {tipoAula === "individual" 
-                          ? "A aula será criada automaticamente na agenda." 
-                          : "Uma aula avulsa será criada na agenda."}
-                      </p>
-                    </>
-                  )}
-                  {tipoAula === "turma" && (
+                    </div>
+                    <div className="grid gap-2">
+                      <Label>Duração</Label>
+                      <Select value={String(aulaDuracao)} onValueChange={(v) => setAulaDuracao(Number(v))}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="30">30 min</SelectItem>
+                          <SelectItem value="45">45 min</SelectItem>
+                          <SelectItem value="60">1 hora</SelectItem>
+                          <SelectItem value="90">1h30</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <p className="text-xs text-muted-foreground">
-                      Adicione o aluno a uma turma pela tela de Turmas.
+                      {aulaRecorrente
+                        ? "A aula recorrente será criada automaticamente na agenda toda semana."
+                        : "Uma aula avulsa será criada na agenda para a data especificada."}
                     </p>
+                  </>
+                )}
+                {tipoAula === "turma" && (
+                  <div className="grid gap-2">
+                    <Label>Selecione a Turma</Label>
+                    <Select value={selectedTurmaId} onValueChange={setSelectedTurmaId}>
+                      <SelectTrigger><SelectValue placeholder="Escolha uma turma" /></SelectTrigger>
+                      <SelectContent>
+                        {turmasList?.filter((t: any) => t.status === "ativa").map((t: any) => (
+                          <SelectItem key={t.id} value={t.id}>
+                            {t.nome} {t.horario ? `- ${t.horario}` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      O aluno será adicionado à turma selecionada automaticamente.
+                    </p>
+                  </div>
+                )}
+              </div>
                   )}
                 </div>
               )}
