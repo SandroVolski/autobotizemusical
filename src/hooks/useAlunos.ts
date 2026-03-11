@@ -100,9 +100,14 @@ export function useUpdateAluno() {
         throw new Error(result.error.errors.map(e => e.message).join(", "));
       }
 
+      // Convert empty strings to null for date/nullable fields
+      const cleanedAluno = Object.fromEntries(
+        Object.entries(aluno).map(([key, value]) => [key, value === "" ? null : value])
+      );
+
       const { data, error } = await supabase
         .from("alunos")
-        .update(aluno)
+        .update(cleanedAluno)
         .eq("id", id)
         .select()
         .single();
