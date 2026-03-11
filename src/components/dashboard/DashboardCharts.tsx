@@ -7,7 +7,6 @@ import {
 import { useAlunos } from "@/hooks/useAlunos";
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useAulas } from "@/hooks/useAulas";
-import { usePresencas } from "@/hooks/usePresencas";
 import { Users, Music, TrendingUp, PieChart as PieChartIcon } from "lucide-react";
 
 const COLORS = [
@@ -18,13 +17,6 @@ const COLORS = [
   "hsl(340, 80%, 55%)",
   "hsl(180, 70%, 45%)",
 ];
-
-const tooltipStyle = {
-  backgroundColor: "hsl(0, 0%, 8%)",
-  border: "1px solid hsl(0, 0%, 15%)",
-  borderRadius: "8px",
-  padding: "10px",
-};
 
 const themedTooltipStyle = {
   backgroundColor: "hsl(var(--popover))",
@@ -61,16 +53,7 @@ export function StudentsByLevelChart() {
                 <div className="flex-1 h-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie
-                        data={nivelData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={55}
-                        outerRadius={85}
-                        paddingAngle={4}
-                        dataKey="value"
-                        strokeWidth={0}
-                      >
+                      <Pie data={nivelData} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={4} dataKey="value" strokeWidth={0}>
                         {nivelData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
@@ -129,9 +112,9 @@ export function ClassesByDayChart() {
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={aulasPorDia}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(0, 0%, 20%)" />
-                <XAxis dataKey="dia" stroke="hsl(0, 0%, 60%)" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="hsl(0, 0%, 60%)" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="dia" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
                 <Tooltip contentStyle={themedTooltipStyle} />
                 <Bar dataKey="aulas" fill="hsl(270, 100%, 50%)" radius={[6, 6, 0, 0]} name="Aulas" />
               </BarChart>
@@ -152,7 +135,7 @@ export function MonthlyRevenueVsPendingChart() {
   const monthlyData = monthOrder.map((month, index) => {
     const monthPagamentos = pagamentos?.filter(p => {
       if (!p.data_vencimento) return false;
-      const date = new Date(p.data_vencimento);
+      const date = new Date(p.data_vencimento + "T00:00:00");
       return date.getMonth() === index && date.getFullYear() === currentYear;
     }) || [];
 
@@ -176,10 +159,10 @@ export function MonthlyRevenueVsPendingChart() {
             {monthlyData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(0, 0%, 20%)" />
-                  <XAxis dataKey="mes" stroke="hsl(0, 0%, 60%)" fontSize={12} tickLine={false} axisLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="mes" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
                   <YAxis 
-                    stroke="hsl(0, 0%, 60%)" fontSize={12} tickLine={false} axisLine={false}
+                    stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false}
                     tickFormatter={(v) => `R$${v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}`}
                   />
                   <Tooltip 
@@ -193,7 +176,7 @@ export function MonthlyRevenueVsPendingChart() {
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-                Sem dados financeiros
+                Sem dados financeiros para {currentYear}
               </div>
             )}
           </div>
@@ -212,7 +195,7 @@ export function StudentGrowthChart() {
   const growthData = monthOrder.map((month, index) => {
     const alunosAteMes = alunos?.filter(a => {
       if (!a.data_matricula) return false;
-      const date = new Date(a.data_matricula);
+      const date = new Date(a.data_matricula + "T00:00:00");
       return (date.getFullYear() < currentYear) || 
              (date.getFullYear() === currentYear && date.getMonth() <= index);
     }).length || 0;
@@ -240,9 +223,9 @@ export function StudentGrowthChart() {
                       <stop offset="95%" stopColor="hsl(270, 100%, 50%)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(0, 0%, 20%)" />
-                  <XAxis dataKey="mes" stroke="hsl(0, 0%, 60%)" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="hsl(0, 0%, 60%)" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="mes" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
                   <Tooltip contentStyle={themedTooltipStyle} />
                   <Area type="monotone" dataKey="alunos" stroke="hsl(270, 100%, 50%)" strokeWidth={2} fill="url(#colorAlunos)" name="Total de Alunos" />
                 </AreaChart>
