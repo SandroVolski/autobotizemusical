@@ -104,12 +104,6 @@ export function MaterialsManager() {
                 Novo Material
               </Button>
             </DialogTrigger>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Material
-            </Button>
-          </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Adicionar Material Didático</DialogTitle>

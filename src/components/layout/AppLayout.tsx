@@ -1,8 +1,8 @@
 import { ReactNode, useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
-import { motion } from "framer-motion";
-import { Menu } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Menu, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { NotificationsDropdown } from "@/components/notifications/NotificationsDropdown";
@@ -19,6 +19,21 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { user } = useAuth();
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
+  const [isDark, setIsDark] = useState(() => !document.documentElement.classList.contains("light"));
+
+  const handleThemeToggle = () => {
+    const newDark = !isDark;
+    setIsDark(newDark);
+    if (newDark) {
+      document.documentElement.classList.remove("light");
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.add("light");
+      localStorage.setItem("theme", "light");
+    }
+  };
 
   useRealtimeNotifications();
 
@@ -72,6 +87,37 @@ export function AppLayout({ children }: AppLayoutProps) {
             {/* Right: Actions + Profile */}
             <div className="flex items-center gap-1.5 lg:gap-2">
               <NotificationsDropdown variant="icon" />
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleThemeToggle}
+                className="relative w-9 h-9 overflow-hidden hover:bg-primary/10"
+              >
+                <AnimatePresence mode="wait" initial={false}>
+                  {isDark ? (
+                    <motion.div
+                      key="moon"
+                      initial={{ y: -20, opacity: 0, rotate: -90 }}
+                      animate={{ y: 0, opacity: 1, rotate: 0 }}
+                      exit={{ y: 20, opacity: 0, rotate: 90 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                    >
+                      <Moon className="w-[18px] h-[18px] text-primary" />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="sun"
+                      initial={{ y: -20, opacity: 0, rotate: 90 }}
+                      animate={{ y: 0, opacity: 1, rotate: 0 }}
+                      exit={{ y: 20, opacity: 0, rotate: -90 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                    >
+                      <Sun className="w-[18px] h-[18px] text-warning" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </Button>
 
               <div className="w-px h-6 bg-border/50 mx-1 hidden sm:block" />
 

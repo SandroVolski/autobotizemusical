@@ -110,21 +110,24 @@ export default function Relatorios() {
       instrumentCount[instrumento] = (instrumentCount[instrumento] || 0) + 1;
     });
 
-    const colors = [
-      "hsl(var(--primary))",
-      "hsl(var(--secondary))",
-      "hsl(var(--warning))",
-      "hsl(var(--success))",
-      "hsl(var(--muted-foreground))",
+    const vibrantColors = [
+      "#8b5cf6", // violet
+      "#06b6d4", // cyan  
+      "#f59e0b", // amber
+      "#10b981", // emerald
+      "#f43f5e", // rose
+      "#3b82f6", // blue
+      "#ec4899", // pink
+      "#14b8a6", // teal
     ];
 
     return Object.entries(instrumentCount)
       .map(([name, value], index) => ({
         name,
         value,
-        color: colors[index % colors.length],
+        color: vibrantColors[index % vibrantColors.length],
       }))
-      .slice(0, 5);
+      .slice(0, 8);
   }, [cursos]);
 
   // Revenue data from pagamentos
@@ -414,22 +417,43 @@ export default function Relatorios() {
                     <p>Nenhum curso cadastrado</p>
                   </div>
                 ) : (
-                  <ResponsiveContainer width="100%" height={250}>
+                  <ResponsiveContainer width="100%" height={280}>
                     <PieChart>
                       <Pie
                         data={instrumentosData}
                         cx="50%"
                         cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
+                        innerRadius={55}
+                        outerRadius={95}
+                        paddingAngle={4}
                         dataKey="value"
+                        strokeWidth={2}
+                        stroke="hsl(var(--card))"
                         label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        labelLine={{ stroke: "hsl(var(--muted-foreground))", strokeWidth: 1 }}
                       >
                         {instrumentosData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={entry.color}
+                            className="transition-opacity duration-200"
+                          />
                         ))}
                       </Pie>
-                      <Tooltip />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--popover))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "12px",
+                          color: "hsl(var(--popover-foreground))",
+                          boxShadow: "0 10px 25px -5px rgba(0,0,0,0.15)",
+                          padding: "10px 14px",
+                        }}
+                        formatter={(value: number, name: string) => [
+                          `${value} curso${value > 1 ? "s" : ""}`,
+                          name,
+                        ]}
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 )}

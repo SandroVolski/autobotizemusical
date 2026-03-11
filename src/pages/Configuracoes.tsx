@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Settings,
@@ -6,15 +6,10 @@ import {
   Clock,
   Bell,
   Shield,
-  Palette,
   Save,
-  Moon,
-  Sun,
   Loader2,
-  Image,
-  Upload,
-  Trash2,
-  Users,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -35,8 +30,6 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useConfiguracoes, useUpdateConfiguracoes, HorarioFuncionamento } from "@/hooks/useConfiguracoes";
 import { Json } from "@/integrations/supabase/types";
-import { UserManagement } from "@/components/configuracoes/UserManagement";
-import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/contexts/AuthContext";
 
 const diasSemana = [
@@ -50,32 +43,19 @@ const diasSemana = [
 ];
 
 const estadosBrasileiros = [
-  { value: "AC", label: "Acre" },
-  { value: "AL", label: "Alagoas" },
-  { value: "AP", label: "Amapá" },
-  { value: "AM", label: "Amazonas" },
-  { value: "BA", label: "Bahia" },
-  { value: "CE", label: "Ceará" },
-  { value: "DF", label: "Distrito Federal" },
-  { value: "ES", label: "Espírito Santo" },
-  { value: "GO", label: "Goiás" },
-  { value: "MA", label: "Maranhão" },
-  { value: "MT", label: "Mato Grosso" },
-  { value: "MS", label: "Mato Grosso do Sul" },
-  { value: "MG", label: "Minas Gerais" },
-  { value: "PA", label: "Pará" },
-  { value: "PB", label: "Paraíba" },
-  { value: "PR", label: "Paraná" },
-  { value: "PE", label: "Pernambuco" },
-  { value: "PI", label: "Piauí" },
-  { value: "RJ", label: "Rio de Janeiro" },
-  { value: "RN", label: "Rio Grande do Norte" },
-  { value: "RS", label: "Rio Grande do Sul" },
-  { value: "RO", label: "Rondônia" },
-  { value: "RR", label: "Roraima" },
-  { value: "SC", label: "Santa Catarina" },
-  { value: "SP", label: "São Paulo" },
-  { value: "SE", label: "Sergipe" },
+  { value: "AC", label: "Acre" }, { value: "AL", label: "Alagoas" },
+  { value: "AP", label: "Amapá" }, { value: "AM", label: "Amazonas" },
+  { value: "BA", label: "Bahia" }, { value: "CE", label: "Ceará" },
+  { value: "DF", label: "Distrito Federal" }, { value: "ES", label: "Espírito Santo" },
+  { value: "GO", label: "Goiás" }, { value: "MA", label: "Maranhão" },
+  { value: "MT", label: "Mato Grosso" }, { value: "MS", label: "Mato Grosso do Sul" },
+  { value: "MG", label: "Minas Gerais" }, { value: "PA", label: "Pará" },
+  { value: "PB", label: "Paraíba" }, { value: "PR", label: "Paraná" },
+  { value: "PE", label: "Pernambuco" }, { value: "PI", label: "Piauí" },
+  { value: "RJ", label: "Rio de Janeiro" }, { value: "RN", label: "Rio Grande do Norte" },
+  { value: "RS", label: "Rio Grande do Sul" }, { value: "RO", label: "Rondônia" },
+  { value: "RR", label: "Roraima" }, { value: "SC", label: "Santa Catarina" },
+  { value: "SP", label: "São Paulo" }, { value: "SE", label: "Sergipe" },
   { value: "TO", label: "Tocantins" },
 ];
 
@@ -83,14 +63,6 @@ export default function Configuracoes() {
   const { user } = useAuth();
   const { data: configuracoes, isLoading } = useConfiguracoes();
   const updateConfiguracoes = useUpdateConfiguracoes();
-  const { isAdmin, isLoading: isLoadingRole } = useUserRole();
-
-  // Check if current user is the platform owner (updates when user changes)
-  const [isPlatformOwner, setIsPlatformOwner] = useState(false);
-
-  useEffect(() => {
-    setIsPlatformOwner(user?.email === "sandroeduardopradovolski@gmail.com");
-  }, [user?.email]);
 
   // Dados da escola
   const [nomeEscola, setNomeEscola] = useState("");
@@ -119,93 +91,14 @@ export default function Configuracoes() {
   const [notificacoesWhatsapp, setNotificacoesWhatsapp] = useState(true);
   const [lembreteAula, setLembreteAula] = useState(true);
   const [lembretePagamento, setLembretePagamento] = useState(true);
-  
-  // Aparência
-  const [temaEscuro, setTemaEscuro] = useState(() => {
-    return !document.documentElement.classList.contains("light");
-  });
-  const [autenticacaoDoisFatores, setAutenticacaoDoisFatores] = useState(false);
+  const [lembreteAniversario, setLembreteAniversario] = useState(true);
+  const [savingNotificacoes, setSavingNotificacoes] = useState(false);
 
-  // Logo
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [uploadingLogo, setUploadingLogo] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Toggle tema escuro/claro
-  const handleThemeToggle = (checked: boolean) => {
-    setTemaEscuro(checked);
-    if (checked) {
-      document.documentElement.classList.remove("light");
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      document.documentElement.classList.add("light");
-      localStorage.setItem("theme", "light");
-    }
-  };
-
-  // Upload logo - unique per user
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      toast.error("Por favor, selecione uma imagem");
-      return;
-    }
-
-    setUploadingLogo(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
-
-      const fileExt = file.name.split(".").pop();
-      const fileName = `logo.${fileExt}`;
-      const filePath = `escola/${user.id}/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("materiais")
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from("materiais")
-        .getPublicUrl(filePath);
-
-      setLogoUrl(publicUrl);
-      
-      // Salvar URL no banco
-      updateConfiguracoes.mutate({ logo_url: publicUrl });
-      toast.success("Logo atualizada com sucesso!");
-    } catch (error) {
-      console.error("Erro ao fazer upload:", error);
-      toast.error("Erro ao fazer upload da logo");
-    } finally {
-      setUploadingLogo(false);
-    }
-  };
-
-  const handleRemoveLogo = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
-
-      // Remove all possible logo formats for this user
-      await supabase.storage.from("materiais").remove([
-        `escola/${user.id}/logo.png`,
-        `escola/${user.id}/logo.jpg`,
-        `escola/${user.id}/logo.jpeg`,
-        `escola/${user.id}/logo.webp`
-      ]);
-      setLogoUrl(null);
-      updateConfiguracoes.mutate({ logo_url: null });
-      toast.success("Logo removida");
-    } catch (error) {
-      console.error("Erro ao remover logo:", error);
-    }
-  };
+  // Segurança
+  const [novaSenha, setNovaSenha] = useState("");
+  const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
 
   // Carregar dados do banco
   useEffect(() => {
@@ -219,18 +112,19 @@ export default function Configuracoes() {
       setEstado(configuracoes.estado || "");
       setCep(configuracoes.cep || "");
       setDescricao(configuracoes.descricao || "");
-      setLogoUrl(configuracoes.logo_url || null);
       
       if (configuracoes.horario_funcionamento) {
         const horariosDb = configuracoes.horario_funcionamento as Record<string, HorarioFuncionamento>;
         const novosHorarios = { ...horarios };
-        Object.keys(horariosDb).forEach((dia) => {
-          if (novosHorarios[dia]) {
+        Object.keys(novosHorarios).forEach((dia) => {
+          if (horariosDb[dia]) {
             novosHorarios[dia] = {
               inicio: horariosDb[dia].inicio,
               fim: horariosDb[dia].fim,
               ativo: true,
             };
+          } else {
+            novosHorarios[dia] = { ...novosHorarios[dia], ativo: false };
           }
         });
         setHorarios(novosHorarios);
@@ -240,15 +134,7 @@ export default function Configuracoes() {
 
   const handleSalvarEscola = () => {
     updateConfiguracoes.mutate({
-      nome: nomeEscola,
-      cnpj,
-      email,
-      telefone,
-      endereco,
-      cidade,
-      estado,
-      cep,
-      descricao,
+      nome: nomeEscola, cnpj, email, telefone, endereco, cidade, estado, cep, descricao,
     });
   };
 
@@ -259,23 +145,68 @@ export default function Configuracoes() {
         horariosFuncionamento[dia] = { inicio, fim };
       }
     });
-    
     updateConfiguracoes.mutate({
       horario_funcionamento: horariosFuncionamento as Json,
     });
   };
 
   const updateHorario = (dia: string, campo: "inicio" | "fim" | "ativo", valor: string | boolean) => {
-    setHorarios((prev) => ({
-      ...prev,
-      [dia]: {
-        ...prev[dia],
-        [campo]: valor,
-      },
-    }));
+    setHorarios((prev) => ({ ...prev, [dia]: { ...prev[dia], [campo]: valor } }));
   };
 
-  if (isLoading || isLoadingRole) {
+  const handleSalvarNotificacoes = async () => {
+    setSavingNotificacoes(true);
+    // Save notification preferences to localStorage (could be extended to DB)
+    const prefs = { notificacoesEmail, notificacoesWhatsapp, lembreteAula, lembretePagamento, lembreteAniversario };
+    localStorage.setItem("notification_prefs", JSON.stringify(prefs));
+    await new Promise(r => setTimeout(r, 500));
+    setSavingNotificacoes(false);
+    toast.success("Configurações de notificações salvas!");
+  };
+
+  // Load notification prefs
+  useEffect(() => {
+    const saved = localStorage.getItem("notification_prefs");
+    if (saved) {
+      try {
+        const prefs = JSON.parse(saved);
+        setNotificacoesEmail(prefs.notificacoesEmail ?? true);
+        setNotificacoesWhatsapp(prefs.notificacoesWhatsapp ?? true);
+        setLembreteAula(prefs.lembreteAula ?? true);
+        setLembretePagamento(prefs.lembretePagamento ?? true);
+        setLembreteAniversario(prefs.lembreteAniversario ?? true);
+      } catch {}
+    }
+  }, []);
+
+  const handleAlterarSenha = async () => {
+    if (!novaSenha) {
+      toast.error("Digite a nova senha");
+      return;
+    }
+    if (novaSenha.length < 6) {
+      toast.error("A senha deve ter pelo menos 6 caracteres");
+      return;
+    }
+    if (novaSenha !== confirmarSenha) {
+      toast.error("As senhas não coincidem");
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: novaSenha });
+      if (error) throw error;
+      toast.success("Senha alterada com sucesso!");
+      setNovaSenha("");
+      setConfirmarSenha("");
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao alterar senha");
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -289,15 +220,11 @@ export default function Configuracoes() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-foreground">Configurações</h1>
-        <p className="text-muted-foreground">
-          Gerencie as configurações do sistema
-        </p>
+        <p className="text-muted-foreground">Gerencie as configurações do sistema</p>
       </div>
 
-      {/* Tabs */}
       <Tabs defaultValue="escola" className="space-y-4">
         <TabsList className="bg-muted/50 flex-wrap h-auto gap-1 p-1">
           <TabsTrigger value="escola" className="gap-2">
@@ -312,26 +239,13 @@ export default function Configuracoes() {
             <Bell className="w-4 h-4" />
             <span className="hidden sm:inline">Notificações</span>
           </TabsTrigger>
-          <TabsTrigger value="logo" className="gap-2">
-            <Image className="w-4 h-4" />
-            <span className="hidden sm:inline">Logo</span>
-          </TabsTrigger>
-          <TabsTrigger value="aparencia" className="gap-2">
-            <Palette className="w-4 h-4" />
-            <span className="hidden sm:inline">Aparência</span>
-          </TabsTrigger>
           <TabsTrigger value="seguranca" className="gap-2">
             <Shield className="w-4 h-4" />
             <span className="hidden sm:inline">Segurança</span>
           </TabsTrigger>
-          {isPlatformOwner && (
-            <TabsTrigger value="usuarios" className="gap-2">
-              <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">Usuários</span>
-            </TabsTrigger>
-          )}
         </TabsList>
 
+        {/* Escola Tab */}
         <TabsContent value="escola" className="space-y-4">
           <Card className="glass-card">
             <CardHeader>
@@ -340,113 +254,68 @@ export default function Configuracoes() {
                 Dados da Escola
               </CardTitle>
               <CardDescription>
-                Informações básicas da sua escola de música
+                Informações utilizadas em contratos, documentos e comunicações
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="nomeEscola">Nome da Escola</Label>
-                  <Input 
-                    id="nomeEscola" 
-                    value={nomeEscola}
-                    onChange={(e) => setNomeEscola(e.target.value)}
-                  />
+                  <Input id="nomeEscola" value={nomeEscola} onChange={(e) => setNomeEscola(e.target.value)} />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="cnpj">CNPJ</Label>
-                  <Input 
-                    id="cnpj" 
-                    value={cnpj}
-                    onChange={(e) => setCnpj(e.target.value)}
-                  />
+                  <Input id="cnpj" value={cnpj} onChange={(e) => setCnpj(e.target.value)} />
                 </div>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="email">E-mail</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
+                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="telefone">Telefone</Label>
-                  <Input 
-                    id="telefone" 
-                    value={telefone}
-                    onChange={(e) => setTelefone(e.target.value)}
-                  />
+                  <Input id="telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
                 </div>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="endereco">Endereço</Label>
-                <Input 
-                  id="endereco" 
-                  value={endereco}
-                  onChange={(e) => setEndereco(e.target.value)}
-                />
+                <Input id="endereco" value={endereco} onChange={(e) => setEndereco(e.target.value)} />
               </div>
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="grid gap-2">
-                  <Label htmlFor="cidade">Cidade</Label>
-                  <Input 
-                    id="cidade" 
-                    value={cidade}
-                    onChange={(e) => setCidade(e.target.value)}
-                  />
+                  <Label>Cidade</Label>
+                  <Input value={cidade} onChange={(e) => setCidade(e.target.value)} />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="estado">Estado</Label>
+                  <Label>Estado</Label>
                   <Select value={estado} onValueChange={setEstado}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                     <SelectContent>
                       {estadosBrasileiros.map((est) => (
-                        <SelectItem key={est.value} value={est.value}>
-                          {est.label}
-                        </SelectItem>
+                        <SelectItem key={est.value} value={est.value}>{est.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="cep">CEP</Label>
-                  <Input 
-                    id="cep" 
-                    value={cep}
-                    onChange={(e) => setCep(e.target.value)}
-                  />
+                  <Label>CEP</Label>
+                  <Input value={cep} onChange={(e) => setCep(e.target.value)} />
                 </div>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="descricao">Descrição</Label>
-                <Textarea
-                  id="descricao"
-                  value={descricao}
-                  onChange={(e) => setDescricao(e.target.value)}
-                  rows={3}
-                />
+                <Label>Descrição</Label>
+                <Textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} rows={3} />
               </div>
-              <Button 
-                className="gap-2" 
-                onClick={handleSalvarEscola}
-                disabled={updateConfiguracoes.isPending}
-              >
-                {updateConfiguracoes.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4" />
-                )}
+              <Button className="gap-2" onClick={handleSalvarEscola} disabled={updateConfiguracoes.isPending}>
+                {updateConfiguracoes.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 Salvar Alterações
               </Button>
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* Horários Tab */}
         <TabsContent value="horarios" className="space-y-4">
           <Card className="glass-card">
             <CardHeader>
@@ -455,7 +324,7 @@ export default function Configuracoes() {
                 Horário de Funcionamento
               </CardTitle>
               <CardDescription>
-                Configure os horários de funcionamento da escola
+                Estes horários são usados na Agenda para definir os horários visíveis
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -464,45 +333,38 @@ export default function Configuracoes() {
                   <div key={key} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                     <span className="font-medium w-24">{label}</span>
                     <div className="flex items-center gap-2">
-                      <Input 
-                        type="time" 
+                      <Input
+                        type="time"
                         value={horarios[key].inicio}
                         onChange={(e) => updateHorario(key, "inicio", e.target.value)}
-                        className="w-28" 
+                        className="w-28"
                         disabled={!horarios[key].ativo}
                       />
                       <span className="text-muted-foreground">até</span>
-                      <Input 
-                        type="time" 
+                      <Input
+                        type="time"
                         value={horarios[key].fim}
                         onChange={(e) => updateHorario(key, "fim", e.target.value)}
-                        className="w-28" 
+                        className="w-28"
                         disabled={!horarios[key].ativo}
                       />
                     </div>
-                    <Switch 
+                    <Switch
                       checked={horarios[key].ativo}
                       onCheckedChange={(checked) => updateHorario(key, "ativo", checked)}
                     />
                   </div>
                 ))}
               </div>
-              <Button 
-                className="gap-2"
-                onClick={handleSalvarHorarios}
-                disabled={updateConfiguracoes.isPending}
-              >
-                {updateConfiguracoes.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4" />
-                )}
+              <Button className="gap-2" onClick={handleSalvarHorarios} disabled={updateConfiguracoes.isPending}>
+                {updateConfiguracoes.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 Salvar Horários
               </Button>
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* Notificações Tab */}
         <TabsContent value="notificacoes" className="space-y-4">
           <Card className="glass-card">
             <CardHeader>
@@ -511,7 +373,7 @@ export default function Configuracoes() {
                 Configurações de Notificações
               </CardTitle>
               <CardDescription>
-                Gerencie como e quando as notificações são enviadas
+                Gerencie como e quando as notificações são enviadas. Estas configurações afetam o envio de confirmações e cobranças.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -527,7 +389,7 @@ export default function Configuracoes() {
                 <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                   <div>
                     <p className="font-medium">Notificações por WhatsApp</p>
-                    <p className="text-sm text-muted-foreground">Receber avisos por WhatsApp</p>
+                    <p className="text-sm text-muted-foreground">Enviar confirmações e cobranças via WhatsApp</p>
                   </div>
                   <Switch checked={notificacoesWhatsapp} onCheckedChange={setNotificacoesWhatsapp} />
                 </div>
@@ -540,132 +402,35 @@ export default function Configuracoes() {
                 <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                   <div>
                     <p className="font-medium">Lembrete de Aula</p>
-                    <p className="text-sm text-muted-foreground">Enviar lembrete 24h antes da aula</p>
+                    <p className="text-sm text-muted-foreground">Enviar confirmação 24h antes da aula (Confirmações)</p>
                   </div>
                   <Switch checked={lembreteAula} onCheckedChange={setLembreteAula} />
                 </div>
                 <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                   <div>
                     <p className="font-medium">Lembrete de Pagamento</p>
-                    <p className="text-sm text-muted-foreground">Enviar lembrete de vencimento</p>
+                    <p className="text-sm text-muted-foreground">Enviar aviso 3 dias antes do vencimento e após atraso (Cobranças)</p>
                   </div>
                   <Switch checked={lembretePagamento} onCheckedChange={setLembretePagamento} />
                 </div>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                  <div>
+                    <p className="font-medium">Lembrete de Aniversário</p>
+                    <p className="text-sm text-muted-foreground">Avisar sobre aniversários de alunos no dia</p>
+                  </div>
+                  <Switch checked={lembreteAniversario} onCheckedChange={setLembreteAniversario} />
+                </div>
               </div>
 
-              <Button className="gap-2">
-                <Save className="w-4 h-4" />
+              <Button className="gap-2" onClick={handleSalvarNotificacoes} disabled={savingNotificacoes}>
+                {savingNotificacoes ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 Salvar Configurações
               </Button>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="logo" className="space-y-4">
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Image className="w-5 h-5 text-primary" />
-                Logo da Escola
-              </CardTitle>
-              <CardDescription>
-                Adicione a logo da sua escola de música. Ela será exibida no menu lateral.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex flex-col items-center gap-6">
-                {/* Preview da logo */}
-                <div className="w-32 h-32 rounded-xl bg-muted/50 border-2 border-dashed border-border flex items-center justify-center overflow-hidden">
-                  {logoUrl ? (
-                    <img 
-                      src={logoUrl} 
-                      alt="Logo da escola" 
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <Image className="w-12 h-12 text-muted-foreground" />
-                  )}
-                </div>
-
-                {/* Botões de ação */}
-                <div className="flex gap-3">
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleLogoUpload}
-                    accept="image/*"
-                    className="hidden"
-                  />
-                  <Button
-                    variant="outline"
-                    className="gap-2"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploadingLogo}
-                  >
-                    {uploadingLogo ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Upload className="w-4 h-4" />
-                    )}
-                    {logoUrl ? "Trocar Logo" : "Enviar Logo"}
-                  </Button>
-                  {logoUrl && (
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      onClick={handleRemoveLogo}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-
-                <p className="text-sm text-muted-foreground text-center">
-                  Recomendado: Imagem quadrada (PNG ou JPG) com pelo menos 200x200 pixels
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="aparencia" className="space-y-4">
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="w-5 h-5 text-primary" />
-                Aparência
-              </CardTitle>
-              <CardDescription>
-                Personalize a aparência do sistema
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30">
-                <div className="flex items-center gap-4">
-                  <div className={`p-3 rounded-xl ${temaEscuro ? 'bg-primary/20' : 'bg-warning/20'}`}>
-                    {temaEscuro ? (
-                      <Moon className="w-6 h-6 text-primary" />
-                    ) : (
-                      <Sun className="w-6 h-6 text-warning" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium text-lg">
-                      {temaEscuro ? "Modo Escuro" : "Modo Claro"}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {temaEscuro 
-                        ? "Interface escura para reduzir a fadiga visual" 
-                        : "Interface clara para ambientes iluminados"}
-                    </p>
-                  </div>
-                </div>
-                <Switch checked={temaEscuro} onCheckedChange={handleThemeToggle} />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
+        {/* Segurança Tab */}
         <TabsContent value="seguranca" className="space-y-4">
           <Card className="glass-card">
             <CardHeader>
@@ -673,63 +438,72 @@ export default function Configuracoes() {
                 <Shield className="w-5 h-5 text-primary" />
                 Segurança
               </CardTitle>
-              <CardDescription>
-                Configure as opções de segurança da conta
-              </CardDescription>
+              <CardDescription>Configure a senha da sua conta</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <h3 className="font-medium">Alterar Senha</h3>
                 <div className="grid gap-4 max-w-md">
                   <div className="grid gap-2">
-                    <Label htmlFor="senhaAtual">Senha Atual</Label>
-                    <Input id="senhaAtual" type="password" />
-                  </div>
-                  <div className="grid gap-2">
                     <Label htmlFor="novaSenha">Nova Senha</Label>
-                    <Input id="novaSenha" type="password" />
+                    <div className="relative">
+                      <Input
+                        id="novaSenha"
+                        type={showPassword ? "text" : "password"}
+                        value={novaSenha}
+                        onChange={(e) => setNovaSenha(e.target.value)}
+                        placeholder="Mínimo 6 caracteres"
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="confirmarSenha">Confirmar Nova Senha</Label>
-                    <Input id="confirmarSenha" type="password" />
+                    <Input
+                      id="confirmarSenha"
+                      type={showPassword ? "text" : "password"}
+                      value={confirmarSenha}
+                      onChange={(e) => setConfirmarSenha(e.target.value)}
+                      placeholder="Repita a nova senha"
+                    />
                   </div>
-                  <Button className="w-fit">Alterar Senha</Button>
+                  {novaSenha && confirmarSenha && novaSenha !== confirmarSenha && (
+                    <p className="text-sm text-destructive">As senhas não coincidem</p>
+                  )}
+                  <Button
+                    className="w-fit gap-2"
+                    onClick={handleAlterarSenha}
+                    disabled={changingPassword || !novaSenha || novaSenha !== confirmarSenha}
+                  >
+                    {changingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
+                    Alterar Senha
+                  </Button>
                 </div>
-              </div>
-
-              <Separator />
-
-              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                <div>
-                  <p className="font-medium">Autenticação de Dois Fatores</p>
-                  <p className="text-sm text-muted-foreground">Adicione uma camada extra de segurança</p>
-                </div>
-                <Switch checked={autenticacaoDoisFatores} onCheckedChange={setAutenticacaoDoisFatores} />
               </div>
 
               <Separator />
 
               <div className="space-y-4">
-                <h3 className="font-medium">Sessões Ativas</h3>
+                <h3 className="font-medium">Sessão</h3>
                 <div className="p-4 rounded-lg bg-muted/30">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">Chrome - Windows</p>
-                      <p className="text-sm text-muted-foreground">Sessão atual • Ativo agora</p>
+                      <p className="font-medium">Sessão Atual</p>
+                      <p className="text-sm text-muted-foreground">{user?.email} • Ativo agora</p>
                     </div>
-                    <Button variant="outline" size="sm">Encerrar</Button>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
-
-        {isPlatformOwner && (
-          <TabsContent value="usuarios" className="space-y-4">
-            <UserManagement />
-          </TabsContent>
-        )}
       </Tabs>
     </motion.div>
   );

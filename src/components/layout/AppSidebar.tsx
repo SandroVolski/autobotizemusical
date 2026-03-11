@@ -46,6 +46,7 @@ const menuGroups: MenuGroup[] = [
       { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
       { icon: Calendar, label: "Agenda", path: "/agenda" },
       { icon: MessageSquare, label: "Confirmações", path: "/confirmacoes" },
+      { icon: DollarSign, label: "Cobranças", path: "/cobrancas" },
     ],
   },
   {
