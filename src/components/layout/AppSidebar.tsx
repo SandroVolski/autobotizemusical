@@ -92,7 +92,6 @@ const menuGroups: MenuGroup[] = [
     ],
   },
 ];
-
 export function AppSidebar() {
   const { collapsed, toggleCollapsed, isMobile, mobileOpen, setMobileOpen, setIsHovering, hoverMode } = useSidebar();
   const { signOut } = useAuth();
@@ -108,7 +107,11 @@ export function AppSidebar() {
   };
 
   // Track which groups are open — auto-open group containing active route
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    menuGroups.forEach(g => { if (g.collapsible) initial[g.label] = true; });
+    return initial;
+  });
 
   const isGroupOpen = (group: MenuGroup) => {
     if (!group.collapsible) return true;
@@ -134,7 +137,8 @@ export function AppSidebar() {
           to={item.path}
           onClick={handleNavClick}
           className={cn(
-            "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group relative text-sm",
+            "flex items-center gap-3 rounded-lg transition-all duration-200 group relative text-sm",
+            collapsed && !isMobile ? "justify-center px-2 py-2.5" : "px-3 py-2",
             isActive
               ? "bg-primary/20 text-primary border border-primary/30"
               : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
@@ -156,8 +160,8 @@ export function AppSidebar() {
   };
 
   const renderGroups = (showLabel: boolean) => (
-    <nav className={cn("flex-1 p-3 transition-all duration-200", collapsed && !isMobile ? "overflow-hidden" : "overflow-y-auto")}>
-      <div className="space-y-4">
+    <nav className={cn("flex-1 py-2 px-2 transition-all duration-200", collapsed && !isMobile ? "overflow-hidden" : "overflow-y-auto")}>
+      <div className="space-y-1">
         {menuGroups.map((group) => {
           const open = isGroupOpen(group);
           return (

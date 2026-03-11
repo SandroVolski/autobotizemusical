@@ -119,11 +119,11 @@ export default function Alunos() {
     objetivo: "",
     observacoes: "",
   });
-  const [tipoAula, setTipoAula] = useState<"individual" | "turma" | "avulso">("individual");
-  const [aulaDiaSemana, setAulaDiaSemana] = useState(1);
-  const [aulaHorario, setAulaHorario] = useState("09:00");
-  const [aulaDuracao, setAulaDuracao] = useState(60);
-  const [aulaRecorrente, setAulaRecorrente] = useState(true);
+  const [tipoAula, setTipoAula] = useState<"individual" | "turma" | "avulso" | "">(""); 
+  const [aulaDiaSemana, setAulaDiaSemana] = useState<number | "">("");
+  const [aulaHorario, setAulaHorario] = useState("");
+  const [aulaDuracao, setAulaDuracao] = useState<number | "">(""); 
+  const [aulaRecorrente, setAulaRecorrente] = useState(false);
   const [aulaDataEspecifica, setAulaDataEspecifica] = useState("");
   const [selectedTurmaId, setSelectedTurmaId] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -236,7 +236,40 @@ export default function Alunos() {
       const updateData: any = { id: editingAluno, ...newAluno };
       if (fotoUrl) updateData.foto_url = fotoUrl;
       updateAlunoMutation.mutate(updateData, {
-        onSuccess: () => {
+        onSuccess: async () => {
+          // Handle aula creation/update for edit mode
+          if (tipoAula && tipoAula !== "turma" && aulaHorario) {
+            // Delete existing aulas for this student and re-create
+            const { data: existingAulas } = await supabase
+              .from("aulas")
+              .select("id")
+              .eq("aluno_id", editingAluno);
+            
+            if (existingAulas && existingAulas.length > 0) {
+              for (const ea of existingAulas) {
+                await supabase.from("aulas").delete().eq("id", ea.id);
+              }
+            }
+            
+            const aulaData: any = {
+              aluno_id: editingAluno,
+              horario: aulaHorario,
+              duracao_minutos: aulaDuracao || 60,
+              tipo: "individual",
+            };
+            if (aulaRecorrente) {
+              aulaData.dia_semana = aulaDiaSemana;
+              aulaData.recorrente = true;
+            } else {
+              aulaData.data_especifica = aulaDataEspecifica || undefined;
+              aulaData.recorrente = false;
+            }
+            createAulaMutation.mutate(aulaData);
+          }
+          // Handle turma enrollment on edit
+          if (tipoAula === "turma" && selectedTurmaId) {
+            addAlunoTurmaMutation.mutate({ turma_id: selectedTurmaId, aluno_id: editingAluno });
+          }
           setIsDialogOpen(false);
           setEditingAluno(null);
           resetForm();
@@ -255,12 +288,12 @@ export default function Alunos() {
             }
             setIsUploading(false);
           }
-          // Auto-create aula for individual/avulso
-          if (data?.id && tipoAula !== "turma") {
+          // Auto-create aula for individual/avulso (only if fields are filled)
+          if (data?.id && tipoAula && tipoAula !== "turma" && aulaHorario) {
             const aulaData: any = {
               aluno_id: data.id,
               horario: aulaHorario,
-              duracao_minutos: aulaDuracao,
+              duracao_minutos: aulaDuracao || 60,
               tipo: "individual",
             };
             if (aulaRecorrente) {
@@ -298,16 +331,16 @@ export default function Alunos() {
     });
     setPhotoFile(null);
     setPhotoPreview(null);
-    setTipoAula("individual");
-    setAulaDiaSemana(1);
-    setAulaHorario("09:00");
-    setAulaDuracao(60);
-    setAulaRecorrente(true);
+    setTipoAula("");
+    setAulaDiaSemana("");
+    setAulaHorario("");
+    setAulaDuracao("");
+    setAulaRecorrente(false);
     setAulaDataEspecifica("");
     setSelectedTurmaId("");
   };
 
-  const handleEdit = (aluno: typeof alunos extends (infer T)[] | undefined ? T : never) => {
+  const handleEdit = async (aluno: typeof alunos extends (infer T)[] | undefined ? T : never) => {
     setEditingAluno(aluno.id);
     setNewAluno({
       nome: aluno.nome,
@@ -323,10 +356,45 @@ export default function Alunos() {
     });
     setPhotoFile(null);
     setPhotoPreview(aluno.foto_url || null);
-    setTipoAula("individual");
-    setAulaRecorrente(true);
+    // Load existing aula data for this student
+    setTipoAula("");
+    setAulaDiaSemana("");
+    setAulaHorario("");
+    setAulaDuracao("");
+    setAulaRecorrente(false);
     setAulaDataEspecifica("");
     setSelectedTurmaId("");
+    
+    // Fetch existing aula for this student
+    const { data: existingAulas } = await supabase
+      .from("aulas")
+      .select("*")
+      .eq("aluno_id", aluno.id)
+      .limit(1);
+    
+    if (existingAulas && existingAulas.length > 0) {
+      const aula = existingAulas[0];
+      setTipoAula(aula.tipo === "individual" ? "individual" : "avulso");
+      setAulaRecorrente(aula.recorrente ?? false);
+      setAulaDiaSemana(aula.dia_semana ?? "");
+      setAulaHorario(aula.horario ?? "");
+      setAulaDuracao(aula.duracao_minutos ?? 60);
+      setAulaDataEspecifica(aula.data_especifica ?? "");
+    }
+    
+    // Check if student is in a turma
+    const { data: turmaAluno } = await supabase
+      .from("turma_alunos")
+      .select("turma_id")
+      .eq("aluno_id", aluno.id)
+      .eq("status", "ativo")
+      .limit(1);
+    
+    if (turmaAluno && turmaAluno.length > 0) {
+      setTipoAula("turma");
+      setSelectedTurmaId(turmaAluno[0].turma_id);
+    }
+    
     setIsDialogOpen(true);
   };
 
@@ -527,22 +595,23 @@ export default function Alunos() {
               {/* Tipo de Aula */}
               <div className="space-y-4 p-4 rounded-lg border border-primary/20 bg-primary/5">
                 <Label className="text-sm font-semibold">Tipo de Aula</Label>
-                <Select value={tipoAula} onValueChange={(v) => setTipoAula(v as any)}>
+                <Select value={tipoAula || "__none__"} onValueChange={(v) => setTipoAula(v === "__none__" ? "" : v as any)}>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Selecione o tipo (opcional)" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="__none__">Não definido</SelectItem>
                     <SelectItem value="individual">Individual</SelectItem>
                     <SelectItem value="turma">Turma</SelectItem>
                     <SelectItem value="avulso">Avulso</SelectItem>
                   </SelectContent>
                 </Select>
-                {tipoAula !== "turma" && (
+                {tipoAula && tipoAula !== "turma" && (
                   <>
                     <div className="grid gap-2">
                       <Label>Recorrente?</Label>
                       <Select value={aulaRecorrente ? "true" : "false"} onValueChange={(v) => setAulaRecorrente(v === "true")}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="true">Sim (Semanal)</SelectItem>
                           <SelectItem value="false">Não (Data específica)</SelectItem>
@@ -553,8 +622,8 @@ export default function Alunos() {
                       {aulaRecorrente ? (
                         <div className="grid gap-2">
                           <Label>Dia da Semana</Label>
-                          <Select value={String(aulaDiaSemana)} onValueChange={(v) => setAulaDiaSemana(Number(v))}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
+                          <Select value={aulaDiaSemana !== "" ? String(aulaDiaSemana) : ""} onValueChange={(v) => setAulaDiaSemana(Number(v))}>
+                            <SelectTrigger><SelectValue placeholder="Dia" /></SelectTrigger>
                             <SelectContent>
                               <SelectItem value="0">Domingo</SelectItem>
                               <SelectItem value="1">Segunda</SelectItem>
@@ -574,13 +643,13 @@ export default function Alunos() {
                       )}
                       <div className="grid gap-2">
                         <Label>Horário</Label>
-                        <Input type="time" value={aulaHorario} onChange={(e) => setAulaHorario(e.target.value)} />
+                        <Input type="time" value={aulaHorario} onChange={(e) => setAulaHorario(e.target.value)} placeholder="Horário" />
                       </div>
                     </div>
                     <div className="grid gap-2">
                       <Label>Duração</Label>
-                      <Select value={String(aulaDuracao)} onValueChange={(v) => setAulaDuracao(Number(v))}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                      <Select value={aulaDuracao !== "" ? String(aulaDuracao) : ""} onValueChange={(v) => setAulaDuracao(Number(v))}>
+                        <SelectTrigger><SelectValue placeholder="Duração" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="30">30 min</SelectItem>
                           <SelectItem value="45">45 min</SelectItem>

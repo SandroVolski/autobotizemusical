@@ -287,7 +287,11 @@ export default function Agenda() {
   // Get classes for a specific date
   const getClassesForDate = (date: Date) => {
     const dayOfWeek = date.getDay();
-    const dateStr = date.toISOString().split("T")[0];
+    // Use local date string to avoid UTC offset issues
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const dateStr = `${year}-${month}-${day}`;
     return filteredAulas?.filter(aula => {
       // Non-recurring with specific date
       if (aula.data_especifica && !aula.recorrente) {
@@ -631,7 +635,7 @@ export default function Agenda() {
                             {timeSlots.map((slot, index) => (
                               <div
                                 key={index}
-                                onClick={() => openCreateDialog(dayIndex, slot.label)}
+                                onClick={() => openCreateDialog(date.getDay(), slot.label)}
                                 className={`h-10 border-b hover:bg-primary/10 transition-colors cursor-pointer ${
                                   slot.minutes === 30 ? "border-dashed border-border/50" : "border-border"
                                 }`}
