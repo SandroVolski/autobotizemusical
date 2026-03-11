@@ -45,23 +45,23 @@ function generateContractHTML(contrato: any, escola: any) {
     return `<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 750px; margin: 0 auto; padding: 50px; color: #1a1a2e;">
 <div style="text-align: center; border-bottom: 3px solid #7c3aed; padding-bottom: 20px; margin-bottom: 30px;">
 <h1 style="font-size: 22px; font-weight: 700; color: #7c3aed; margin: 0; letter-spacing: 2px;">CONTRATO DE PRESTAÇÃO DE SERVIÇOS EDUCACIONAIS</h1>
-<p style="font-size: 16px; color: #555; margin: 8px 0 0;">${escola?.nome || "Escola de Música"}</p>
-${escola?.cnpj ? `<p style="font-size: 12px; color: #888; margin: 4px 0 0;">CNPJ: ${escola.cnpj}</p>` : ""}
-${escola?.endereco ? `<p style="font-size: 12px; color: #888; margin: 2px 0 0;">${escola.endereco}${escola?.cidade ? ` — ${escola.cidade}/${escola.estado}` : ""}</p>` : ""}
+<p style="font-size: 16px; color: #555; margin: 8px 0 0;">${esc(escola?.nome, "Escola de Música")}</p>
+${escola?.cnpj ? `<p style="font-size: 12px; color: #888; margin: 4px 0 0;">CNPJ: ${esc(escola.cnpj)}</p>` : ""}
+${escola?.endereco ? `<p style="font-size: 12px; color: #888; margin: 2px 0 0;">${esc(escola.endereco)}${escola?.cidade ? ` — ${esc(escola.cidade)}/${esc(escola.estado)}` : ""}</p>` : ""}
 </div>
 <div style="background: #f8f7ff; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
 <h3 style="font-size: 13px; color: #7c3aed; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 12px;">Dados da Contratante</h3>
 <table style="width: 100%; font-size: 14px;">
-<tr><td style="padding: 4px 0; color: #666; width: 140px;">Nome:</td><td style="font-weight: 600;">${aluno?.responsavel_nome || aluno?.nome || "—"}</td></tr>
-<tr><td style="padding: 4px 0; color: #666;">Endereço:</td><td>${aluno?.endereco || "—"}</td></tr>
-<tr><td style="padding: 4px 0; color: #666;">Telefone:</td><td>${aluno?.telefone || "—"}</td></tr>
-<tr><td style="padding: 4px 0; color: #666;">E-mail:</td><td>${aluno?.email || "—"}</td></tr>
+<tr><td style="padding: 4px 0; color: #666; width: 140px;">Nome:</td><td style="font-weight: 600;">${esc(aluno?.responsavel_nome || aluno?.nome)}</td></tr>
+<tr><td style="padding: 4px 0; color: #666;">Endereço:</td><td>${esc(aluno?.endereco)}</td></tr>
+<tr><td style="padding: 4px 0; color: #666;">Telefone:</td><td>${esc(aluno?.telefone)}</td></tr>
+<tr><td style="padding: 4px 0; color: #666;">E-mail:</td><td>${esc(aluno?.email)}</td></tr>
 </table></div>
 <div style="background: #f0fdf4; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
 <h3 style="font-size: 13px; color: #16a34a; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 12px;">Dados do Aluno(a)</h3>
 <table style="width: 100%; font-size: 14px;">
-<tr><td style="padding: 4px 0; color: #666; width: 140px;">Aluno(a):</td><td style="font-weight: 600;">${aluno?.nome || "—"}</td></tr>
-<tr><td style="padding: 4px 0; color: #666;">Curso:</td><td style="font-weight: 600;">${curso?.nome || "—"}</td></tr>
+<tr><td style="padding: 4px 0; color: #666; width: 140px;">Aluno(a):</td><td style="font-weight: 600;">${esc(aluno?.nome)}</td></tr>
+<tr><td style="padding: 4px 0; color: #666;">Curso:</td><td style="font-weight: 600;">${esc(curso?.nome)}</td></tr>
 <tr><td style="padding: 4px 0; color: #666;">Valor Mensal:</td><td style="font-weight: 700; color: #7c3aed; font-size: 16px;">${curso?.valor_mensal ? `R$ ${Number(curso.valor_mensal).toFixed(2)}` : "A definir"}</td></tr>
 <tr><td style="padding: 4px 0; color: #666;">Início:</td><td>${contrato.data_inicio ? new Date(contrato.data_inicio).toLocaleDateString("pt-BR") : today}</td></tr>
 ${contrato.data_fim ? `<tr><td style="padding: 4px 0; color: #666;">Término:</td><td>${new Date(contrato.data_fim).toLocaleDateString("pt-BR")}</td></tr>` : ""}
@@ -76,20 +76,20 @@ ${contrato.data_fim ? `<tr><td style="padding: 4px 0; color: #666;">Término:</t
 <p><strong>CLÁUSULA 5ª — REPOSIÇÃO:</strong> Faltas com aviso de 24h geram crédito de reposição (expira em 30 dias).</p>
 <p><strong>CLÁUSULA 6ª — MATERIAL:</strong> Material didático é responsabilidade do contratante.</p>
 <p><strong>CLÁUSULA 7ª — RESCISÃO:</strong> Cancelamento com 30 dias de antecedência por escrito.</p>
-<p><strong>CLÁUSULA 8ª — FORO:</strong> Foro da comarca de ${escola?.cidade || "[cidade]"}/${escola?.estado || "[UF]"}.</p>
+<p><strong>CLÁUSULA 8ª — FORO:</strong> Foro da comarca de ${esc(escola?.cidade, "[cidade]")}/${esc(escola?.estado, "[UF]")}.</p>
 </div></div>
 <div style="margin-top: 60px;">
-<p style="text-align: center; color: #888; font-size: 12px; margin-bottom: 40px;">${escola?.cidade || "[Cidade]"}, ${today}</p>
+<p style="text-align: center; color: #888; font-size: 12px; margin-bottom: 40px;">${esc(escola?.cidade, "[Cidade]")}, ${today}</p>
 <div style="display: flex; justify-content: space-between; gap: 40px;">
 <div style="flex: 1; text-align: center;"><div style="border-top: 2px solid #1a1a2e; padding-top: 8px; margin-top: 50px;">
-<p style="font-size: 13px; font-weight: 600; margin: 0;">${aluno?.responsavel_nome || aluno?.nome || "CONTRATANTE"}</p>
+<p style="font-size: 13px; font-weight: 600; margin: 0;">${esc(aluno?.responsavel_nome || aluno?.nome, "CONTRATANTE")}</p>
 <p style="font-size: 11px; color: #888; margin: 2px 0 0;">Contratante</p></div></div>
 <div style="flex: 1; text-align: center;"><div style="border-top: 2px solid #1a1a2e; padding-top: 8px; margin-top: 50px;">
-<p style="font-size: 13px; font-weight: 600; margin: 0;">${escola?.nome || "CONTRATADA"}</p>
+<p style="font-size: 13px; font-weight: 600; margin: 0;">${esc(escola?.nome, "CONTRATADA")}</p>
 <p style="font-size: 11px; color: #888; margin: 2px 0 0;">Contratada</p></div></div>
 </div></div>
 <div style="text-align: center; margin-top: 40px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
-<p style="font-size: 10px; color: #aaa;">Documento gerado eletronicamente em ${today} — ${escola?.nome || "Escola de Música"} © ${year}</p>
+<p style="font-size: 10px; color: #aaa;">Documento gerado eletronicamente em ${today} — ${esc(escola?.nome, "Escola de Música")} © ${year}</p>
 </div></div>`;
   }
 
