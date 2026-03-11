@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { MessageSquare, Send, CheckCircle2, XCircle, Clock, Users, Settings2, History, ToggleRight, AlertCircle, Phone, Wifi, WifiOff, QrCode, Loader2, Smartphone, Unplug, Pencil } from "lucide-react";
+import { MessageSquare, Send, CheckCircle2, XCircle, Clock, Users, Settings2, History, ToggleRight, AlertCircle, Phone, Wifi, WifiOff, QrCode, Loader2, Smartphone, Unplug, Pencil, Save, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,8 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { useAlunos } from "@/hooks/useAlunos";
 import { useConfirmacaoConfigs, useConfirmacaoMensagens, useConfirmacaoMensagensRealtime, useToggleConfirmacao, useBulkEnableConfirmacao, useUpdateMensagemStatus } from "@/hooks/useConfirmacoes";
+import { useConfiguracoes, useUpdateConfiguracoes } from "@/hooks/useConfiguracoes";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -46,7 +49,6 @@ function WhatsAppConnectionCard() {
     checkStatus();
   }, [checkStatus]);
 
-  // Poll status while connecting
   useEffect(() => {
     if (status !== "connecting") return;
     const interval = setInterval(async () => {
@@ -74,7 +76,6 @@ function WhatsAppConnectionCard() {
       const { data, error } = await supabase.functions.invoke("whatsapp-connection", {
         body: { action: "connect" },
       });
-      console.log("WhatsApp connect response:", JSON.stringify(data));
       if (error) throw error;
       if (data?.state === "open") {
         setStatus("connected");
@@ -82,14 +83,13 @@ function WhatsAppConnectionCard() {
       } else if (data?.state === "error" || !data?.qrcode) {
         toast({ 
           title: "Não foi possível gerar o QR Code", 
-          description: data?.message || "A Evolution API pode estar indisponível. Verifique se a URL e API Key estão corretas. Tente novamente em alguns segundos.",
+          description: data?.message || "A Evolution API pode estar indisponível.",
           variant: "destructive" 
         });
       } else {
         setStatus("connecting");
         const qr = data.qrcode;
-        const qrStr = typeof qr === 'string' && qr.length > 10 ? qr : null;
-        setQrCode(qrStr);
+        setQrCode(typeof qr === 'string' && qr.length > 10 ? qr : null);
         setPairingCode(data?.pairingCode || null);
       }
     } catch (err: any) {
@@ -146,7 +146,6 @@ function WhatsAppConnectionCard() {
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           </div>
         )}
-
         {status === "disconnected" && (
           <div className="flex flex-col items-center gap-4 py-4">
             <p className="text-sm text-muted-foreground text-center max-w-md">
@@ -158,33 +157,21 @@ function WhatsAppConnectionCard() {
             </Button>
           </div>
         )}
-
         {status === "connecting" && (
           <div className="flex flex-col items-center gap-4 py-4">
             {qrCode ? (
               <>
-                <p className="text-sm text-muted-foreground text-center">
-                  Escaneie o QR Code abaixo com seu WhatsApp:
-                </p>
+                <p className="text-sm text-muted-foreground text-center">Escaneie o QR Code abaixo com seu WhatsApp:</p>
                 <div className="bg-background p-4 rounded-xl border shadow-sm">
-                  <img
-                    src={typeof qrCode === 'string' && qrCode.startsWith("data:") ? qrCode : `data:image/png;base64,${qrCode}`}
-                    alt="QR Code WhatsApp"
-                    className="w-64 h-64 object-contain"
-                  />
+                  <img src={typeof qrCode === 'string' && qrCode.startsWith("data:") ? qrCode : `data:image/png;base64,${qrCode}`} alt="QR Code WhatsApp" className="w-64 h-64 object-contain" />
                 </div>
                 {pairingCode && (
-                  <p className="text-sm text-muted-foreground">
-                    Ou use o código: <span className="font-mono font-bold text-foreground">{pairingCode}</span>
-                  </p>
+                  <p className="text-sm text-muted-foreground">Ou use o código: <span className="font-mono font-bold text-foreground">{pairingCode}</span></p>
                 )}
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Aguardando leitura do QR Code...
+                  <Loader2 className="w-4 h-4 animate-spin" /> Aguardando leitura do QR Code...
                 </div>
-                <Button variant="ghost" size="sm" onClick={handleConnect} disabled={loading}>
-                  Gerar novo QR Code
-                </Button>
+                <Button variant="ghost" size="sm" onClick={handleConnect} disabled={loading}>Gerar novo QR Code</Button>
               </>
             ) : (
               <div className="flex items-center gap-2 py-8">
@@ -194,12 +181,9 @@ function WhatsAppConnectionCard() {
             )}
           </div>
         )}
-
         {status === "connected" && (
           <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              As mensagens de confirmação serão enviadas automaticamente 24h antes de cada aula.
-            </p>
+            <p className="text-sm text-muted-foreground">As mensagens de confirmação serão enviadas automaticamente.</p>
             <Button variant="outline" size="sm" onClick={handleDisconnect} disabled={loading} className="gap-2 text-destructive hover:text-destructive">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Unplug className="w-4 h-4" />}
               Desconectar
@@ -211,9 +195,119 @@ function WhatsAppConnectionCard() {
   );
 }
 
+function MessageTemplateSettings() {
+  const { data: config, isLoading } = useConfiguracoes();
+  const updateConfig = useUpdateConfiguracoes();
+  const defaultMsg = `Olá {nome}! 🎵\n\nLembramos que você tem aula amanhã ({dia}) às {horario}.\n\nVocê confirma presença?\n\n✅ Responda *SIM* para confirmar\n❌ Responda *NÃO* para cancelar`;
+  const [mensagem, setMensagem] = useState(defaultMsg);
+  const [dirty, setDirty] = useState(false);
+
+  useEffect(() => {
+    if (config && (config as any).mensagem_confirmacao) {
+      setMensagem((config as any).mensagem_confirmacao);
+    }
+  }, [config]);
+
+  const handleSave = () => {
+    updateConfig.mutate({ mensagem_confirmacao: mensagem } as any, {
+      onSuccess: () => {
+        setDirty(false);
+        toast({ title: "Mensagem salva!", description: "O template de confirmação foi atualizado." });
+      }
+    });
+  };
+
+  const handleReset = () => {
+    setMensagem(defaultMsg);
+    setDirty(true);
+  };
+
+  if (isLoading) {
+    return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <MessageSquare className="w-5 h-5 text-primary" />
+          Mensagem de Confirmação
+        </CardTitle>
+        <CardDescription>
+          Personalize a mensagem enviada aos alunos. Use as variáveis: <code className="text-xs bg-muted px-1 py-0.5 rounded">{"{nome}"}</code>, <code className="text-xs bg-muted px-1 py-0.5 rounded">{"{dia}"}</code>, <code className="text-xs bg-muted px-1 py-0.5 rounded">{"{horario}"}</code>
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Textarea
+          value={mensagem}
+          onChange={(e) => { setMensagem(e.target.value); setDirty(true); }}
+          rows={8}
+          className="font-mono text-sm"
+        />
+        <div className="flex items-center gap-2">
+          <Button onClick={handleSave} disabled={!dirty || updateConfig.isPending} className="gap-2">
+            {updateConfig.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            Salvar Mensagem
+          </Button>
+          <Button variant="outline" onClick={handleReset} className="gap-2">
+            <RefreshCw className="w-4 h-4" /> Restaurar Padrão
+          </Button>
+        </div>
+        <div className="p-4 rounded-lg bg-muted/50 border">
+          <p className="text-xs font-medium text-muted-foreground mb-2">Pré-visualização:</p>
+          <p className="text-sm whitespace-pre-line">
+            {mensagem.replace("{nome}", "João Silva").replace("{dia}", "Segunda").replace("{horario}", "14:00")}
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ManualSendCard() {
+  const [sending, setSending] = useState(false);
+
+  const handleSendNow = async () => {
+    setSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-class-confirmations");
+      if (error) throw error;
+      toast({
+        title: "Envio concluído!",
+        description: `${data?.sent || 0} mensagens enviadas, ${data?.errors || 0} erros.`,
+      });
+    } catch (err: any) {
+      toast({ title: "Erro ao enviar", description: err.message, variant: "destructive" });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <Send className="w-5 h-5 text-primary" />
+          Disparo Manual
+        </CardTitle>
+        <CardDescription>
+          Envie manualmente as confirmações para todas as aulas das próximas 24 horas
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button onClick={handleSendNow} disabled={sending} className="gap-2">
+          {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+          Enviar Agora
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Confirmacoes() {
   const [search, setSearch] = useState("");
   const [whatsappConnected, setWhatsappConnected] = useState(false);
+  const [connectionChecked, setConnectionChecked] = useState(false);
   const { data: alunos, isLoading: loadingAlunos } = useAlunos();
   const { data: configs, isLoading: loadingConfigs } = useConfirmacaoConfigs();
   useConfirmacaoMensagensRealtime();
@@ -222,7 +316,6 @@ export default function Confirmacoes() {
   const bulkEnableMutation = useBulkEnableConfirmacao();
   const updateStatusMutation = useUpdateMensagemStatus();
 
-  // Check WhatsApp connection to determine default tab
   useEffect(() => {
     const checkConnection = async () => {
       try {
@@ -233,6 +326,8 @@ export default function Confirmacoes() {
         setWhatsappConnected(state === "open");
       } catch {
         setWhatsappConnected(false);
+      } finally {
+        setConnectionChecked(true);
       }
     };
     checkConnection();
@@ -247,14 +342,10 @@ export default function Confirmacoes() {
     a.nome.toLowerCase().includes(search.toLowerCase())
   );
 
-  const totalHabilitados = activeAlunos.filter((a) => {
-    const cfg = configMap.get(a.id);
-    return cfg ? cfg.habilitado : false;
-  }).length;
-
+  const totalHabilitados = activeAlunos.filter((a) => configMap.get(a.id)?.habilitado).length;
   const totalEnviados = mensagens?.filter((m) => m.status === "enviado" || m.status === "confirmado").length || 0;
   const totalConfirmados = mensagens?.filter((m) => m.status === "confirmado").length || 0;
-  const totalErros = mensagens?.filter((m) => m.status === "erro").length || 0;
+  const totalCancelados = mensagens?.filter((m) => m.status === "cancelado").length || 0;
 
   const handleToggle = (alunoId: string, currentState: boolean) => {
     toggleMutation.mutate({ aluno_id: alunoId, habilitado: !currentState });
@@ -265,6 +356,14 @@ export default function Confirmacoes() {
     bulkEnableMutation.mutate(ids);
   };
 
+  if (!connectionChecked) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -274,11 +373,12 @@ export default function Confirmacoes() {
             Confirmação de Aulas
           </h1>
           <p className="text-muted-foreground mt-1">
-            Envie mensagens automáticas via WhatsApp 24h antes da aula para confirmação
+            Envie mensagens automáticas via WhatsApp para confirmação de aulas
           </p>
         </div>
       </div>
 
+      {/* Dashboard Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
@@ -309,10 +409,10 @@ export default function Confirmacoes() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-destructive/10"><AlertCircle className="w-5 h-5 text-destructive" /></div>
+            <div className="p-2 rounded-lg bg-destructive/10"><XCircle className="w-5 h-5 text-destructive" /></div>
             <div>
-              <p className="text-2xl font-bold">{totalErros}</p>
-              <p className="text-xs text-muted-foreground">Erros</p>
+              <p className="text-2xl font-bold">{totalCancelados}</p>
+              <p className="text-xs text-muted-foreground">Cancelados</p>
             </div>
           </CardContent>
         </Card>
@@ -322,6 +422,9 @@ export default function Confirmacoes() {
         <TabsList>
           <TabsTrigger value="conexao" className="gap-2">
             <Smartphone className="w-4 h-4" /> Conexão
+          </TabsTrigger>
+          <TabsTrigger value="alunos" className="gap-2">
+            <Users className="w-4 h-4" /> Alunos
           </TabsTrigger>
           <TabsTrigger value="config" className="gap-2">
             <Settings2 className="w-4 h-4" /> Configurações
@@ -336,8 +439,8 @@ export default function Confirmacoes() {
           <WhatsAppConnectionCard />
         </TabsContent>
 
-        {/* Config tab */}
-        <TabsContent value="config" className="space-y-4">
+        {/* Students tab */}
+        <TabsContent value="alunos" className="space-y-4">
           <Card>
             <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
@@ -391,6 +494,12 @@ export default function Confirmacoes() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Config tab */}
+        <TabsContent value="config" className="space-y-4">
+          <MessageTemplateSettings />
+          <ManualSendCard />
         </TabsContent>
 
         {/* History tab */}
