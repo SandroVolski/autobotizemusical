@@ -161,28 +161,45 @@ export function AppSidebar() {
 
   const renderGroups = (showLabel: boolean) => (
     <nav className={cn("flex-1 py-2 px-2 transition-all duration-200", collapsed && !isMobile ? "overflow-hidden" : "overflow-y-auto")}>
-      <div className="space-y-1">
-        {menuGroups.map((group, groupIndex) => {
+      <div className="space-y-0">
+        {menuGroups.map((group) => {
           const open = isGroupOpen(group);
           return (
             <div key={group.label}>
-              {showLabel && group.collapsible ? (
+              {/* Group header — same height in both modes for vertical alignment */}
+              {group.collapsible ? (
                 <button
-                  onClick={() => toggleGroup(group.label)}
-                  className="flex items-center justify-between w-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+                  onClick={() => showLabel ? toggleGroup(group.label) : undefined}
+                  className={cn(
+                    "flex items-center w-full h-8 transition-colors",
+                    showLabel
+                      ? "justify-between px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70 hover:text-muted-foreground"
+                      : "justify-center"
+                  )}
                 >
-                  {group.label}
-                  <ChevronDown className={cn("w-3 h-3 transition-transform", open && "rotate-180")} />
+                  {showLabel ? (
+                    <>
+                      {group.label}
+                      <ChevronDown className={cn("w-3 h-3 transition-transform", open && "rotate-180")} />
+                    </>
+                  ) : (
+                    <div className="w-5 h-px bg-sidebar-border" />
+                  )}
                 </button>
-              ) : showLabel ? (
-                <p className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
-                  {group.label}
-                </p>
-              ) : groupIndex > 0 ? (
-                <div className="my-1.5 mx-3 h-px bg-sidebar-border" />
-              ) : null}
+              ) : (
+                <div
+                  className={cn(
+                    "flex items-center h-8",
+                    showLabel
+                      ? "px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70"
+                      : "justify-center"
+                  )}
+                >
+                  {showLabel ? group.label : <div className="w-5 h-px bg-sidebar-border" />}
+                </div>
+              )}
               {(open || !showLabel) && (
-                <ul className="space-y-0.5 mt-0.5">
+                <ul className="space-y-0.5">
                   {group.items.map((item) => renderNavItem(item, showLabel))}
                 </ul>
               )}
