@@ -144,7 +144,7 @@ export function WeeklyPayments() {
             </div>
           </div>
 
-          <Tabs defaultValue="pagamentos" className="w-full">
+          <Tabs defaultValue="cobrar" className="w-full">
             <TabsList className="w-full mb-3 bg-muted/50">
               <TabsTrigger value="pagamentos" className="flex-1 text-xs">
                 <DollarSign className="w-3.5 h-3.5 mr-1" />Pagamentos ({pagamentosSemana.length})

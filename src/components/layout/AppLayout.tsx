@@ -88,6 +88,37 @@ export function AppLayout({ children }: AppLayoutProps) {
             <div className="flex items-center gap-1.5 lg:gap-2">
               <NotificationsDropdown variant="icon" />
 
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleThemeToggle}
+                className="relative w-9 h-9 overflow-hidden hover:bg-primary/10"
+              >
+                <AnimatePresence mode="wait" initial={false}>
+                  {isDark ? (
+                    <motion.div
+                      key="moon"
+                      initial={{ y: -20, opacity: 0, rotate: -90 }}
+                      animate={{ y: 0, opacity: 1, rotate: 0 }}
+                      exit={{ y: 20, opacity: 0, rotate: 90 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                    >
+                      <Moon className="w-[18px] h-[18px] text-primary" />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="sun"
+                      initial={{ y: -20, opacity: 0, rotate: 90 }}
+                      animate={{ y: 0, opacity: 1, rotate: 0 }}
+                      exit={{ y: 20, opacity: 0, rotate: -90 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                    >
+                      <Sun className="w-[18px] h-[18px] text-warning" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </Button>
+
               <div className="w-px h-6 bg-border/50 mx-1 hidden sm:block" />
 
               <div className="flex items-center gap-2.5 pl-1">
