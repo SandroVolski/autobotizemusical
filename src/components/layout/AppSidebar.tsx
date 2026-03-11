@@ -92,7 +92,6 @@ const menuGroups: MenuGroup[] = [
     ],
   },
 ];
-
 export function AppSidebar() {
   const { collapsed, toggleCollapsed, isMobile, mobileOpen, setMobileOpen, setIsHovering, hoverMode } = useSidebar();
   const { signOut } = useAuth();
