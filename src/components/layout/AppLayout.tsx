@@ -113,7 +113,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     exit={{ y: 20, opacity: 0, rotate: -90 }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}>
                     
-                      <Sun className="w-[18px] h-[18px] text-warning" />
+                      <Sun className="w-[18px] h-[18px] text-[#1a1a1a]" />
                     </motion.div>
                   }
                 </AnimatePresence>
