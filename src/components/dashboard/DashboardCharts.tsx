@@ -75,7 +75,11 @@ export function StudentsByLevelChart() {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip contentStyle={themedTooltipStyle} />
+                      <Tooltip 
+                        contentStyle={themedTooltipStyle}
+                        itemStyle={{ color: "hsl(var(--popover-foreground))" }}
+                        labelStyle={{ color: "hsl(var(--popover-foreground))" }}
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
