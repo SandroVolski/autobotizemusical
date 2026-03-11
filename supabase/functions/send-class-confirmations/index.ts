@@ -39,29 +39,36 @@ Deno.serve(async (req) => {
     const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
     const currentDayOfWeek = in24h.getDay();
 
-    // 1) Get RECURRING classes for the day 24h from now
+    // 1) Get RECURRING classes
     let recurringQuery = supabase
       .from("aulas")
       .select("id, aluno_id, horario, dia_semana, alunos(nome, telefone, responsavel_telefone)")
       .eq("status", "agendada")
-      .eq("recorrente", true)
-      .eq("dia_semana", currentDayOfWeek);
+      .eq("recorrente", true);
+
+    // For automatic (cron) sends, filter by tomorrow's day; for manual, get all
+    if (!forceManual) {
+      recurringQuery = recurringQuery.eq("dia_semana", currentDayOfWeek);
+    }
 
     if (manualAlunoId) recurringQuery = recurringQuery.eq("aluno_id", manualAlunoId);
 
     const { data: recurringAulas, error: recurringError } = await recurringQuery;
     if (recurringError) throw recurringError;
 
-    // 2) Get ONE-OFF classes (data_especifica) within next 24h
+    // 2) Get ONE-OFF classes
     const nowISO = now.toISOString().split("T")[0];
     const in24hISO = in24h.toISOString().split("T")[0];
     let oneOffQuery = supabase
       .from("aulas")
       .select("id, aluno_id, horario, dia_semana, data_especifica, alunos(nome, telefone, responsavel_telefone)")
       .eq("status", "agendada")
-      .or(`recorrente.eq.false,recorrente.is.null`)
-      .gte("data_especifica", nowISO)
-      .lte("data_especifica", in24hISO);
+      .or(`recorrente.eq.false,recorrente.is.null`);
+
+    // For automatic sends, filter by date range; for manual, get all
+    if (!forceManual) {
+      oneOffQuery = oneOffQuery.gte("data_especifica", nowISO).lte("data_especifica", in24hISO);
+    }
 
     if (manualAlunoId) oneOffQuery = oneOffQuery.eq("aluno_id", manualAlunoId);
 

@@ -137,8 +137,8 @@ export function AppSidebar() {
           to={item.path}
           onClick={handleNavClick}
           className={cn(
-            "flex items-center gap-3 rounded-lg transition-all duration-200 group relative text-sm",
-            collapsed && !isMobile ? "justify-center px-2 py-2.5" : "px-3 py-2",
+            "flex items-center gap-3 rounded-lg transition-all duration-200 group relative text-sm px-3 py-2",
+            collapsed && !isMobile && "overflow-hidden",
             isActive
               ? "bg-primary/20 text-primary border border-primary/30"
               : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
