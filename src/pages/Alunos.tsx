@@ -606,7 +606,7 @@ export default function Alunos() {
                     <SelectItem value="avulso">Avulso</SelectItem>
                   </SelectContent>
                 </Select>
-                {tipoAula !== "turma" && (
+                {tipoAula && tipoAula !== "turma" && (
                   <>
                     <div className="grid gap-2">
                       <Label>Recorrente?</Label>
