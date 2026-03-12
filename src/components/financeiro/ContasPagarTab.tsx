@@ -59,15 +59,15 @@ export function ContasPagarTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex gap-4">
-          <div className="text-sm">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <div className="flex gap-3 sm:gap-4 min-w-0 flex-wrap">
+          <div className="text-xs sm:text-sm min-w-0">
             <span className="text-muted-foreground">A Pagar: </span>
-            <span className="font-bold text-destructive">{totalPendente.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+            <span className="font-bold text-destructive truncate">{totalPendente.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
           </div>
-          <div className="text-sm">
+          <div className="text-xs sm:text-sm min-w-0">
             <span className="text-muted-foreground">Pago: </span>
-            <span className="font-bold text-success">{totalPago.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+            <span className="font-bold text-success truncate">{totalPago.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
           </div>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
