@@ -28,6 +28,7 @@ import { exportPagamentos } from "@/lib/csv-export";
 import { ContasPagarTab } from "@/components/financeiro/ContasPagarTab";
 import { FluxoCaixaTab } from "@/components/financeiro/FluxoCaixaTab";
 import { PDVTab } from "@/components/financeiro/PDVTab";
+import { supabase } from "@/integrations/supabase/client";
 
 const filterOptions: FilterOption[] = [
   { id: "status", label: "Status", type: "select", options: [
