@@ -321,14 +321,14 @@ export default function Confirmacoes() {
             </CardHeader>
             <CardContent>
               <Input placeholder="Buscar aluno..." value={search} onChange={(e) => setSearch(e.target.value)} className="mb-4 max-w-sm" />
-              <div className="rounded-md border">
+              <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Aluno</TableHead>
-                      <TableHead>Telefone</TableHead>
-                      <TableHead className="text-center">Habilitado</TableHead>
-                      <TableHead className="text-center">Ações</TableHead>
+                      <TableHead className="min-w-[120px]">Aluno</TableHead>
+                      <TableHead className="min-w-[120px]">Telefone</TableHead>
+                      <TableHead className="text-center min-w-[80px]">Habilitado</TableHead>
+                      <TableHead className="text-center min-w-[80px]">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
