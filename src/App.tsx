@@ -170,7 +170,9 @@ const App = () => (
               path="/turmas"
               element={
                 <AuthenticatedPage>
-                  <Turmas />
+                  <RoleRoute allowedRoles={['admin', 'secretaria', 'professor']}>
+                    <Turmas />
+                  </RoleRoute>
                 </AuthenticatedPage>
               }
             />
@@ -178,7 +180,9 @@ const App = () => (
               path="/reposicoes"
               element={
                 <AuthenticatedPage>
-                  <Reposicoes />
+                  <RoleRoute allowedRoles={['admin', 'secretaria', 'professor']}>
+                    <Reposicoes />
+                  </RoleRoute>
                 </AuthenticatedPage>
               }
             />
@@ -186,7 +190,9 @@ const App = () => (
               path="/contratos"
               element={
                 <AuthenticatedPage>
-                  <Contratos />
+                  <RoleRoute allowedRoles={['admin', 'secretaria']}>
+                    <Contratos />
+                  </RoleRoute>
                 </AuthenticatedPage>
               }
             />
@@ -204,7 +210,9 @@ const App = () => (
               path="/confirmacoes"
               element={
                 <AuthenticatedPage>
-                  <Confirmacoes />
+                  <RoleRoute allowedRoles={['admin', 'secretaria']}>
+                    <Confirmacoes />
+                  </RoleRoute>
                 </AuthenticatedPage>
               }
             />
