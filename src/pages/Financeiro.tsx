@@ -364,8 +364,8 @@ export default function Financeiro() {
       </motion.div>
 
       <Tabs defaultValue="receber" className="space-y-6">
-        <div className="bg-muted/50 backdrop-blur-sm border border-border rounded-xl p-1.5 overflow-x-auto">
-          <TabsList className="bg-transparent gap-1 h-auto p-0 w-full min-w-max">
+        <div className="bg-muted/50 backdrop-blur-sm border border-border rounded-xl p-1.5 overflow-x-auto sm:inline-flex sm:w-auto">
+          <TabsList className="bg-transparent gap-1 h-auto p-0 w-full sm:w-auto min-w-max">
             <TabsTrigger value="receber" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 sm:px-5 py-2 text-xs sm:text-sm font-medium transition-all">
               <DollarSign className="w-4 h-4 mr-1 sm:mr-2" /><span className="hidden sm:inline">Receber</span><span className="sm:hidden">Rec.</span>
             </TabsTrigger>
