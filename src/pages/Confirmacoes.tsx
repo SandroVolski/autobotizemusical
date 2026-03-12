@@ -304,18 +304,18 @@ export default function Confirmacoes() {
         {/* Students tab with WhatsApp links and manual dispatch */}
         <TabsContent value="alunos" className="space-y-4">
           <Card>
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <CardHeader className="flex flex-col gap-4">
               <div>
                 <CardTitle>Alunos</CardTitle>
                 <CardDescription>Habilite confirmação automática, envie disparos manuais ou abra conversa no WhatsApp</CardDescription>
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => handleManualSend()} disabled={sendingFor === "__all__"}>
-                  {sendingFor === "__all__" ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
-                  Enviar para Todos
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" size="sm" onClick={() => handleManualSend()} disabled={sendingFor === "__all__"} className="text-xs sm:text-sm">
+                  {sendingFor === "__all__" ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
+                  <span className="hidden sm:inline">Enviar para Todos</span><span className="sm:hidden">Enviar Todos</span>
                 </Button>
-                <Button variant="outline" size="sm" onClick={handleEnableAll} disabled={bulkEnableMutation.isPending}>
-                  <ToggleRight className="w-4 h-4 mr-2" /> Habilitar Todos
+                <Button variant="outline" size="sm" onClick={handleEnableAll} disabled={bulkEnableMutation.isPending} className="text-xs sm:text-sm">
+                  <ToggleRight className="w-4 h-4 mr-1" /> <span className="hidden sm:inline">Habilitar Todos</span><span className="sm:hidden">Habilitar</span>
                 </Button>
               </div>
             </CardHeader>
