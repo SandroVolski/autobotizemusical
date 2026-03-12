@@ -697,10 +697,10 @@ export default function Agenda() {
                                   e.stopPropagation();
                                   openDetailsDialog(aula);
                                 }}
-                                className={`absolute left-1 right-1 rounded-lg p-1.5 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg z-10 overflow-hidden border ${getAulaColor(aula)}`}
+                                className={`absolute left-0.5 right-0.5 sm:left-1 sm:right-1 rounded-md sm:rounded-lg p-1 sm:p-1.5 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg z-10 overflow-hidden border ${getAulaColor(aula)}`}
                                 style={{
                                   top: getClassPosition(aula.horario),
-                                  height: Math.max(getClassHeight(aula.duracao_minutos || 60), 36),
+                                  height: Math.max(getClassHeight(aula.duracao_minutos || 60), 32),
                                 }}
                               >
                                 <p className="text-xs font-medium truncate">
