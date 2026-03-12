@@ -395,17 +395,17 @@ export default function Confirmacoes() {
               <CardDescription>Acompanhe todas as mensagens enviadas e suas respostas</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border">
+              <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Aluno</TableHead>
-                      <TableHead>Telefone</TableHead>
-                      <TableHead>Data da Aula</TableHead>
-                      <TableHead>Enviado em</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Resposta</TableHead>
-                      <TableHead className="text-center">Ações</TableHead>
+                      <TableHead className="min-w-[100px]">Aluno</TableHead>
+                      <TableHead className="min-w-[110px]">Telefone</TableHead>
+                      <TableHead className="min-w-[110px]">Data da Aula</TableHead>
+                      <TableHead className="min-w-[90px]">Enviado em</TableHead>
+                      <TableHead className="min-w-[100px]">Status</TableHead>
+                      <TableHead className="min-w-[80px]">Resposta</TableHead>
+                      <TableHead className="text-center min-w-[130px]">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
