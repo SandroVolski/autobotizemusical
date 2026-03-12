@@ -124,23 +124,23 @@ export function WeeklyPayments() {
         <CardContent>
           {/* Summary */}
           <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
-            <div className="text-center p-2 rounded-lg bg-muted/50 min-w-0">
-              <p className="text-xs sm:text-lg font-bold truncate">
+           <div className="text-center p-2 sm:p-3 rounded-lg bg-muted/50 min-w-0">
+              <p className="text-xs sm:text-2xl font-bold truncate">
                 {totalSemana.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
               </p>
-              <p className="text-[10px] text-muted-foreground">Total</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Total</p>
             </div>
-            <div className="text-center p-2 rounded-lg bg-success/10 min-w-0">
-              <p className="text-xs sm:text-lg font-bold text-success truncate">
+            <div className="text-center p-2 sm:p-3 rounded-lg bg-success/10 min-w-0">
+              <p className="text-xs sm:text-2xl font-bold text-success truncate">
                 {totalPago.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
               </p>
-              <p className="text-[10px] text-muted-foreground">Recebido</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Recebido</p>
             </div>
-            <div className="text-center p-2 rounded-lg bg-warning/10 min-w-0">
-              <p className="text-xs sm:text-lg font-bold text-warning truncate">
+            <div className="text-center p-2 sm:p-3 rounded-lg bg-warning/10 min-w-0">
+              <p className="text-xs sm:text-2xl font-bold text-warning truncate">
                 {totalPendente.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
               </p>
-              <p className="text-[10px] text-muted-foreground">Pendente</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Pendente</p>
             </div>
           </div>
 

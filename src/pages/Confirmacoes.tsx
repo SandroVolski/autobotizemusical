@@ -292,24 +292,24 @@ export default function Confirmacoes() {
       <Tabs defaultValue={defaultTab} key={defaultTab} className="space-y-4">
         <div className="overflow-x-auto">
           <TabsList className="w-full min-w-max">
-            <TabsTrigger value="conexao" className="gap-1 sm:gap-2 text-xs sm:text-sm"><Smartphone className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Conexão</span><span className="sm:hidden">Conex.</span></TabsTrigger>
-            <TabsTrigger value="alunos" className="gap-1 sm:gap-2 text-xs sm:text-sm"><Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Alunos</TabsTrigger>
-            <TabsTrigger value="config" className="gap-1 sm:gap-2 text-xs sm:text-sm"><Settings2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Configurações</span><span className="sm:hidden">Config.</span></TabsTrigger>
-            <TabsTrigger value="historico" className="gap-1 sm:gap-2 text-xs sm:text-sm"><History className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Histórico</span><span className="sm:hidden">Hist.</span></TabsTrigger>
+            <TabsTrigger value="conexao" className="gap-2 text-xs sm:text-sm"><Smartphone className="w-4 h-4" /> <span className="hidden sm:inline">Conexão</span><span className="sm:hidden">Conex.</span></TabsTrigger>
+            <TabsTrigger value="alunos" className="gap-2 text-xs sm:text-sm"><Users className="w-4 h-4" /> Alunos</TabsTrigger>
+            <TabsTrigger value="config" className="gap-2 text-xs sm:text-sm"><Settings2 className="w-4 h-4" /> <span className="hidden sm:inline">Configurações</span><span className="sm:hidden">Config.</span></TabsTrigger>
+            <TabsTrigger value="historico" className="gap-2 text-xs sm:text-sm"><History className="w-4 h-4" /> <span className="hidden sm:inline">Histórico</span><span className="sm:hidden">Hist.</span></TabsTrigger>
           </TabsList>
         </div>
 
         <TabsContent value="conexao"><WhatsAppConnectionCard /></TabsContent>
 
         {/* Students tab with WhatsApp links and manual dispatch */}
-        <TabsContent value="alunos" className="space-y-4">
+         <TabsContent value="alunos" className="space-y-4">
           <Card>
-            <CardHeader className="flex flex-col gap-4">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div>
                 <CardTitle>Alunos</CardTitle>
                 <CardDescription>Habilite confirmação automática, envie disparos manuais ou abra conversa no WhatsApp</CardDescription>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 flex-shrink-0">
                 <Button variant="outline" size="sm" onClick={() => handleManualSend()} disabled={sendingFor === "__all__"} className="text-xs sm:text-sm">
                   {sendingFor === "__all__" ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
                   <span className="hidden sm:inline">Enviar para Todos</span><span className="sm:hidden">Enviar Todos</span>

@@ -212,7 +212,7 @@ export default function Financeiro() {
     <div className="space-y-6">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col gap-4">
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Financeiro</h1>
           <p className="text-muted-foreground text-sm">Controle financeiro completo da escola</p>
@@ -370,13 +370,13 @@ export default function Financeiro() {
               <DollarSign className="w-4 h-4 mr-1 sm:mr-2" /><span className="hidden sm:inline">Receber</span><span className="sm:hidden">Rec.</span>
             </TabsTrigger>
             <TabsTrigger value="pagar" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 sm:px-5 py-2 text-xs sm:text-sm font-medium transition-all">
-              <Receipt className="w-4 h-4 mr-1 sm:mr-2" />Pagar
+              <Receipt className="w-4 h-4 mr-1 sm:mr-2" /><span className="hidden sm:inline">Pagar</span><span className="sm:hidden">Pagar</span>
             </TabsTrigger>
             <TabsTrigger value="caixa" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 sm:px-5 py-2 text-xs sm:text-sm font-medium transition-all">
-              <Wallet className="w-4 h-4 mr-1 sm:mr-2" />Caixa
+              <Wallet className="w-4 h-4 mr-1 sm:mr-2" /><span className="hidden sm:inline">Caixa</span><span className="sm:hidden">Caixa</span>
             </TabsTrigger>
             <TabsTrigger value="pdv" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 sm:px-5 py-2 text-xs sm:text-sm font-medium transition-all">
-              <ShoppingCart className="w-4 h-4 mr-1 sm:mr-2" />PDV
+              <ShoppingCart className="w-4 h-4 mr-1 sm:mr-2" /><span className="hidden sm:inline">PDV</span><span className="sm:hidden">PDV</span>
             </TabsTrigger>
           </TabsList>
         </div>
