@@ -617,14 +617,14 @@ export default function Agenda() {
         >
           <Card variant="glass" className="overflow-hidden">
             <CardContent className="p-0">
-              <div className="flex">
+              <div className="flex overflow-x-auto">
                 {/* Time column */}
-                <div className="w-16 flex-shrink-0 border-r border-border">
-                  <div className="h-12 border-b border-border" />
+                <div className="w-12 sm:w-16 flex-shrink-0 border-r border-border">
+                  <div className="h-10 sm:h-12 border-b border-border" />
                   {timeSlots.map((slot, index) => (
                     <div
                       key={index}
-                      className={`h-10 border-b border-border flex items-start justify-center pt-1 text-xs text-muted-foreground ${
+                      className={`h-10 border-b border-border flex items-start justify-center pt-1 text-[10px] sm:text-xs text-muted-foreground ${
                         slot.minutes === 30 ? "border-dashed" : ""
                       }`}
                     >
@@ -635,7 +635,7 @@ export default function Agenda() {
 
                 {/* Days columns */}
                 <div className="flex-1 overflow-x-auto">
-                  <div className="flex min-w-[700px]">
+                  <div className="flex min-w-[560px] sm:min-w-[700px]">
                     {weekDates.map((date, dayIndex) => {
                       const isToday = date.toDateString() === new Date().toDateString();
                       const dayClasses = getClassesForDate(date);
