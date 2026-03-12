@@ -210,7 +210,9 @@ const App = () => (
               path="/confirmacoes"
               element={
                 <AuthenticatedPage>
-                  <Confirmacoes />
+                  <RoleRoute allowedRoles={['admin', 'secretaria']}>
+                    <Confirmacoes />
+                  </RoleRoute>
                 </AuthenticatedPage>
               }
             />
