@@ -749,7 +749,7 @@ export default function Agenda() {
               <div className="grid grid-cols-7 gap-1">
                 {getMonthDates().map((date, index) => {
                   if (!date) {
-                    return <div key={`empty-${index}`} className="h-20" />;
+                    return <div key={`empty-${index}`} className="h-12 sm:h-20" />;
                   }
                   
                   const isToday = date.toDateString() === new Date().toDateString();
@@ -760,7 +760,7 @@ export default function Agenda() {
                     <div
                       key={date.toISOString()}
                       onClick={() => setSelectedMonthDay(date)}
-                      className={`h-20 p-1 rounded-lg border cursor-pointer transition-all ${
+                      className={`h-12 sm:h-20 p-1 rounded-lg border cursor-pointer transition-all ${
                         isSelected 
                           ? "border-primary bg-primary/10" 
                           : isToday 
@@ -768,25 +768,34 @@ export default function Agenda() {
                             : "border-border hover:border-primary/30 hover:bg-muted/50"
                       }`}
                     >
-                      <span className={`text-sm font-medium ${isToday ? "text-primary" : ""}`}>
+                      <span className={`text-xs sm:text-sm font-medium ${isToday ? "text-primary" : ""}`}>
                         {date.getDate()}
                       </span>
                       {dayClasses.length > 0 && (
-                        <div className="mt-1 space-y-0.5">
-                          {dayClasses.slice(0, 2).map((aula) => (
-                            <div
-                              key={aula.id}
-                              className={`text-xs px-1 py-0.5 rounded truncate ${getAulaColor(aula)}`}
-                            >
-                              {aula.horario} - {aula.alunos?.nome?.split(" ")[0] || "Aula"}
-                            </div>
-                          ))}
-                          {dayClasses.length > 2 && (
-                            <div className="text-xs text-muted-foreground px-1">
-                              +{dayClasses.length - 2} mais
-                            </div>
-                          )}
-                        </div>
+                        <>
+                          {/* Mobile: just a count indicator */}
+                          <div className="sm:hidden flex justify-center mt-0.5">
+                            <span className="w-5 h-5 rounded-full bg-primary/20 text-primary text-[10px] font-bold flex items-center justify-center">
+                              {dayClasses.length}
+                            </span>
+                          </div>
+                          {/* Desktop: show class details */}
+                          <div className="hidden sm:block mt-1 space-y-0.5">
+                            {dayClasses.slice(0, 2).map((aula) => (
+                              <div
+                                key={aula.id}
+                                className={`text-xs px-1 py-0.5 rounded truncate ${getAulaColor(aula)}`}
+                              >
+                                {aula.horario} - {aula.alunos?.nome?.split(" ")[0] || "Aula"}
+                              </div>
+                            ))}
+                            {dayClasses.length > 2 && (
+                              <div className="text-xs text-muted-foreground px-1">
+                                +{dayClasses.length - 2} mais
+                              </div>
+                            )}
+                          </div>
+                        </>
                       )}
                     </div>
                   );

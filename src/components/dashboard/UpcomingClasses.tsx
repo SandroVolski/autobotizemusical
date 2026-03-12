@@ -85,26 +85,26 @@ export function UpcomingClasses() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: 0.1 * index }}
-                  className="flex items-center gap-4 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer group"
+                  className="flex items-center gap-2 sm:gap-4 p-2 sm:p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer group"
                 >
-                  <div className="w-14 h-12 rounded-lg bg-primary/20 flex flex-col items-center justify-center">
-                    <span className="text-[10px] font-semibold text-foreground/60 uppercase">
+                  <div className="w-11 h-10 sm:w-14 sm:h-12 rounded-lg bg-primary/20 flex flex-col items-center justify-center flex-shrink-0">
+                    <span className="text-[9px] sm:text-[10px] font-semibold text-foreground/60 uppercase">
                       {isToday ? 'Hoje' : diasSemana[classItem._displayDay]}
                     </span>
-                    <span className="text-sm font-bold text-foreground">{classItem.horario?.slice(0, 5)}</span>
+                    <span className="text-xs sm:text-sm font-bold text-foreground">{classItem.horario?.slice(0, 5)}</span>
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium truncate">{classItem.alunos?.nome || "Sem aluno"}</p>
+                    <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+                      <p className="font-medium text-sm truncate max-w-[120px] sm:max-w-none">{classItem.alunos?.nome || "Sem aluno"}</p>
                       <Badge 
                         variant={classItem.status === "ativo" || classItem.status === "agendada" ? "success" : "warning"}
-                        className="text-xs"
+                        className="text-[10px] hidden sm:inline-flex"
                       >
                         {classItem.status === "ativo" || classItem.status === "agendada" ? "confirmada" : "pendente"}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
+                    <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground mt-0.5">
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
                         {classItem.duracao_minutos || 60}min
@@ -115,12 +115,13 @@ export function UpcomingClasses() {
                           {classItem.sala}
                         </span>
                       )}
+                      <span className="sm:hidden text-[10px]">{classItem.cursos?.nome || ""}</span>
                     </div>
                   </div>
 
-                  <Badge variant="outline">{classItem.cursos?.nome || "Sem curso"}</Badge>
+                  <Badge variant="outline" className="hidden sm:inline-flex">{classItem.cursos?.nome || "Sem curso"}</Badge>
                   
-                  <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block" />
                 </motion.div>
               );
             })
