@@ -28,6 +28,7 @@ import { exportPagamentos } from "@/lib/csv-export";
 import { ContasPagarTab } from "@/components/financeiro/ContasPagarTab";
 import { FluxoCaixaTab } from "@/components/financeiro/FluxoCaixaTab";
 import { PDVTab } from "@/components/financeiro/PDVTab";
+import { supabase } from "@/integrations/supabase/client";
 
 const filterOptions: FilterOption[] = [
   { id: "status", label: "Status", type: "select", options: [
@@ -82,7 +83,20 @@ export default function Financeiro() {
   // PIX info from settings
   const pixChave = (configuracoes as any)?.pix_chave || "";
   const pixTipoChave = (configuracoes as any)?.pix_tipo_chave || "";
-  const pixQrcodeUrl = (configuracoes as any)?.pix_qrcode_url || "";
+  const pixQrcodeStoredPath = (configuracoes as any)?.pix_qrcode_url || "";
+  const [pixQrcodeUrl, setPixQrcodeUrl] = useState("");
+
+  // Generate signed URL for private pix-qrcodes bucket
+  useEffect(() => {
+    const getSignedUrl = async () => {
+      if (!pixQrcodeStoredPath) { setPixQrcodeUrl(""); return; }
+      // If it's already a full URL (legacy), use as-is
+      if (pixQrcodeStoredPath.startsWith("http")) { setPixQrcodeUrl(pixQrcodeStoredPath); return; }
+      const { data } = await supabase.storage.from('pix-qrcodes').createSignedUrl(pixQrcodeStoredPath, 3600);
+      if (data?.signedUrl) setPixQrcodeUrl(data.signedUrl);
+    };
+    getSignedUrl();
+  }, [pixQrcodeStoredPath]);
 
   // Filter payments by selected month/year
   const monthPagamentos = useMemo(() => {

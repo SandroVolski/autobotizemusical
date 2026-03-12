@@ -577,10 +577,8 @@ export default function Configuracoes() {
                           toast.error("Erro ao enviar imagem: " + error.message);
                           return;
                         }
-                        const { data: urlData } = supabase.storage
-                          .from('pix-qrcodes')
-                          .getPublicUrl(data.path);
-                        setPixQrcodeUrl(urlData.publicUrl);
+                        // Store the path, not public URL (bucket is private)
+                        setPixQrcodeUrl(data.path);
                         toast.success("QR Code enviado com sucesso!");
                       }}
                     />
