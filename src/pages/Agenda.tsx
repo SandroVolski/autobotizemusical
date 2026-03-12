@@ -703,11 +703,11 @@ export default function Agenda() {
                                   height: Math.max(getClassHeight(aula.duracao_minutos || 60), 32),
                                 }}
                               >
-                                <p className="text-xs font-medium truncate">
+                                <p className="text-[10px] sm:text-xs font-medium truncate leading-tight">
                                   {aula.alunos?.nome || "Sem aluno"}
                                 </p>
                                 {(aula.duracao_minutos || 60) >= 45 && (
-                                  <p className="text-xs text-muted-foreground truncate">
+                                  <p className="text-[10px] sm:text-xs text-muted-foreground truncate leading-tight">
                                     {aula.cursos?.nome || "Sem curso"}
                                   </p>
                                 )}
