@@ -181,13 +181,13 @@ function MessageTemplateSettings() {
       </CardHeader>
       <CardContent className="space-y-4">
         <Textarea value={mensagem} onChange={(e) => { setMensagem(e.target.value); setDirty(true); }} rows={8} className="font-mono text-sm" />
-        <div className="flex items-center gap-2">
-          <Button onClick={handleSave} disabled={!dirty || updateConfig.isPending} className="gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button onClick={handleSave} disabled={!dirty || updateConfig.isPending} className="gap-2 text-xs sm:text-sm">
             {updateConfig.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Salvar Mensagem
+            <span className="hidden sm:inline">Salvar Mensagem</span><span className="sm:hidden">Salvar</span>
           </Button>
-          <Button variant="outline" onClick={() => { setMensagem(defaultMsg); setDirty(true); }} className="gap-2">
-            <RefreshCw className="w-4 h-4" /> Restaurar Padrão
+          <Button variant="outline" onClick={() => { setMensagem(defaultMsg); setDirty(true); }} className="gap-2 text-xs sm:text-sm">
+            <RefreshCw className="w-4 h-4" /> <span className="hidden sm:inline">Restaurar Padrão</span><span className="sm:hidden">Restaurar</span>
           </Button>
         </div>
         <div className="p-4 rounded-lg bg-muted/50 border">
