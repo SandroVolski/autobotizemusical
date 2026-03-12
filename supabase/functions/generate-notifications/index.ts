@@ -23,23 +23,28 @@ Deno.serve(async (req) => {
       });
     }
 
-    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const token = authHeader.replace("Bearer ", "");
+    const isServiceRole = token === supabaseServiceKey;
 
-    // Require admin or secretaria role
-    const { data: isAdmin } = await supabaseAuth.rpc('has_role', { _user_id: user.id, _role: 'admin' });
-    const { data: isSecretaria } = await supabaseAuth.rpc('has_role', { _user_id: user.id, _role: 'secretaria' });
-    if (!isAdmin && !isSecretaria) {
-      return new Response(JSON.stringify({ error: "Acesso negado" }), {
-        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // If not service role (cron), verify user has admin/secretaria role
+    if (!isServiceRole) {
+      const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
       });
+      const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
+      if (userError || !user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: isAdmin } = await supabaseAuth.rpc('has_role', { _user_id: user.id, _role: 'admin' });
+      const { data: isSecretaria } = await supabaseAuth.rpc('has_role', { _user_id: user.id, _role: 'secretaria' });
+      if (!isAdmin && !isSecretaria) {
+        return new Response(JSON.stringify({ error: "Acesso negado" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
