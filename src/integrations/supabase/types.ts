@@ -264,6 +264,9 @@ export type Database = {
           logo_url: string | null
           mensagem_confirmacao: string | null
           nome: string
+          pix_chave: string | null
+          pix_qrcode_url: string | null
+          pix_tipo_chave: string | null
           telefone: string | null
           updated_at: string | null
           user_id: string | null
@@ -282,6 +285,9 @@ export type Database = {
           logo_url?: string | null
           mensagem_confirmacao?: string | null
           nome?: string
+          pix_chave?: string | null
+          pix_qrcode_url?: string | null
+          pix_tipo_chave?: string | null
           telefone?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -300,6 +306,9 @@ export type Database = {
           logo_url?: string | null
           mensagem_confirmacao?: string | null
           nome?: string
+          pix_chave?: string | null
+          pix_qrcode_url?: string | null
+          pix_tipo_chave?: string | null
           telefone?: string | null
           updated_at?: string | null
           user_id?: string | null
