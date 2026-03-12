@@ -290,12 +290,14 @@ export default function Confirmacoes() {
       </div>
 
       <Tabs defaultValue={defaultTab} key={defaultTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="conexao" className="gap-2"><Smartphone className="w-4 h-4" /> Conexão</TabsTrigger>
-          <TabsTrigger value="alunos" className="gap-2"><Users className="w-4 h-4" /> Alunos</TabsTrigger>
-          <TabsTrigger value="config" className="gap-2"><Settings2 className="w-4 h-4" /> Configurações</TabsTrigger>
-          <TabsTrigger value="historico" className="gap-2"><History className="w-4 h-4" /> Histórico</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto">
+          <TabsList className="w-full min-w-max">
+            <TabsTrigger value="conexao" className="gap-1 sm:gap-2 text-xs sm:text-sm"><Smartphone className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Conexão</span><span className="sm:hidden">Conex.</span></TabsTrigger>
+            <TabsTrigger value="alunos" className="gap-1 sm:gap-2 text-xs sm:text-sm"><Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Alunos</TabsTrigger>
+            <TabsTrigger value="config" className="gap-1 sm:gap-2 text-xs sm:text-sm"><Settings2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Configurações</span><span className="sm:hidden">Config.</span></TabsTrigger>
+            <TabsTrigger value="historico" className="gap-1 sm:gap-2 text-xs sm:text-sm"><History className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Histórico</span><span className="sm:hidden">Hist.</span></TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="conexao"><WhatsAppConnectionCard /></TabsContent>
 

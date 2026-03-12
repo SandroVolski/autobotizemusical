@@ -59,15 +59,15 @@ export function ContasPagarTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex gap-4">
-          <div className="text-sm">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <div className="flex gap-3 sm:gap-4 min-w-0 flex-wrap">
+          <div className="text-xs sm:text-sm min-w-0">
             <span className="text-muted-foreground">A Pagar: </span>
-            <span className="font-bold text-destructive">{totalPendente.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+            <span className="font-bold text-destructive truncate">{totalPendente.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
           </div>
-          <div className="text-sm">
+          <div className="text-xs sm:text-sm min-w-0">
             <span className="text-muted-foreground">Pago: </span>
-            <span className="font-bold text-success">{totalPago.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+            <span className="font-bold text-success truncate">{totalPago.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
           </div>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -121,30 +121,30 @@ export function ContasPagarTab() {
       <div className="space-y-2">
         {contas?.map((conta, i) => (
           <motion.div key={conta.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
-            <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${conta.status === "pago" ? "bg-success/20" : "bg-destructive/20"}`}>
-                  {conta.status === "pago" ? <CheckCircle2 className="w-5 h-5 text-success" /> : <Clock className="w-5 h-5 text-destructive" />}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 sm:p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 ${conta.status === "pago" ? "bg-success/20" : "bg-destructive/20"}`}>
+                  {conta.status === "pago" ? <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-success" /> : <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-destructive" />}
                 </div>
-                <div>
-                  <p className="font-medium text-sm">{conta.descricao}</p>
-                  <p className="text-xs text-muted-foreground">
+                <div className="min-w-0">
+                  <p className="font-medium text-sm truncate">{conta.descricao}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
                     {categorias.find(c => c.value === conta.categoria)?.label || conta.categoria}
                     {conta.fornecedor && ` • ${conta.fornecedor}`}
                     {conta.data_vencimento && ` • Venc: ${new Date(conta.data_vencimento).toLocaleDateString("pt-BR")}`}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-sm">
+              <div className="flex items-center gap-1.5 sm:gap-2 justify-end flex-shrink-0">
+                <span className="font-semibold text-xs sm:text-sm whitespace-nowrap">
                   {Number(conta.valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                 </span>
                 {conta.status === "pendente" && (
-                  <Button variant="outline" size="sm" onClick={() => handlePay(conta.id)}>Pagar</Button>
+                  <Button variant="outline" size="sm" className="text-xs h-7 px-2" onClick={() => handlePay(conta.id)}>Pagar</Button>
                 )}
-                <Badge variant={conta.status === "pago" ? "success" : "warning"}>{conta.status}</Badge>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteConta.mutate(conta.id)}>
-                  <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+                <Badge variant={conta.status === "pago" ? "success" : "warning"} className="text-[10px]">{conta.status}</Badge>
+                <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => deleteConta.mutate(conta.id)}>
+                  <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground hover:text-destructive" />
                 </Button>
               </div>
             </div>
