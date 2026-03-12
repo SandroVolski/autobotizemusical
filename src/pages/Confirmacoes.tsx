@@ -302,14 +302,14 @@ export default function Confirmacoes() {
         <TabsContent value="conexao"><WhatsAppConnectionCard /></TabsContent>
 
         {/* Students tab with WhatsApp links and manual dispatch */}
-        <TabsContent value="alunos" className="space-y-4">
+         <TabsContent value="alunos" className="space-y-4">
           <Card>
-            <CardHeader className="flex flex-col gap-4">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div>
                 <CardTitle>Alunos</CardTitle>
                 <CardDescription>Habilite confirmação automática, envie disparos manuais ou abra conversa no WhatsApp</CardDescription>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 flex-shrink-0">
                 <Button variant="outline" size="sm" onClick={() => handleManualSend()} disabled={sendingFor === "__all__"} className="text-xs sm:text-sm">
                   {sendingFor === "__all__" ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
                   <span className="hidden sm:inline">Enviar para Todos</span><span className="sm:hidden">Enviar Todos</span>
