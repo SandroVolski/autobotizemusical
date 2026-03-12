@@ -212,7 +212,7 @@ export default function Financeiro() {
     <div className="space-y-6">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col gap-4">
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Financeiro</h1>
           <p className="text-muted-foreground text-sm">Controle financeiro completo da escola</p>
