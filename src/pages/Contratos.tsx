@@ -365,7 +365,7 @@ export default function Contratos() {
               suppressContentEditableWarning
               className="p-4 h-[55vh] overflow-y-auto focus:outline-none bg-background text-foreground prose prose-sm max-w-none"
               dangerouslySetInnerHTML={{ __html: editorHTML }}
-              onBlur={(e) => setEditorHTML(e.currentTarget.innerHTML)}
+              onBlur={(e) => setEditorHTML(DOMPurify.sanitize(e.currentTarget.innerHTML, { FORBID_TAGS: ['script', 'iframe', 'object', 'embed'], FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'] }))}
             />
           </div>
           <div className="flex justify-end gap-2 pt-2">
