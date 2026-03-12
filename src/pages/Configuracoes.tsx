@@ -537,13 +537,64 @@ export default function Configuracoes() {
                 </div>
               </div>
               <div className="grid gap-2">
-                <Label>URL do QR Code PIX (opcional)</Label>
-                <Input
-                  value={pixQrcodeUrl}
-                  onChange={(e) => setPixQrcodeUrl(e.target.value)}
-                  placeholder="https://... ou cole a URL da imagem do QR Code"
-                />
-                <p className="text-xs text-muted-foreground">Cole a URL de uma imagem do seu QR Code PIX. Será exibida ao registrar pagamentos via PIX.</p>
+                <Label>Imagem do QR Code PIX (opcional)</Label>
+                <div className="flex flex-col gap-3">
+                  {pixQrcodeUrl && (
+                    <div className="relative w-40 h-40 mx-auto">
+                      <img src={pixQrcodeUrl} alt="QR Code PIX" className="w-full h-full object-contain rounded-lg border bg-background p-2" />
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-2 -right-2 h-6 w-6"
+                        onClick={async () => {
+                          // Delete old file from storage if it's a supabase URL
+                          if (pixQrcodeUrl.includes('pix-qrcodes')) {
+                            const path = pixQrcodeUrl.split('pix-qrcodes/')[1];
+                            if (path) await supabase.storage.from('pix-qrcodes').remove([path]);
+                          }
+                          setPixQrcodeUrl("");
+                        }}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  )}
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      id="pix-qrcode-upload"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const ext = file.name.split('.').pop();
+                        const fileName = `qrcode-${Date.now()}.${ext}`;
+                        const { data, error } = await supabase.storage
+                          .from('pix-qrcodes')
+                          .upload(fileName, file, { upsert: true });
+                        if (error) {
+                          toast.error("Erro ao enviar imagem: " + error.message);
+                          return;
+                        }
+                        const { data: urlData } = supabase.storage
+                          .from('pix-qrcodes')
+                          .getPublicUrl(data.path);
+                        setPixQrcodeUrl(urlData.publicUrl);
+                        toast.success("QR Code enviado com sucesso!");
+                      }}
+                    />
+                    <Button
+                      variant="outline"
+                      className="w-full gap-2"
+                      onClick={() => document.getElementById('pix-qrcode-upload')?.click()}
+                    >
+                      <Upload className="w-4 h-4" />
+                      {pixQrcodeUrl ? "Trocar imagem" : "Enviar imagem do QR Code"}
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">Envie uma imagem do seu QR Code PIX. Será exibida ao registrar pagamentos via PIX.</p>
               </div>
 
               {/* Preview */}
