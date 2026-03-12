@@ -643,11 +643,11 @@ export default function Agenda() {
                       return (
                         <div key={dayIndex} className="flex-1 border-r border-border last:border-r-0">
                           {/* Day header */}
-                          <div className={`h-12 border-b border-border flex flex-col items-center justify-center ${
+                          <div className={`h-10 sm:h-12 border-b border-border flex flex-col items-center justify-center ${
                             isToday ? "bg-primary/10" : ""
                           }`}>
-                            <span className="text-xs text-muted-foreground">{weekDays[dayIndex]}</span>
-                            <span className={`text-sm font-semibold ${
+                            <span className="text-[10px] sm:text-xs text-muted-foreground">{weekDays[dayIndex]}</span>
+                            <span className={`text-xs sm:text-sm font-semibold ${
                               isToday ? "text-primary" : ""
                             }`}>
                               {date.getDate()}
