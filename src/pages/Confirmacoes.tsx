@@ -181,13 +181,13 @@ function MessageTemplateSettings() {
       </CardHeader>
       <CardContent className="space-y-4">
         <Textarea value={mensagem} onChange={(e) => { setMensagem(e.target.value); setDirty(true); }} rows={8} className="font-mono text-sm" />
-        <div className="flex items-center gap-2">
-          <Button onClick={handleSave} disabled={!dirty || updateConfig.isPending} className="gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button onClick={handleSave} disabled={!dirty || updateConfig.isPending} className="gap-2 text-xs sm:text-sm">
             {updateConfig.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Salvar Mensagem
+            <span className="hidden sm:inline">Salvar Mensagem</span><span className="sm:hidden">Salvar</span>
           </Button>
-          <Button variant="outline" onClick={() => { setMensagem(defaultMsg); setDirty(true); }} className="gap-2">
-            <RefreshCw className="w-4 h-4" /> Restaurar Padrão
+          <Button variant="outline" onClick={() => { setMensagem(defaultMsg); setDirty(true); }} className="gap-2 text-xs sm:text-sm">
+            <RefreshCw className="w-4 h-4" /> <span className="hidden sm:inline">Restaurar Padrão</span><span className="sm:hidden">Restaurar</span>
           </Button>
         </div>
         <div className="p-4 rounded-lg bg-muted/50 border">
@@ -304,31 +304,31 @@ export default function Confirmacoes() {
         {/* Students tab with WhatsApp links and manual dispatch */}
         <TabsContent value="alunos" className="space-y-4">
           <Card>
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <CardHeader className="flex flex-col gap-4">
               <div>
                 <CardTitle>Alunos</CardTitle>
                 <CardDescription>Habilite confirmação automática, envie disparos manuais ou abra conversa no WhatsApp</CardDescription>
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => handleManualSend()} disabled={sendingFor === "__all__"}>
-                  {sendingFor === "__all__" ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
-                  Enviar para Todos
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" size="sm" onClick={() => handleManualSend()} disabled={sendingFor === "__all__"} className="text-xs sm:text-sm">
+                  {sendingFor === "__all__" ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
+                  <span className="hidden sm:inline">Enviar para Todos</span><span className="sm:hidden">Enviar Todos</span>
                 </Button>
-                <Button variant="outline" size="sm" onClick={handleEnableAll} disabled={bulkEnableMutation.isPending}>
-                  <ToggleRight className="w-4 h-4 mr-2" /> Habilitar Todos
+                <Button variant="outline" size="sm" onClick={handleEnableAll} disabled={bulkEnableMutation.isPending} className="text-xs sm:text-sm">
+                  <ToggleRight className="w-4 h-4 mr-1" /> <span className="hidden sm:inline">Habilitar Todos</span><span className="sm:hidden">Habilitar</span>
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
               <Input placeholder="Buscar aluno..." value={search} onChange={(e) => setSearch(e.target.value)} className="mb-4 max-w-sm" />
-              <div className="rounded-md border">
+              <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Aluno</TableHead>
-                      <TableHead>Telefone</TableHead>
-                      <TableHead className="text-center">Habilitado</TableHead>
-                      <TableHead className="text-center">Ações</TableHead>
+                      <TableHead className="min-w-[120px]">Aluno</TableHead>
+                      <TableHead className="min-w-[120px]">Telefone</TableHead>
+                      <TableHead className="text-center min-w-[80px]">Habilitado</TableHead>
+                      <TableHead className="text-center min-w-[80px]">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -395,17 +395,17 @@ export default function Confirmacoes() {
               <CardDescription>Acompanhe todas as mensagens enviadas e suas respostas</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border">
+              <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Aluno</TableHead>
-                      <TableHead>Telefone</TableHead>
-                      <TableHead>Data da Aula</TableHead>
-                      <TableHead>Enviado em</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Resposta</TableHead>
-                      <TableHead className="text-center">Ações</TableHead>
+                      <TableHead className="min-w-[100px]">Aluno</TableHead>
+                      <TableHead className="min-w-[110px]">Telefone</TableHead>
+                      <TableHead className="min-w-[110px]">Data da Aula</TableHead>
+                      <TableHead className="min-w-[90px]">Enviado em</TableHead>
+                      <TableHead className="min-w-[100px]">Status</TableHead>
+                      <TableHead className="min-w-[80px]">Resposta</TableHead>
+                      <TableHead className="text-center min-w-[130px]">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
