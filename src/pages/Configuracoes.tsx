@@ -15,6 +15,9 @@ import {
   WifiOff,
   QrCode,
   Unplug,
+  CreditCard,
+  Copy,
+  Check,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -126,19 +129,19 @@ function WhatsAppSettingsCard() {
   return (
     <Card className="glass-card">
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${status === "connected" ? "bg-secondary/20" : "bg-primary/20"}`}>
+            <div className={`p-2 rounded-lg flex-shrink-0 ${status === "connected" ? "bg-secondary/20" : "bg-primary/20"}`}>
               <Smartphone className={`w-6 h-6 ${status === "connected" ? "text-secondary" : "text-primary"}`} />
             </div>
-            <div>
+            <div className="min-w-0">
               <CardTitle className="text-lg">Conexão WhatsApp</CardTitle>
-              <CardDescription>
-                {status === "connected" ? "Seu WhatsApp está conectado e pronto para enviar confirmações e cobranças" : "Conecte para habilitar confirmações de aula e cobranças automáticas"}
+              <CardDescription className="text-xs sm:text-sm">
+                {status === "connected" ? "WhatsApp conectado e pronto" : "Conecte para confirmações e cobranças"}
               </CardDescription>
             </div>
           </div>
-          <Badge variant={status === "connected" ? "default" : "outline"} className="gap-1">
+          <Badge variant={status === "connected" ? "default" : "outline"} className="gap-1 self-start sm:self-center flex-shrink-0">
             {status === "connected" ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
             {status === "checking" ? "Verificando..." : status === "connected" ? "Conectado" : status === "connecting" ? "Aguardando..." : "Desconectado"}
           </Badge>
@@ -161,7 +164,7 @@ function WhatsAppSettingsCard() {
               <>
                 <p className="text-sm text-muted-foreground text-center">Escaneie o QR Code abaixo com seu WhatsApp:</p>
                 <div className="bg-background p-4 rounded-xl border shadow-sm">
-                  <img src={typeof qrCode === 'string' && qrCode.startsWith("data:") ? qrCode : `data:image/png;base64,${qrCode}`} alt="QR Code" className="w-64 h-64 object-contain" />
+                  <img src={typeof qrCode === 'string' && qrCode.startsWith("data:") ? qrCode : `data:image/png;base64,${qrCode}`} alt="QR Code" className="w-48 h-48 sm:w-64 sm:h-64 object-contain" />
                 </div>
                 {pairingCode && <p className="text-sm text-muted-foreground">Ou use o código: <span className="font-mono font-bold text-foreground">{pairingCode}</span></p>}
                 <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin" /> Aguardando leitura...</div>
@@ -172,9 +175,9 @@ function WhatsAppSettingsCard() {
           </div>
         )}
         {status === "connected" && (
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <p className="text-sm text-muted-foreground">As mensagens de confirmação e cobranças serão enviadas automaticamente.</p>
-            <Button variant="outline" size="sm" onClick={handleDisconnect} disabled={loading} className="gap-2 text-destructive hover:text-destructive">
+            <Button variant="outline" size="sm" onClick={handleDisconnect} disabled={loading} className="gap-2 text-destructive hover:text-destructive flex-shrink-0">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Unplug className="w-4 h-4" />}
               Desconectar
             </Button>
@@ -200,6 +203,12 @@ export default function Configuracoes() {
   const [estado, setEstado] = useState("");
   const [cep, setCep] = useState("");
   const [descricao, setDescricao] = useState("");
+
+  // PIX
+  const [pixChave, setPixChave] = useState("");
+  const [pixTipoChave, setPixTipoChave] = useState("");
+  const [pixQrcodeUrl, setPixQrcodeUrl] = useState("");
+  const [copiedPix, setCopiedPix] = useState(false);
 
   // Horários
   const [horarios, setHorarios] = useState<Record<string, { inicio: string; fim: string; ativo: boolean }>>({
@@ -238,6 +247,9 @@ export default function Configuracoes() {
       setEstado(configuracoes.estado || "");
       setCep(configuracoes.cep || "");
       setDescricao(configuracoes.descricao || "");
+      setPixChave((configuracoes as any).pix_chave || "");
+      setPixTipoChave((configuracoes as any).pix_tipo_chave || "");
+      setPixQrcodeUrl((configuracoes as any).pix_qrcode_url || "");
       
       if (configuracoes.horario_funcionamento) {
         const horariosDb = configuracoes.horario_funcionamento as Record<string, HorarioFuncionamento>;
@@ -264,6 +276,48 @@ export default function Configuracoes() {
     });
   };
 
+  const handleSalvarPix = async () => {
+    if (!user) return;
+    try {
+      const { data: existing } = await supabase
+        .from("configuracoes_escola")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (existing) {
+        await supabase
+          .from("configuracoes_escola")
+          .update({
+            pix_chave: pixChave || null,
+            pix_tipo_chave: pixTipoChave || null,
+            pix_qrcode_url: pixQrcodeUrl || null,
+            updated_at: new Date().toISOString(),
+          } as any)
+          .eq("id", existing.id);
+      } else {
+        await supabase
+          .from("configuracoes_escola")
+          .insert({
+            user_id: user.id,
+            nome: nomeEscola || "Minha Escola de Música",
+            pix_chave: pixChave || null,
+            pix_tipo_chave: pixTipoChave || null,
+            pix_qrcode_url: pixQrcodeUrl || null,
+          } as any);
+      }
+      toast.success("Dados PIX salvos com sucesso!");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao salvar dados PIX");
+    }
+  };
+
+  const handleCopyPix = () => {
+    navigator.clipboard.writeText(pixChave);
+    setCopiedPix(true);
+    setTimeout(() => setCopiedPix(false), 2000);
+  };
+
   const handleSalvarHorarios = () => {
     const horariosFuncionamento: Record<string, { inicio: string; fim: string }> = {};
     Object.entries(horarios).forEach(([dia, { inicio, fim, ativo }]) => {
@@ -282,7 +336,6 @@ export default function Configuracoes() {
 
   const handleSalvarNotificacoes = async () => {
     setSavingNotificacoes(true);
-    // Save notification preferences to localStorage (could be extended to DB)
     const prefs = { notificacoesEmail, notificacoesWhatsapp, lembreteAula, lembretePagamento, lembreteAniversario };
     localStorage.setItem("notification_prefs", JSON.stringify(prefs));
     await new Promise(r => setTimeout(r, 500));
@@ -306,30 +359,18 @@ export default function Configuracoes() {
   }, []);
 
   const handleAlterarSenha = async () => {
-    if (!novaSenha) {
-      toast.error("Digite a nova senha");
-      return;
-    }
-    if (novaSenha.length < 6) {
-      toast.error("A senha deve ter pelo menos 6 caracteres");
-      return;
-    }
-    if (novaSenha !== confirmarSenha) {
-      toast.error("As senhas não coincidem");
-      return;
-    }
+    if (!novaSenha) { toast.error("Digite a nova senha"); return; }
+    if (novaSenha.length < 6) { toast.error("A senha deve ter pelo menos 6 caracteres"); return; }
+    if (novaSenha !== confirmarSenha) { toast.error("As senhas não coincidem"); return; }
     setChangingPassword(true);
     try {
       const { error } = await supabase.auth.updateUser({ password: novaSenha });
       if (error) throw error;
       toast.success("Senha alterada com sucesso!");
-      setNovaSenha("");
-      setConfirmarSenha("");
+      setNovaSenha(""); setConfirmarSenha("");
     } catch (error: any) {
       toast.error(error.message || "Erro ao alterar senha");
-    } finally {
-      setChangingPassword(false);
-    }
+    } finally { setChangingPassword(false); }
   };
 
   if (isLoading) {
@@ -356,6 +397,10 @@ export default function Configuracoes() {
           <TabsTrigger value="escola" className="gap-2">
             <Building2 className="w-4 h-4" />
             <span className="hidden sm:inline">Escola</span>
+          </TabsTrigger>
+          <TabsTrigger value="pix" className="gap-2">
+            <CreditCard className="w-4 h-4" />
+            <span className="hidden sm:inline">PIX</span>
           </TabsTrigger>
           <TabsTrigger value="horarios" className="gap-2">
             <Clock className="w-4 h-4" />
@@ -388,7 +433,7 @@ export default function Configuracoes() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="nomeEscola">Nome da Escola</Label>
                   <Input id="nomeEscola" value={nomeEscola} onChange={(e) => setNomeEscola(e.target.value)} />
@@ -398,7 +443,7 @@ export default function Configuracoes() {
                   <Input id="cnpj" value={cnpj} onChange={(e) => setCnpj(e.target.value)} />
                 </div>
               </div>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="email">E-mail</Label>
                   <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -412,7 +457,7 @@ export default function Configuracoes() {
                 <Label htmlFor="endereco">Endereço</Label>
                 <Input id="endereco" value={endereco} onChange={(e) => setEndereco(e.target.value)} />
               </div>
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-3">
                 <div className="grid gap-2">
                   <Label>Cidade</Label>
                   <Input value={cidade} onChange={(e) => setCidade(e.target.value)} />
@@ -445,6 +490,93 @@ export default function Configuracoes() {
           </Card>
         </TabsContent>
 
+        {/* PIX Tab */}
+        <TabsContent value="pix" className="space-y-4">
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-primary" />
+                Dados PIX
+              </CardTitle>
+              <CardDescription>
+                Configure sua chave PIX e QR Code. Essas informações serão exibidas ao registrar pagamentos via PIX e incluídas nas mensagens de cobrança automática por WhatsApp.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label>Tipo de Chave</Label>
+                  <Select value={pixTipoChave} onValueChange={setPixTipoChave}>
+                    <SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cpf">CPF</SelectItem>
+                      <SelectItem value="cnpj">CNPJ</SelectItem>
+                      <SelectItem value="email">E-mail</SelectItem>
+                      <SelectItem value="telefone">Telefone</SelectItem>
+                      <SelectItem value="aleatoria">Chave Aleatória</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label>Chave PIX</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={pixChave}
+                      onChange={(e) => setPixChave(e.target.value)}
+                      placeholder="Digite sua chave PIX"
+                      className="flex-1"
+                    />
+                    {pixChave && (
+                      <Button variant="outline" size="icon" onClick={handleCopyPix} className="flex-shrink-0">
+                        {copiedPix ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label>URL do QR Code PIX (opcional)</Label>
+                <Input
+                  value={pixQrcodeUrl}
+                  onChange={(e) => setPixQrcodeUrl(e.target.value)}
+                  placeholder="https://... ou cole a URL da imagem do QR Code"
+                />
+                <p className="text-xs text-muted-foreground">Cole a URL de uma imagem do seu QR Code PIX. Será exibida ao registrar pagamentos via PIX.</p>
+              </div>
+
+              {/* Preview */}
+              {(pixChave || pixQrcodeUrl) && (
+                <>
+                  <Separator />
+                  <div>
+                    <h3 className="font-medium mb-3">Pré-visualização</h3>
+                    <div className="p-4 rounded-lg bg-muted/30 border border-border space-y-3">
+                      {pixQrcodeUrl && (
+                        <div className="flex justify-center">
+                          <img src={pixQrcodeUrl} alt="QR Code PIX" className="w-40 h-40 object-contain rounded-lg border bg-background p-2" />
+                        </div>
+                      )}
+                      {pixChave && (
+                        <div className="text-center space-y-1">
+                          <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                            Chave PIX {pixTipoChave ? `(${pixTipoChave.toUpperCase()})` : ""}
+                          </p>
+                          <p className="font-mono font-semibold text-sm break-all">{pixChave}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <Button className="gap-2" onClick={handleSalvarPix}>
+                <Save className="w-4 h-4" />
+                Salvar Dados PIX
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* Horários Tab */}
         <TabsContent value="horarios" className="space-y-4">
           <Card className="glass-card">
@@ -458,31 +590,31 @@ export default function Configuracoes() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4">
+              <div className="grid gap-3">
                 {diasSemana.map(({ key, label }) => (
-                  <div key={key} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                  <div key={key} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-lg bg-muted/30">
                     <span className="font-medium w-24">{label}</span>
                     <div className="flex items-center gap-2">
                       <Input
                         type="time"
                         value={horarios[key].inicio}
                         onChange={(e) => updateHorario(key, "inicio", e.target.value)}
-                        className="w-28"
+                        className="w-24 sm:w-28"
                         disabled={!horarios[key].ativo}
                       />
-                      <span className="text-muted-foreground">até</span>
+                      <span className="text-muted-foreground text-sm">até</span>
                       <Input
                         type="time"
                         value={horarios[key].fim}
                         onChange={(e) => updateHorario(key, "fim", e.target.value)}
-                        className="w-28"
+                        className="w-24 sm:w-28"
                         disabled={!horarios[key].ativo}
                       />
+                      <Switch
+                        checked={horarios[key].ativo}
+                        onCheckedChange={(checked) => updateHorario(key, "ativo", checked)}
+                      />
                     </div>
-                    <Switch
-                      checked={horarios[key].ativo}
-                      onCheckedChange={(checked) => updateHorario(key, "ativo", checked)}
-                    />
                   </div>
                 ))}
               </div>
@@ -503,23 +635,23 @@ export default function Configuracoes() {
                 Configurações de Notificações
               </CardTitle>
               <CardDescription>
-                Gerencie como e quando as notificações são enviadas. Estas configurações afetam o envio de confirmações e cobranças.
+                Gerencie como e quando as notificações são enviadas.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <h3 className="font-medium">Canais de Notificação</h3>
                 <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                  <div>
-                    <p className="font-medium">Notificações por E-mail</p>
-                    <p className="text-sm text-muted-foreground">Receber avisos por e-mail</p>
+                  <div className="min-w-0 mr-3">
+                    <p className="font-medium text-sm">Notificações por E-mail</p>
+                    <p className="text-xs text-muted-foreground">Receber avisos por e-mail</p>
                   </div>
                   <Switch checked={notificacoesEmail} onCheckedChange={setNotificacoesEmail} />
                 </div>
                 <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                  <div>
-                    <p className="font-medium">Notificações por WhatsApp</p>
-                    <p className="text-sm text-muted-foreground">Enviar confirmações e cobranças via WhatsApp</p>
+                  <div className="min-w-0 mr-3">
+                    <p className="font-medium text-sm">Notificações por WhatsApp</p>
+                    <p className="text-xs text-muted-foreground">Enviar confirmações e cobranças via WhatsApp</p>
                   </div>
                   <Switch checked={notificacoesWhatsapp} onCheckedChange={setNotificacoesWhatsapp} />
                 </div>
@@ -527,26 +659,26 @@ export default function Configuracoes() {
 
               <Separator />
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <h3 className="font-medium">Tipos de Lembrete</h3>
                 <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                  <div>
-                    <p className="font-medium">Lembrete de Aula</p>
-                    <p className="text-sm text-muted-foreground">Enviar confirmação 24h antes da aula (Confirmações)</p>
+                  <div className="min-w-0 mr-3">
+                    <p className="font-medium text-sm">Lembrete de Aula</p>
+                    <p className="text-xs text-muted-foreground">Enviar confirmação 24h antes da aula</p>
                   </div>
                   <Switch checked={lembreteAula} onCheckedChange={setLembreteAula} />
                 </div>
                 <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                  <div>
-                    <p className="font-medium">Lembrete de Pagamento</p>
-                    <p className="text-sm text-muted-foreground">Enviar aviso 3 dias antes do vencimento e após atraso (Cobranças)</p>
+                  <div className="min-w-0 mr-3">
+                    <p className="font-medium text-sm">Lembrete de Pagamento</p>
+                    <p className="text-xs text-muted-foreground">Aviso 3 dias antes e após atraso</p>
                   </div>
                   <Switch checked={lembretePagamento} onCheckedChange={setLembretePagamento} />
                 </div>
                 <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                  <div>
-                    <p className="font-medium">Lembrete de Aniversário</p>
-                    <p className="text-sm text-muted-foreground">Avisar sobre aniversários de alunos no dia</p>
+                  <div className="min-w-0 mr-3">
+                    <p className="font-medium text-sm">Lembrete de Aniversário</p>
+                    <p className="text-xs text-muted-foreground">Avisar sobre aniversários de alunos</p>
                   </div>
                   <Switch checked={lembreteAniversario} onCheckedChange={setLembreteAniversario} />
                 </div>
@@ -629,9 +761,9 @@ export default function Configuracoes() {
                 <h3 className="font-medium">Sessão</h3>
                 <div className="p-4 rounded-lg bg-muted/30">
                   <div className="flex items-center justify-between">
-                    <div>
+                    <div className="min-w-0">
                       <p className="font-medium">Sessão Atual</p>
-                      <p className="text-sm text-muted-foreground">{user?.email} • Ativo agora</p>
+                      <p className="text-sm text-muted-foreground truncate">{user?.email} • Ativo agora</p>
                     </div>
                   </div>
                 </div>

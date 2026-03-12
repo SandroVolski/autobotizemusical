@@ -370,38 +370,38 @@ export default function Agenda() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        className="flex flex-col gap-3"
       >
         <div>
-          <h1 className="text-3xl font-bold">Agenda</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold">Agenda</h1>
+          <p className="text-sm text-muted-foreground">
             Gerencie as aulas e horários da escola
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* View Toggle */}
           <div className="flex items-center border rounded-lg p-1 bg-muted/50">
             <Button
               variant={viewMode === "week" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("week")}
-              className="gap-1"
+              className="gap-1 text-xs sm:text-sm"
             >
-              <LayoutGrid className="w-4 h-4" />
-              Semana
+              <LayoutGrid className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Semana</span><span className="sm:hidden">Sem.</span>
             </Button>
             <Button
               variant={viewMode === "month" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("month")}
-              className="gap-1"
+              className="gap-1 text-xs sm:text-sm"
             >
-              <CalendarDays className="w-4 h-4" />
+              <CalendarDays className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               Mês
             </Button>
           </div>
@@ -414,9 +414,9 @@ export default function Agenda() {
 
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
-                Nova Aula
+              <Button size="sm">
+                <Plus className="w-4 h-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Nova Aula</span><span className="sm:hidden">Nova</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
@@ -617,14 +617,14 @@ export default function Agenda() {
         >
           <Card variant="glass" className="overflow-hidden">
             <CardContent className="p-0">
-              <div className="flex">
+              <div className="flex overflow-x-auto">
                 {/* Time column */}
-                <div className="w-16 flex-shrink-0 border-r border-border">
-                  <div className="h-12 border-b border-border" />
+                <div className="w-12 sm:w-16 flex-shrink-0 border-r border-border">
+                  <div className="h-10 sm:h-12 border-b border-border" />
                   {timeSlots.map((slot, index) => (
                     <div
                       key={index}
-                      className={`h-10 border-b border-border flex items-start justify-center pt-1 text-xs text-muted-foreground ${
+                      className={`h-10 border-b border-border flex items-start justify-center pt-1 text-[10px] sm:text-xs text-muted-foreground ${
                         slot.minutes === 30 ? "border-dashed" : ""
                       }`}
                     >
@@ -635,7 +635,7 @@ export default function Agenda() {
 
                 {/* Days columns */}
                 <div className="flex-1 overflow-x-auto">
-                  <div className="flex min-w-[700px]">
+                  <div className="flex min-w-[560px] sm:min-w-[700px]">
                     {weekDates.map((date, dayIndex) => {
                       const isToday = date.toDateString() === new Date().toDateString();
                       const dayClasses = getClassesForDate(date);
@@ -643,11 +643,11 @@ export default function Agenda() {
                       return (
                         <div key={dayIndex} className="flex-1 border-r border-border last:border-r-0">
                           {/* Day header */}
-                          <div className={`h-12 border-b border-border flex flex-col items-center justify-center ${
+                          <div className={`h-10 sm:h-12 border-b border-border flex flex-col items-center justify-center ${
                             isToday ? "bg-primary/10" : ""
                           }`}>
-                            <span className="text-xs text-muted-foreground">{weekDays[dayIndex]}</span>
-                            <span className={`text-sm font-semibold ${
+                            <span className="text-[10px] sm:text-xs text-muted-foreground">{weekDays[dayIndex]}</span>
+                            <span className={`text-xs sm:text-sm font-semibold ${
                               isToday ? "text-primary" : ""
                             }`}>
                               {date.getDate()}
@@ -697,17 +697,17 @@ export default function Agenda() {
                                   e.stopPropagation();
                                   openDetailsDialog(aula);
                                 }}
-                                className={`absolute left-1 right-1 rounded-lg p-1.5 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg z-10 overflow-hidden border ${getAulaColor(aula)}`}
+                                className={`absolute left-0.5 right-0.5 sm:left-1 sm:right-1 rounded-md sm:rounded-lg p-1 sm:p-1.5 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg z-10 overflow-hidden border ${getAulaColor(aula)}`}
                                 style={{
                                   top: getClassPosition(aula.horario),
-                                  height: Math.max(getClassHeight(aula.duracao_minutos || 60), 36),
+                                  height: Math.max(getClassHeight(aula.duracao_minutos || 60), 32),
                                 }}
                               >
-                                <p className="text-xs font-medium truncate">
+                                <p className="text-[10px] sm:text-xs font-medium truncate leading-tight">
                                   {aula.alunos?.nome || "Sem aluno"}
                                 </p>
                                 {(aula.duracao_minutos || 60) >= 45 && (
-                                  <p className="text-xs text-muted-foreground truncate">
+                                  <p className="text-[10px] sm:text-xs text-muted-foreground truncate leading-tight">
                                     {aula.cursos?.nome || "Sem curso"}
                                   </p>
                                 )}

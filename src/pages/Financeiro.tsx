@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
   DollarSign, TrendingUp, CreditCard, AlertCircle, CheckCircle2, Clock, Download, Plus, Loader2, Trash2,
@@ -21,6 +21,7 @@ import { usePagamentos, useCreatePagamento, useDeletePagamento, type NovoPagamen
 import { useAlunos } from "@/hooks/useAlunos";
 import { useMatriculas } from "@/hooks/useMatriculas";
 import { useCursos } from "@/hooks/useCursos";
+import { useConfiguracoes } from "@/hooks/useConfiguracoes";
 import { toast } from "@/hooks/use-toast";
 import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
 import { exportPagamentos } from "@/lib/csv-export";
@@ -74,8 +75,14 @@ export default function Financeiro() {
   const { data: alunos } = useAlunos();
   const { data: matriculas } = useMatriculas();
   const { data: cursos } = useCursos();
+  const { data: configuracoes } = useConfiguracoes();
   const createPagamentoMutation = useCreatePagamento();
   const deletePagamentoMutation = useDeletePagamento();
+
+  // PIX info from settings
+  const pixChave = (configuracoes as any)?.pix_chave || "";
+  const pixTipoChave = (configuracoes as any)?.pix_tipo_chave || "";
+  const pixQrcodeUrl = (configuracoes as any)?.pix_qrcode_url || "";
 
   // Filter payments by selected month/year
   const monthPagamentos = useMemo(() => {
@@ -205,30 +212,30 @@ export default function Financeiro() {
     <div className="space-y-6">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        className="flex flex-col gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Financeiro</h1>
-          <p className="text-muted-foreground">Controle financeiro completo da escola</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Financeiro</h1>
+          <p className="text-muted-foreground text-sm">Controle financeiro completo da escola</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Month Navigator */}
           <div className="flex items-center gap-1 bg-muted/50 border border-border rounded-lg px-2 py-1">
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={prevMonth}>
               <ChevronLeft className="w-4 h-4" />
             </Button>
-            <span className="text-sm font-medium min-w-[120px] text-center">{meses[selectedMonth].slice(0, 3)} {selectedYear}</span>
+            <span className="text-sm font-medium min-w-[100px] sm:min-w-[120px] text-center">{meses[selectedMonth].slice(0, 3)} {selectedYear}</span>
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={nextMonth}>
               <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
-          <Button variant="outline" onClick={handleExport}>
-            <Download className="w-4 h-4 mr-2" />Exportar
+          <Button variant="outline" size="sm" onClick={handleExport}>
+            <Download className="w-4 h-4 mr-1 sm:mr-2" /><span className="hidden sm:inline">Exportar</span><span className="sm:hidden">CSV</span>
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button><Plus className="w-4 h-4 mr-2" />Novo Pagamento</Button>
+              <Button size="sm"><Plus className="w-4 h-4 mr-1 sm:mr-2" /><span className="hidden sm:inline">Novo Pagamento</span><span className="sm:hidden">Novo</span></Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
               <DialogHeader><DialogTitle>Registrar Pagamento</DialogTitle></DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
@@ -238,7 +245,7 @@ export default function Financeiro() {
                     <SelectContent>{alunos?.map(a => <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div className="grid gap-2">
                     <Label>Valor Total (R$) *</Label>
                     <Input type="number" step="0.01" placeholder="0,00" value={newPagamento.valor || ""}
@@ -246,7 +253,7 @@ export default function Financeiro() {
                     {selectedStudentCourseValue !== null && (
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 rounded-md px-2 py-1.5">
                         <Info className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-                        <span>Mensalidade do curso: <strong className="text-foreground">{selectedStudentCourseValue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong></span>
+                        <span>Curso: <strong className="text-foreground">{selectedStudentCourseValue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong></span>
                       </div>
                     )}
                   </div>
@@ -256,7 +263,7 @@ export default function Financeiro() {
                       onChange={(e) => setNewPagamento(prev => ({ ...prev, data_vencimento: e.target.value }))} />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div className="grid gap-2">
                     <Label>Tipo</Label>
                     <Select value={newPagamento.tipo} onValueChange={(v) => setNewPagamento(prev => ({ ...prev, tipo: v }))}>
@@ -293,10 +300,31 @@ export default function Financeiro() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+
+                {/* PIX info when PIX is selected */}
+                {newPagamento.metodo_pagamento === "pix" && pixChave && (
+                  <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 space-y-2">
+                    <p className="text-xs font-semibold text-primary flex items-center gap-1.5">
+                      <CreditCard className="w-3.5 h-3.5" /> Dados PIX da Escola
+                    </p>
+                    {pixQrcodeUrl && (
+                      <div className="flex justify-center">
+                        <img src={pixQrcodeUrl} alt="QR Code PIX" className="w-32 h-32 object-contain rounded-lg border bg-background p-1" />
+                      </div>
+                    )}
+                    <div className="text-center">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                        Chave {pixTipoChave ? `(${pixTipoChave.toUpperCase()})` : "PIX"}
+                      </p>
+                      <p className="font-mono text-xs font-semibold break-all">{pixChave}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
                   <div className="grid gap-2">
                     <Label>Referência</Label>
-                    <Input placeholder="Ex: Mensalidade Janeiro/2024" value={newPagamento.referencia}
+                    <Input placeholder="Ex: Jan/2024" value={newPagamento.referencia}
                       onChange={(e) => setNewPagamento(prev => ({ ...prev, referencia: e.target.value }))} />
                   </div>
                   <div className="grid gap-2">
@@ -305,7 +333,7 @@ export default function Financeiro() {
                       onChange={(e) => setNumMeses(Math.max(1, Math.min(12, parseInt(e.target.value) || 1)))} />
                     {numMeses > 1 && (
                       <p className="text-xs text-muted-foreground">
-                        {numMeses} parcelas de <strong>{Number((newPagamento.valor / numMeses).toFixed(2)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong>
+                        {numMeses}x de <strong>{Number((newPagamento.valor / numMeses).toFixed(2)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong>
                       </p>
                     )}
                   </div>
@@ -318,7 +346,7 @@ export default function Financeiro() {
                       <div className="flex items-start gap-2 text-xs bg-warning/10 border border-warning/30 text-warning rounded-lg px-3 py-2.5">
                         <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                         <span>
-                          O valor esperado para {numMeses} meses seria <strong>{expectedTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong> ({selectedStudentCourseValue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} × {numMeses}), mas o valor informado é <strong>{newPagamento.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong>. Diferença: <strong>{diff.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong>.
+                          Esperado: <strong>{expectedTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong> ({selectedStudentCourseValue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} × {numMeses}). Diferença: <strong>{diff.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong>.
                         </span>
                       </div>
                     );
@@ -336,40 +364,40 @@ export default function Financeiro() {
       </motion.div>
 
       <Tabs defaultValue="receber" className="space-y-6">
-        <div className="bg-muted/50 backdrop-blur-sm border border-border rounded-xl p-1.5 inline-flex">
-          <TabsList className="bg-transparent gap-1 h-auto p-0">
-            <TabsTrigger value="receber" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-5 py-2.5 text-sm font-medium transition-all">
-              <DollarSign className="w-4 h-4 mr-2" />Receber
+        <div className="bg-muted/50 backdrop-blur-sm border border-border rounded-xl p-1.5 overflow-x-auto">
+          <TabsList className="bg-transparent gap-1 h-auto p-0 w-full min-w-max">
+            <TabsTrigger value="receber" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 sm:px-5 py-2 text-xs sm:text-sm font-medium transition-all">
+              <DollarSign className="w-4 h-4 mr-1 sm:mr-2" /><span className="hidden sm:inline">Receber</span><span className="sm:hidden">Rec.</span>
             </TabsTrigger>
-            <TabsTrigger value="pagar" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-5 py-2.5 text-sm font-medium transition-all">
-              <Receipt className="w-4 h-4 mr-2" />Pagar
+            <TabsTrigger value="pagar" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 sm:px-5 py-2 text-xs sm:text-sm font-medium transition-all">
+              <Receipt className="w-4 h-4 mr-1 sm:mr-2" />Pagar
             </TabsTrigger>
-            <TabsTrigger value="caixa" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-5 py-2.5 text-sm font-medium transition-all">
-              <Wallet className="w-4 h-4 mr-2" />Caixa
+            <TabsTrigger value="caixa" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 sm:px-5 py-2 text-xs sm:text-sm font-medium transition-all">
+              <Wallet className="w-4 h-4 mr-1 sm:mr-2" />Caixa
             </TabsTrigger>
-            <TabsTrigger value="pdv" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-5 py-2.5 text-sm font-medium transition-all">
-              <ShoppingCart className="w-4 h-4 mr-2" />PDV
+            <TabsTrigger value="pdv" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 sm:px-5 py-2 text-xs sm:text-sm font-medium transition-all">
+              <ShoppingCart className="w-4 h-4 mr-1 sm:mr-2" />PDV
             </TabsTrigger>
           </TabsList>
         </div>
 
         <TabsContent value="receber" className="space-y-6">
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
               <Card variant="interactive">
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Receita ({meses[selectedMonth].slice(0, 3)})</p>
-                      <p className="text-3xl font-bold mt-2">{totalRecebido.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
-                      <div className="flex items-center gap-1 mt-2">
-                        <TrendingUp className="w-4 h-4 text-success" />
-                        <span className="text-sm text-success">Recebido</span>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">Receita ({meses[selectedMonth].slice(0, 3)})</p>
+                      <p className="text-lg sm:text-2xl lg:text-3xl font-bold mt-1 sm:mt-2 truncate">{totalRecebido.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+                      <div className="flex items-center gap-1 mt-1 sm:mt-2">
+                        <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-success" />
+                        <span className="text-xs sm:text-sm text-success">Recebido</span>
                       </div>
                     </div>
-                    <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                      <DollarSign className="w-6 h-6 text-primary" />
+                    <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+                      <DollarSign className="w-4 h-4 sm:w-6 sm:h-6 text-primary" />
                     </div>
                   </div>
                 </CardContent>
@@ -377,15 +405,15 @@ export default function Financeiro() {
             </motion.div>
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
               <Card variant="interactive">
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">A Receber</p>
-                      <p className="text-3xl font-bold mt-2">{totalPendente.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
-                      <p className="text-sm text-muted-foreground mt-2">{qtdPendente} pagamentos</p>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-muted-foreground">A Receber</p>
+                      <p className="text-lg sm:text-2xl lg:text-3xl font-bold mt-1 sm:mt-2 truncate">{totalPendente.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">{qtdPendente} pgtos</p>
                     </div>
-                    <div className="w-12 h-12 rounded-xl bg-warning/20 flex items-center justify-center">
-                      <Clock className="w-6 h-6 text-warning" />
+                    <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-xl bg-warning/20 flex items-center justify-center flex-shrink-0">
+                      <Clock className="w-4 h-4 sm:w-6 sm:h-6 text-warning" />
                     </div>
                   </div>
                 </CardContent>
@@ -393,15 +421,15 @@ export default function Financeiro() {
             </motion.div>
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
               <Card variant="interactive">
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Inadimplência</p>
-                      <p className="text-3xl font-bold mt-2">{totalAtrasado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
-                      <p className="text-sm text-destructive mt-2">{qtdAtrasado} alunos</p>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-muted-foreground">Inadimplência</p>
+                      <p className="text-lg sm:text-2xl lg:text-3xl font-bold mt-1 sm:mt-2 truncate">{totalAtrasado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+                      <p className="text-xs sm:text-sm text-destructive mt-1 sm:mt-2">{qtdAtrasado} alunos</p>
                     </div>
-                    <div className="w-12 h-12 rounded-xl bg-destructive/20 flex items-center justify-center">
-                      <AlertCircle className="w-6 h-6 text-destructive" />
+                    <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-xl bg-destructive/20 flex items-center justify-center flex-shrink-0">
+                      <AlertCircle className="w-4 h-4 sm:w-6 sm:h-6 text-destructive" />
                     </div>
                   </div>
                 </CardContent>
@@ -409,18 +437,18 @@ export default function Financeiro() {
             </motion.div>
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
               <Card variant="interactive">
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Ticket Médio</p>
-                      <p className="text-3xl font-bold mt-2">{ticketMedio.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
-                      <div className="flex items-center gap-1 mt-2">
-                        <TrendingUp className="w-4 h-4 text-success" />
-                        <span className="text-sm text-success">Por pagamento</span>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-muted-foreground">Ticket Médio</p>
+                      <p className="text-lg sm:text-2xl lg:text-3xl font-bold mt-1 sm:mt-2 truncate">{ticketMedio.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+                      <div className="flex items-center gap-1 mt-1 sm:mt-2">
+                        <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-success" />
+                        <span className="text-xs sm:text-sm text-success">Por pgto</span>
                       </div>
                     </div>
-                    <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center">
-                      <CreditCard className="w-6 h-6 text-secondary" />
+                    <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-xl bg-secondary/20 flex items-center justify-center flex-shrink-0">
+                      <CreditCard className="w-4 h-4 sm:w-6 sm:h-6 text-secondary" />
                     </div>
                   </div>
                 </CardContent>
@@ -429,28 +457,28 @@ export default function Financeiro() {
           </div>
 
           {/* Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="lg:col-span-2">
               <Card variant="glass">
-                <CardHeader><CardTitle className="text-lg">Recebido vs Pendente ({selectedYear})</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-base sm:text-lg">Recebido vs Pendente ({selectedYear})</CardTitle></CardHeader>
                 <CardContent>
-                  <div className="h-[300px]">
+                  <div className="h-[250px] sm:h-[300px]">
                     {yearlyChartData.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={yearlyChartData} barGap={2}>
                           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                          <XAxis dataKey="mes" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                          <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false}
-                            tickFormatter={(v) => `R$${v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}`} />
+                          <XAxis dataKey="mes" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
+                          <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false}
+                            tickFormatter={(v) => `R$${v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}`} width={50} />
                           <Tooltip contentStyle={themedTooltipStyle}
                             formatter={(value: number) => [value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }), ""]} />
-                          <Legend />
+                          <Legend wrapperStyle={{ fontSize: "12px" }} />
                           <Bar dataKey="recebido" fill="hsl(142, 76%, 45%)" radius={[4, 4, 0, 0]} name="Recebido" />
                           <Bar dataKey="pendente" fill="hsl(38, 92%, 50%)" radius={[4, 4, 0, 0]} name="Pendente" />
                         </BarChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="flex items-center justify-center h-full text-muted-foreground">Sem dados para {selectedYear}</div>
+                      <div className="flex items-center justify-center h-full text-muted-foreground text-sm">Sem dados para {selectedYear}</div>
                     )}
                   </div>
                 </CardContent>
@@ -458,12 +486,12 @@ export default function Financeiro() {
             </motion.div>
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
               <Card variant="glass" className="h-full">
-                <CardHeader><CardTitle className="text-lg">Status ({meses[selectedMonth].slice(0, 3)})</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-base sm:text-lg">Status ({meses[selectedMonth].slice(0, 3)})</CardTitle></CardHeader>
                 <CardContent>
-                  <div className="h-[200px]">
+                  <div className="h-[180px] sm:h-[200px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <Pie data={paymentsByStatus} cx="50%" cy="50%" innerRadius={55} outerRadius={80} dataKey="value" paddingAngle={4} strokeWidth={0}>
+                        <Pie data={paymentsByStatus} cx="50%" cy="50%" innerRadius={45} outerRadius={70} dataKey="value" paddingAngle={4} strokeWidth={0}>
                           {paymentsByStatus.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
                         </Pie>
                         <Tooltip contentStyle={themedTooltipStyle}
@@ -476,11 +504,11 @@ export default function Financeiro() {
                       <div key={item.name} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
-                          <span className="text-sm text-muted-foreground">{item.name}</span>
+                          <span className="text-xs sm:text-sm text-muted-foreground">{item.name}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-foreground">{item.value}</span>
-                          <span className="text-xs text-muted-foreground">({item.percent}%)</span>
+                          <span className="text-xs sm:text-sm font-semibold text-foreground">{item.value}</span>
+                          <span className="text-[10px] sm:text-xs text-muted-foreground">({item.percent}%)</span>
                         </div>
                       </div>
                     ))}
@@ -493,40 +521,40 @@ export default function Financeiro() {
           {/* Recent Payments */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
             <Card variant="glass">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg">Pagamentos de {meses[selectedMonth]} {selectedYear}</CardTitle>
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <CardTitle className="text-base sm:text-lg">Pagamentos de {meses[selectedMonth]} {selectedYear}</CardTitle>
                 <FilterPopover filters={filterOptions} values={filterValues} onChange={setFilterValues} />
               </CardHeader>
               <CardContent>
                 {recentPayments.length === 0 ? (
-                  <div className="py-8 text-center text-muted-foreground">Nenhum pagamento em {meses[selectedMonth]} {selectedYear}</div>
+                  <div className="py-8 text-center text-muted-foreground text-sm">Nenhum pagamento em {meses[selectedMonth]} {selectedYear}</div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-2 sm:space-y-3">
                     {recentPayments.map((payment, index) => (
                       <motion.div key={payment.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 * index }}
-                        className="flex items-center justify-between p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center gap-4">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        className="flex items-center justify-between gap-2 sm:gap-4 p-3 sm:p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+                          <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
                             payment.status === "pago" ? "bg-success/20" : payment.status === "pendente" ? "bg-warning/20" : "bg-destructive/20"
                           }`}>
-                            {payment.status === "pago" ? <CheckCircle2 className="w-5 h-5 text-success" /> :
-                              payment.status === "pendente" ? <Clock className="w-5 h-5 text-warning" /> :
-                                <AlertCircle className="w-5 h-5 text-destructive" />}
+                            {payment.status === "pago" ? <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-success" /> :
+                              payment.status === "pendente" ? <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-warning" /> :
+                                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-destructive" />}
                           </div>
-                          <div>
-                            <p className="font-medium">{getAlunoName(payment.aluno_id)}</p>
-                            <p className="text-sm text-muted-foreground">
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm truncate">{getAlunoName(payment.aluno_id)}</p>
+                            <p className="text-xs text-muted-foreground truncate">
                               {payment.data_vencimento ? new Date(payment.data_vencimento + "T00:00:00").toLocaleDateString("pt-BR") : "—"} • {payment.metodo_pagamento || payment.tipo}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <span className="font-semibold">{Number(payment.valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
-                          <Badge variant={payment.status === "pago" ? "success" : payment.status === "pendente" ? "warning" : "destructive"}>
+                        <div className="flex items-center gap-1.5 sm:gap-4 flex-shrink-0">
+                          <span className="font-semibold text-xs sm:text-sm whitespace-nowrap">{Number(payment.valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+                          <Badge variant={payment.status === "pago" ? "success" : payment.status === "pendente" ? "warning" : "destructive"} className="text-[10px] sm:text-xs hidden sm:inline-flex">
                             {payment.status}
                           </Badge>
-                          <Button variant="ghost" size="icon" onClick={() => deletePagamentoMutation.mutate(payment.id)} disabled={deletePagamentoMutation.isPending}>
-                            <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+                          <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => deletePagamentoMutation.mutate(payment.id)} disabled={deletePagamentoMutation.isPending}>
+                            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground hover:text-destructive" />
                           </Button>
                         </div>
                       </motion.div>
