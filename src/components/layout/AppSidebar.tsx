@@ -20,6 +20,7 @@ import {
   FileText,
   UserPlus,
   ChevronDown,
+  CalendarOff,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,7 @@ const menuGroups: MenuGroup[] = [
     items: [
       { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
       { icon: Calendar, label: "Agenda", path: "/agenda" },
+      { icon: CalendarOff, label: "Feriados", path: "/feriados" },
       { icon: MessageSquare, label: "Confirmações", path: "/confirmacoes" },
       { icon: DollarSign, label: "Cobranças", path: "/cobrancas" },
     ],

@@ -40,25 +40,29 @@ export function WeeklyPayments() {
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
 
-  // TOTAL: All payments with status "pago" in the current month
-  const pagamentosPagosMes = pagamentos?.filter(p => {
-    if (p.status !== "pago" || !p.data_pagamento) return false;
-    const pagto = new Date(p.data_pagamento + "T00:00:00");
-    return pagto.getMonth() === currentMonth && pagto.getFullYear() === currentYear;
+  // TOTAL MÊS: All payments with status "pago" in the current month (by data_vencimento)
+  const pagamentosMes = pagamentos?.filter(p => {
+    if (!p.data_vencimento) return false;
+    const venc = new Date(p.data_vencimento + "T00:00:00");
+    return venc.getMonth() === currentMonth && venc.getFullYear() === currentYear;
   }) || [];
-  const totalMes = pagamentosPagosMes.reduce((acc, p) => acc + Number(p.valor), 0);
 
-  // RECEBIDO: Payments with status "pago" received THIS WEEK
+  const totalMes = pagamentosMes
+    .filter(p => p.status === "pago")
+    .reduce((acc, p) => acc + Number(p.valor), 0);
+
+  // RECEBIDO SEMANA: Payments with status "pago" whose data_vencimento falls this week
   const recebidoSemana = pagamentos?.filter(p => {
-    if (p.status !== "pago" || !p.data_pagamento) return false;
-    const pagto = new Date(p.data_pagamento + "T00:00:00");
-    return pagto >= startOfWeek && pagto <= endOfWeek;
+    if (p.status !== "pago" || !p.data_vencimento) return false;
+    const venc = new Date(p.data_vencimento + "T00:00:00");
+    // Use data_pagamento if available, otherwise data_vencimento
+    const dataRef = p.data_pagamento ? new Date(p.data_pagamento + "T00:00:00") : venc;
+    return dataRef >= startOfWeek && dataRef <= endOfWeek;
   }).reduce((acc, p) => acc + Number(p.valor), 0) || 0;
 
-  // ALL active students who haven't paid this month - not just this week
+  // ALL active students who haven't paid this month
   const alunosDevedores = alunos?.filter(a => {
     if (a.status !== "ativo" || !a.dia_vencimento) return false;
-    // Check if there's a paid payment for current month
     const isPaidThisMonth = pagamentos?.some(p =>
       p.aluno_id === a.id &&
       p.status === "pago" &&
@@ -68,7 +72,6 @@ export function WeeklyPayments() {
     );
     return !isPaidThisMonth;
   }).sort((a, b) => {
-    // Sort: overdue first (dia_vencimento already passed), then upcoming
     const aOverdue = a.dia_vencimento! <= today.getDate();
     const bOverdue = b.dia_vencimento! <= today.getDate();
     if (aOverdue && !bOverdue) return -1;
@@ -76,25 +79,20 @@ export function WeeklyPayments() {
     return a.dia_vencimento! - b.dia_vencimento!;
   }) || [];
 
-  // PENDENTE: Sum of unpaid payments for current month + estimates for devedores without records
-  const totalPendenteRegistrado = pagamentos?.filter(p => {
-    if (!p.data_vencimento || p.status === "pago") return false;
-    const venc = new Date(p.data_vencimento + "T00:00:00");
-    return venc.getMonth() === currentMonth && venc.getFullYear() === currentYear;
-  }).reduce((acc, p) => acc + Number(p.valor), 0) || 0;
+  // PENDENTE: Sum of unpaid payments in current month + estimates for devedores without payment records
+  const unpaidPaymentsMes = pagamentosMes.filter(p => p.status !== "pago");
+  const totalPendenteRegistrado = unpaidPaymentsMes.reduce((acc, p) => acc + Number(p.valor), 0);
 
-  const alunosComRegistroPendente = new Set(
-    pagamentos?.filter(p => {
-      if (!p.data_vencimento || p.status === "pago") return false;
-      const venc = new Date(p.data_vencimento + "T00:00:00");
-      return venc.getMonth() === currentMonth && venc.getFullYear() === currentYear;
-    }).map(p => p.aluno_id) || []
+  // Students in "A Cobrar" that don't have ANY payment record for this month (paid or unpaid)
+  const alunosComRegistroMes = new Set(
+    pagamentosMes.map(p => p.aluno_id).filter(Boolean)
   );
 
   const totalPendenteSemRegistro = alunosDevedores
-    .filter(a => !alunosComRegistroPendente.has(a.id))
+    .filter(a => !alunosComRegistroMes.has(a.id))
     .reduce((acc, aluno) => {
-      const ultimoPagamento = pagamentos?.filter(p => p.aluno_id === aluno.id)
+      // Use last known payment value as estimate
+      const ultimoPagamento = pagamentos?.filter(p => p.aluno_id === aluno.id && p.status === "pago")
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
       return acc + (ultimoPagamento ? Number(ultimoPagamento.valor) : 0);
     }, 0);
