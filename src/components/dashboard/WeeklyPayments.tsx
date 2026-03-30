@@ -142,7 +142,7 @@ export function WeeklyPayments() {
           <Tabs defaultValue="cobrar" className="w-full">
             <TabsList className="w-full mb-3 bg-muted/50">
               <TabsTrigger value="cobrar" className="flex-1 text-xs">
-                <UserRound className="w-3.5 h-3.5 mr-1" />A Cobrar ({alunosDevedoresSemana.length})
+                <UserRound className="w-3.5 h-3.5 mr-1" />A Cobrar ({alunosDevedores.length})
               </TabsTrigger>
               <TabsTrigger value="pagamentos" className="flex-1 text-xs">
                 <DollarSign className="w-3.5 h-3.5 mr-1" />Pagamentos ({pagamentosSemana.length})
