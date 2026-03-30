@@ -234,7 +234,48 @@ export default function Financeiro() {
       return;
     }
     exportPagamentos(filteredPagamentos.map(p => ({ ...p, aluno_nome: getAlunoName(p.aluno_id) })));
-    toast({ title: "Exportação concluída", description: `${filteredPagamentos.length} pagamentos exportados` });
+    toast({ title: "Exportação concluída", description: `${filteredPagamentos.length} pagamentos exportados em CSV` });
+  };
+
+  const handleExportPDF = () => {
+    if (!monthPagamentos || monthPagamentos.length === 0) {
+      toast({ title: "Nenhum dado para exportar", description: "Nenhum pagamento encontrado neste período", variant: "destructive" });
+      return;
+    }
+
+    // Group by type
+    const byType: Record<string, { valor: number; qtd: number }> = {};
+    const byMethod: Record<string, { valor: number; qtd: number }> = {};
+    monthPagamentos.forEach(p => {
+      const tipo = p.tipo || "outro";
+      const metodo = p.metodo_pagamento || "não informado";
+      if (!byType[tipo]) byType[tipo] = { valor: 0, qtd: 0 };
+      byType[tipo].valor += Number(p.valor);
+      byType[tipo].qtd++;
+      if (p.status === "pago") {
+        if (!byMethod[metodo]) byMethod[metodo] = { valor: 0, qtd: 0 };
+        byMethod[metodo].valor += Number(p.valor);
+        byMethod[metodo].qtd++;
+      }
+    });
+
+    const periodoStr = `${meses[selectedMonth].toLowerCase()}_${selectedYear}`;
+    generateFinancialPDF({
+      nomeEscola: configuracoes?.nome || "Escola de Música",
+      periodo: periodoStr,
+      mesAno: `${meses[selectedMonth]} ${selectedYear}`,
+      totalRecebido,
+      totalPendente,
+      totalAtrasado,
+      ticketMedio,
+      qtdPagos: pagos,
+      qtdPendentes: qtdPendente,
+      qtdAtrasados: qtdAtrasado,
+      pagamentos: monthPagamentos.map(p => ({ ...p, aluno_nome: getAlunoName(p.aluno_id) })),
+      receitaPorTipo: Object.entries(byType).map(([tipo, d]) => ({ tipo, ...d })),
+      receitaPorMetodo: Object.entries(byMethod).map(([metodo, d]) => ({ metodo, ...d })),
+    });
+    toast({ title: "PDF gerado!", description: `Relatório de ${meses[selectedMonth]} ${selectedYear} exportado` });
   };
 
   if (isLoading) {
