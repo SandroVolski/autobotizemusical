@@ -42,6 +42,7 @@ import { useAlunos } from "@/hooks/useAlunos";
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useCursos } from "@/hooks/useCursos";
 import { useProfessores } from "@/hooks/useProfessores";
+import { useContasPagar } from "@/hooks/useContasPagar";
 import { useAulas } from "@/hooks/useAulas";
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
