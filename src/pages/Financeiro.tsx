@@ -80,6 +80,8 @@ export default function Financeiro() {
   const { data: matriculas } = useMatriculas();
   const { data: cursos } = useCursos();
   const { data: configuracoes } = useConfiguracoes();
+  const { data: professores } = useProfessores();
+  const { data: contasPagar } = useContasPagar();
   const createPagamentoMutation = useCreatePagamento();
   const deletePagamentoMutation = useDeletePagamento();
 
