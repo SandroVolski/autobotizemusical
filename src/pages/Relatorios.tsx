@@ -47,6 +47,7 @@ import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval } from "d
 import { ptBR } from "date-fns/locale";
 import { toast } from "@/hooks/use-toast";
 import { exportAlunos, exportPagamentos, exportCursos } from "@/lib/csv-export";
+import { generateFinancialPDF } from "@/lib/pdf-export";
 
 export default function Relatorios() {
   const [periodo, setPeriodo] = useState("mensal");
