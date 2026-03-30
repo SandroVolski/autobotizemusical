@@ -117,12 +117,30 @@ export default function Financeiro() {
     });
   }, [monthPagamentos, filterValues]);
 
-  // Stats based on selected month
+  // Stats based on selected month - dynamically classify based on due date
+  const todayDate = new Date();
+  todayDate.setHours(0, 0, 0, 0);
+
   const totalRecebido = monthPagamentos.filter(p => p.status === "pago").reduce((acc, p) => acc + Number(p.valor), 0);
-  const totalPendente = monthPagamentos.filter(p => p.status === "pendente").reduce((acc, p) => acc + Number(p.valor), 0);
-  const totalAtrasado = monthPagamentos.filter(p => p.status === "atrasado").reduce((acc, p) => acc + Number(p.valor), 0);
-  const qtdPendente = monthPagamentos.filter(p => p.status === "pendente").length;
-  const qtdAtrasado = monthPagamentos.filter(p => p.status === "atrasado").length;
+
+  // "A Receber": all unpaid payments (pendente OR atrasado) that are NOT yet past due
+  const pendentesCalc = monthPagamentos.filter(p => {
+    if (p.status === "pago") return false;
+    const venc = new Date(p.data_vencimento + "T00:00:00");
+    return venc >= todayDate;
+  });
+  const totalPendente = pendentesCalc.reduce((acc, p) => acc + Number(p.valor), 0);
+  const qtdPendente = pendentesCalc.length;
+
+  // "Inadimplência": all unpaid payments past due date
+  const atrasadosCalc = monthPagamentos.filter(p => {
+    if (p.status === "pago") return false;
+    const venc = new Date(p.data_vencimento + "T00:00:00");
+    return venc < todayDate;
+  });
+  const totalAtrasado = atrasadosCalc.reduce((acc, p) => acc + Number(p.valor), 0);
+  const qtdAtrasado = atrasadosCalc.length;
+
   const ticketMedio = monthPagamentos.length ? monthPagamentos.reduce((acc, p) => acc + Number(p.valor), 0) / monthPagamentos.length : 0;
 
   // Revenue chart: show all months of selected year
