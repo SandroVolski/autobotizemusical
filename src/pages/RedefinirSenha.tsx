@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Music, Lock, Eye, EyeOff, ArrowRight, CheckCircle } from "lucide-react";
@@ -7,20 +7,49 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function RedefinirSenha() {
   const navigate = useNavigate();
-  const { updatePassword, user, loading: authLoading } = useAuth();
+  const { updatePassword, loading: authLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [success, setSuccess] = useState(false);
+  const [isRecoveryReady, setIsRecoveryReady] = useState(false);
+  const [checkDone, setCheckDone] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
-  // Check if user came from a password reset link
+  // Listen for PASSWORD_RECOVERY event from Supabase
   useEffect(() => {
-    if (!authLoading && !user) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setIsRecoveryReady(true);
+        setCheckDone(true);
+        if (timerRef.current) clearTimeout(timerRef.current);
+      }
+    });
+
+    // Give Supabase time to process the hash token, then check session
+    timerRef.current = setTimeout(async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setIsRecoveryReady(true);
+      }
+      setCheckDone(true);
+    }, 3000);
+
+    return () => {
+      subscription.unsubscribe();
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  // Redirect if no recovery session after check
+  useEffect(() => {
+    if (checkDone && !isRecoveryReady) {
       toast({
         title: "Link inválido ou expirado",
         description: "Por favor, solicite um novo link de redefinição de senha.",
@@ -28,7 +57,7 @@ export default function RedefinirSenha() {
       });
       navigate("/login");
     }
-  }, [user, authLoading, navigate]);
+  }, [checkDone, isRecoveryReady, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,7 +111,7 @@ export default function RedefinirSenha() {
     }
   };
 
-  if (authLoading) {
+  if (!checkDone || (authLoading && !isRecoveryReady)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -91,7 +120,7 @@ export default function RedefinirSenha() {
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
             className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full"
           />
-          <p className="text-muted-foreground">Carregando...</p>
+          <p className="text-muted-foreground">Verificando link...</p>
         </div>
       </div>
     );
