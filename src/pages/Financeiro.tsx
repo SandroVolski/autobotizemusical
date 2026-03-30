@@ -25,6 +25,7 @@ import { useConfiguracoes } from "@/hooks/useConfiguracoes";
 import { toast } from "@/hooks/use-toast";
 import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
 import { exportPagamentos } from "@/lib/csv-export";
+import { generateFinancialPDF } from "@/lib/pdf-export";
 import { ContasPagarTab } from "@/components/financeiro/ContasPagarTab";
 import { FluxoCaixaTab } from "@/components/financeiro/FluxoCaixaTab";
 import { PDVTab } from "@/components/financeiro/PDVTab";
