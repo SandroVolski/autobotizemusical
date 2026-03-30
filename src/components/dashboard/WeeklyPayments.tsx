@@ -39,34 +39,29 @@ export function WeeklyPayments() {
 
   const totalSemana = pagamentosSemana.reduce((acc, p) => acc + Number(p.valor), 0);
   const totalPago = pagamentosSemana.filter(p => p.status === "pago").reduce((acc, p) => acc + Number(p.valor), 0);
-  const totalPendente = totalSemana - totalPago;
+  const totalPendente = pagamentosSemana.filter(p => p.status !== "pago").reduce((acc, p) => acc + Number(p.valor), 0);
 
-  // Students who need to pay this week (based on dia_vencimento)
-  const alunosDevedoresSemana = alunos?.filter(a => {
+  // ALL active students who haven't paid this month - not just this week
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+  const alunosDevedores = alunos?.filter(a => {
     if (a.status !== "ativo" || !a.dia_vencimento) return false;
-    // Check if dia_vencimento falls within this week
-    for (let d = new Date(startOfWeek); d <= endOfWeek; d.setDate(d.getDate() + 1)) {
-      if (d.getDate() === a.dia_vencimento) {
-        // Check if there's already a payment for this month that is "pago"
-        const hasPaid = pagamentos?.some(p => {
-          if (p.aluno_id !== a.id || p.status === "pago" || !p.data_vencimento) return false;
-          // Actually check if NOT paid
-          return false;
-        });
-        // Check if payment for current month exists and is paid
-        const currentMonth = today.getMonth();
-        const currentYear = today.getFullYear();
-        const isPaidThisMonth = pagamentos?.some(p =>
-          p.aluno_id === a.id &&
-          p.status === "pago" &&
-          p.data_vencimento &&
-          new Date(p.data_vencimento + "T00:00:00").getMonth() === currentMonth &&
-          new Date(p.data_vencimento + "T00:00:00").getFullYear() === currentYear
-        );
-        if (!isPaidThisMonth) return true;
-      }
-    }
-    return false;
+    // Check if there's a paid payment for current month
+    const isPaidThisMonth = pagamentos?.some(p =>
+      p.aluno_id === a.id &&
+      p.status === "pago" &&
+      p.data_vencimento &&
+      new Date(p.data_vencimento + "T00:00:00").getMonth() === currentMonth &&
+      new Date(p.data_vencimento + "T00:00:00").getFullYear() === currentYear
+    );
+    return !isPaidThisMonth;
+  }).sort((a, b) => {
+    // Sort: overdue first (dia_vencimento already passed), then upcoming
+    const aOverdue = a.dia_vencimento! <= today.getDate();
+    const bOverdue = b.dia_vencimento! <= today.getDate();
+    if (aOverdue && !bOverdue) return -1;
+    if (!aOverdue && bOverdue) return 1;
+    return a.dia_vencimento! - b.dia_vencimento!;
   }) || [];
 
   const getDayName = (dateStr: string) => {
@@ -147,7 +142,7 @@ export function WeeklyPayments() {
           <Tabs defaultValue="cobrar" className="w-full">
             <TabsList className="w-full mb-3 bg-muted/50">
               <TabsTrigger value="cobrar" className="flex-1 text-xs">
-                <UserRound className="w-3.5 h-3.5 mr-1" />A Cobrar ({alunosDevedoresSemana.length})
+                <UserRound className="w-3.5 h-3.5 mr-1" />A Cobrar ({alunosDevedores.length})
               </TabsTrigger>
               <TabsTrigger value="pagamentos" className="flex-1 text-xs">
                 <DollarSign className="w-3.5 h-3.5 mr-1" />Pagamentos ({pagamentosSemana.length})
@@ -247,14 +242,15 @@ export function WeeklyPayments() {
 
             <TabsContent value="cobrar" className="mt-0">
               <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                {alunosDevedoresSemana.length === 0 ? (
+                {alunosDevedores.length === 0 ? (
                   <div className="text-center py-6 text-muted-foreground">
                     <CheckCircle className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                    <p className="text-sm">Todos os alunos estão em dia esta semana! 🎉</p>
+                    <p className="text-sm">Todos os alunos estão em dia! 🎉</p>
                   </div>
                 ) : (
-                  alunosDevedoresSemana.map((aluno, index) => {
+                  alunosDevedores.map((aluno, index) => {
                     const status = paymentStatuses.get(aluno.id);
+                    const isOverdue = aluno.dia_vencimento! <= today.getDate();
                     return (
                       <motion.div
                         key={aluno.id}
@@ -264,14 +260,16 @@ export function WeeklyPayments() {
                         className={`flex items-center gap-3 p-3 rounded-lg transition-colors cursor-pointer ${
                           status?.color === "red"
                             ? "bg-destructive/10 border border-destructive/20 hover:bg-destructive/15"
+                            : isOverdue
+                            ? "bg-destructive/5 border border-destructive/10 hover:bg-destructive/10"
                             : "bg-warning/5 border border-warning/15 hover:bg-warning/10"
                         }`}
                         onClick={() => navigate(`/alunos/${aluno.id}`)}
                       >
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                          status?.color === "red" ? "bg-destructive/20" : "bg-warning/20"
+                          status?.color === "red" || isOverdue ? "bg-destructive/20" : "bg-warning/20"
                         }`}>
-                          <UserRound className={`w-5 h-5 ${status?.color === "red" ? "text-destructive" : "text-warning"}`} />
+                          <UserRound className={`w-5 h-5 ${status?.color === "red" || isOverdue ? "text-destructive" : "text-warning"}`} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">
@@ -279,12 +277,12 @@ export function WeeklyPayments() {
                             {status && <PaymentStatusDot color={status.color} label={status.label} size="sm" />}
                           </div>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            Vencimento dia {aluno.dia_vencimento} • {getDayOfWeekName(aluno.dia_vencimento!)}
+                            Vencimento dia {aluno.dia_vencimento}
                           </p>
                         </div>
                         <div className="flex-shrink-0">
-                          <Badge variant={status?.color === "red" ? "destructive" : "warning"} className="text-[10px]">
-                            <AlertCircle className="w-3 h-3 mr-0.5" /> {status?.color === "red" ? "Devendo" : "Cobrar"}
+                          <Badge variant={status?.color === "red" || isOverdue ? "destructive" : "warning"} className="text-[10px]">
+                            <AlertCircle className="w-3 h-3 mr-0.5" /> {status?.color === "red" || isOverdue ? "Devendo" : "Cobrar"}
                           </Badge>
                         </div>
                       </motion.div>
