@@ -22,6 +22,8 @@ import { useAlunos } from "@/hooks/useAlunos";
 import { useMatriculas } from "@/hooks/useMatriculas";
 import { useCursos } from "@/hooks/useCursos";
 import { useConfiguracoes } from "@/hooks/useConfiguracoes";
+import { useProfessores } from "@/hooks/useProfessores";
+import { useContasPagar } from "@/hooks/useContasPagar";
 import { toast } from "@/hooks/use-toast";
 import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
 import { exportPagamentos } from "@/lib/csv-export";
