@@ -161,9 +161,7 @@ const App = () => (
               path="/configuracoes"
               element={
                 <AuthenticatedPage>
-                  <RoleRoute allowedRoles={['admin']}>
-                    <Configuracoes />
-                  </RoleRoute>
+                  <Configuracoes />
                 </AuthenticatedPage>
               }
             />
