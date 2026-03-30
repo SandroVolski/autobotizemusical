@@ -204,6 +204,8 @@ export default function Alunos() {
   const createAulaMutation = useCreateAula();
   const { data: turmasList } = useTurmas();
   const addAlunoTurmaMutation = useAddAlunoTurma();
+  const { data: cursosList } = useCursos();
+  const createMatriculaMutation = useCreateMatricula();
   const filteredAlunos = alunos?.filter(aluno => {
     // Text search
     const matchesSearch = aluno.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
