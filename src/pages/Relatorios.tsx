@@ -42,6 +42,7 @@ import { useAlunos } from "@/hooks/useAlunos";
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useCursos } from "@/hooks/useCursos";
 import { useProfessores } from "@/hooks/useProfessores";
+import { useContasPagar } from "@/hooks/useContasPagar";
 import { useAulas } from "@/hooks/useAulas";
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -56,6 +57,7 @@ export default function Relatorios() {
   const { data: pagamentos, isLoading: loadingPagamentos } = usePagamentos();
   const { data: cursos, isLoading: loadingCursos } = useCursos();
   const { data: professores } = useProfessores();
+  const { data: contasPagar } = useContasPagar();
   const { data: aulas } = useAulas();
 
   const isLoading = loadingAlunos || loadingPagamentos || loadingCursos;
@@ -257,6 +259,10 @@ export default function Relatorios() {
       pagamentos: monthPagamentos.map(p => ({ ...p, aluno_nome: alunos?.find(a => a.id === p.aluno_id)?.nome || "N/A" })),
       receitaPorTipo: Object.entries(byType).map(([tipo, d]) => ({ tipo, ...d })),
       receitaPorMetodo: Object.entries(byMethod).map(([metodo, d]) => ({ metodo, ...d })),
+      alunos: alunos?.map(a => ({ nome: a.nome, status: a.status, data_nascimento: a.data_nascimento, data_matricula: a.data_matricula, telefone: a.telefone, email: a.email })),
+      professores: professores?.map(p => ({ nome: p.nome, especialidade: p.especialidade, salario: p.salario, status: p.status })),
+      cursos: cursos?.map(c => ({ nome: c.nome, valor_mensal: c.valor_mensal, status: c.status, instrumento: c.instrumento })),
+      contasPagar: contasPagar?.map(c => ({ descricao: c.descricao, valor: c.valor, data_vencimento: c.data_vencimento, status: c.status, categoria: c.categoria })),
     });
     toast({ title: "PDF gerado!", description: `Relatório financeiro de ${meses[currentMonth]} ${currentYear}` });
   };

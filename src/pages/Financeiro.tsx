@@ -22,6 +22,8 @@ import { useAlunos } from "@/hooks/useAlunos";
 import { useMatriculas } from "@/hooks/useMatriculas";
 import { useCursos } from "@/hooks/useCursos";
 import { useConfiguracoes } from "@/hooks/useConfiguracoes";
+import { useProfessores } from "@/hooks/useProfessores";
+import { useContasPagar } from "@/hooks/useContasPagar";
 import { toast } from "@/hooks/use-toast";
 import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
 import { exportPagamentos } from "@/lib/csv-export";
@@ -78,6 +80,8 @@ export default function Financeiro() {
   const { data: matriculas } = useMatriculas();
   const { data: cursos } = useCursos();
   const { data: configuracoes } = useConfiguracoes();
+  const { data: professores } = useProfessores();
+  const { data: contasPagar } = useContasPagar();
   const createPagamentoMutation = useCreatePagamento();
   const deletePagamentoMutation = useDeletePagamento();
 
@@ -274,6 +278,10 @@ export default function Financeiro() {
       pagamentos: monthPagamentos.map(p => ({ ...p, aluno_nome: getAlunoName(p.aluno_id) })),
       receitaPorTipo: Object.entries(byType).map(([tipo, d]) => ({ tipo, ...d })),
       receitaPorMetodo: Object.entries(byMethod).map(([metodo, d]) => ({ metodo, ...d })),
+      alunos: alunos?.map(a => ({ nome: a.nome, status: a.status, data_nascimento: a.data_nascimento, data_matricula: a.data_matricula, telefone: a.telefone, email: a.email })),
+      professores: professores?.map(p => ({ nome: p.nome, especialidade: p.especialidade, salario: p.salario, status: p.status })),
+      cursos: cursos?.map(c => ({ nome: c.nome, valor_mensal: c.valor_mensal, status: c.status, instrumento: c.instrumento })),
+      contasPagar: contasPagar?.map(c => ({ descricao: c.descricao, valor: c.valor, data_vencimento: c.data_vencimento, status: c.status, categoria: c.categoria })),
     });
     toast({ title: "PDF gerado!", description: `Relatório de ${meses[selectedMonth]} ${selectedYear} exportado` });
   };
