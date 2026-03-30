@@ -111,7 +111,7 @@ export default function RedefinirSenha() {
     }
   };
 
-  if (authLoading) {
+  if (!checkDone || (authLoading && !isRecoveryReady)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -120,7 +120,7 @@ export default function RedefinirSenha() {
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
             className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full"
           />
-          <p className="text-muted-foreground">Carregando...</p>
+          <p className="text-muted-foreground">Verificando link...</p>
         </div>
       </div>
     );
