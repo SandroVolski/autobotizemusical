@@ -48,9 +48,15 @@ const menuGroups: MenuGroup[] = [
     items: [
       { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
       { icon: Calendar, label: "Agenda", path: "/agenda" },
-      { icon: CalendarOff, label: "Feriados", path: "/feriados" },
+    ],
+  },
+  {
+    label: "Comunicação",
+    collapsible: true,
+    items: [
       { icon: MessageSquare, label: "Confirmações", path: "/confirmacoes" },
-      { icon: DollarSign, label: "Cobranças", path: "/cobrancas" },
+      { icon: Receipt, label: "Cobranças", path: "/cobrancas" },
+      { icon: CalendarOff, label: "Feriados", path: "/feriados" },
     ],
   },
   {
