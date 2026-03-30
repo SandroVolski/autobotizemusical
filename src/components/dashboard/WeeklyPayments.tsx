@@ -97,12 +97,15 @@ export function WeeklyPayments() {
     return a.dia_vencimento! - b.dia_vencimento!;
   }) || [];
 
-  // PENDENTE: For each student in alunosDevedores, get the value they owe
+  // PENDENTE: For each student in alunosDevedores, use their curso valor_mensal from matriculas
   const totalPendente = alunosDevedores.reduce((acc, aluno) => {
     // First check if there's an unpaid payment record for this month
     const unpaidRecord = pagamentosMes.find(p => p.aluno_id === aluno.id && p.status !== "pago");
     if (unpaidRecord) return acc + Number(unpaidRecord.valor);
-    // Otherwise estimate from their most recent payment (any status)
+    // Use valor_mensal from active matriculas (curso price)
+    const valorCurso = alunoValorMensal.get(aluno.id);
+    if (valorCurso) return acc + valorCurso;
+    // Fallback: estimate from most recent payment
     const lastPayment = pagamentos
       ?.filter(p => p.aluno_id === aluno.id && p.valor)
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
