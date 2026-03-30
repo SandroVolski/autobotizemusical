@@ -79,25 +79,17 @@ export function WeeklyPayments() {
     return a.dia_vencimento! - b.dia_vencimento!;
   }) || [];
 
-  // PENDENTE: Sum of unpaid payments in current month + estimates for devedores without payment records
-  const unpaidPaymentsMes = pagamentosMes.filter(p => p.status !== "pago");
-  const totalPendenteRegistrado = unpaidPaymentsMes.reduce((acc, p) => acc + Number(p.valor), 0);
-
-  // Students in "A Cobrar" that don't have ANY payment record for this month (paid or unpaid)
-  const alunosComRegistroMes = new Set(
-    pagamentosMes.map(p => p.aluno_id).filter(Boolean)
-  );
-
-  const totalPendenteSemRegistro = alunosDevedores
-    .filter(a => !alunosComRegistroMes.has(a.id))
-    .reduce((acc, aluno) => {
-      // Use last known payment value as estimate
-      const ultimoPagamento = pagamentos?.filter(p => p.aluno_id === aluno.id && p.status === "pago")
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
-      return acc + (ultimoPagamento ? Number(ultimoPagamento.valor) : 0);
-    }, 0);
-
-  const totalPendente = totalPendenteRegistrado + totalPendenteSemRegistro;
+  // PENDENTE: For each student in alunosDevedores, get the value they owe
+  const totalPendente = alunosDevedores.reduce((acc, aluno) => {
+    // First check if there's an unpaid payment record for this month
+    const unpaidRecord = pagamentosMes.find(p => p.aluno_id === aluno.id && p.status !== "pago");
+    if (unpaidRecord) return acc + Number(unpaidRecord.valor);
+    // Otherwise estimate from their most recent payment (any status)
+    const lastPayment = pagamentos
+      ?.filter(p => p.aluno_id === aluno.id && p.valor)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+    return acc + (lastPayment ? Number(lastPayment.valor) : 0);
+  }, 0);
 
   const getDayName = (dateStr: string) => {
     const date = new Date(dateStr + "T00:00:00");
