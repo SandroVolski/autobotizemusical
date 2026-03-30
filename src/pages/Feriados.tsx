@@ -110,7 +110,8 @@ export default function Feriados() {
         const phone = aluno.responsavel_telefone || aluno.telefone;
         if (!phone) continue;
 
-        const cleanPhone = phone.replace(/\D/g, "");
+        let cleanPhone = phone.replace(/\D/g, "");
+        if (!cleanPhone.startsWith("55")) cleanPhone = "55" + cleanPhone;
         const message = `📢 *Aviso Importante*\n\nOlá! Informamos que *não haverá aula* no dia *${dateFormatted}*${horarioInfo}.\n\n📌 *Motivo:* ${feriado.motivo || feriado.titulo}\n\nQualquer dúvida, entre em contato! 🎵`;
 
         try {
