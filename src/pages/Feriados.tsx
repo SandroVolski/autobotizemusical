@@ -1,8 +1,9 @@
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   CalendarOff, Plus, Trash2, Loader2, Clock, CalendarDays, Send, MessageSquare,
   AlertCircle, CheckCircle2, Calendar as CalendarIcon, PartyPopper, History,
+  ChevronDown, Users, User, SendHorizonal,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,12 +24,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useFeriados, useCreateFeriado, useDeleteFeriado, useUpdateFeriado, type NovoFeriado } from "@/hooks/useFeriados";
 import { useAlunos } from "@/hooks/useAlunos";
+import { useAulas } from "@/hooks/useAulas";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 export default function Feriados() {
   const { data: feriados, isLoading } = useFeriados();
   const { data: alunos } = useAlunos();
+  const { data: aulas } = useAulas();
   const createFeriado = useCreateFeriado();
   const deleteFeriado = useDeleteFeriado();
   const updateFeriado = useUpdateFeriado();
@@ -40,7 +43,9 @@ export default function Feriados() {
     horario_inicio: "", horario_fim: "", notificar_whatsapp: false,
   });
   const [sendingId, setSendingId] = useState<string | null>(null);
+  const [sendingStudentId, setSendingStudentId] = useState<string | null>(null);
   const [calMonth, setCalMonth] = useState(new Date());
+  const [expandedFeriadoId, setExpandedFeriadoId] = useState<string | null>(null);
 
   const feriadoDates = useMemo(() => {
     return new Set(feriados?.map(f => f.data) || []);
@@ -55,6 +60,51 @@ export default function Feriados() {
     const today = new Date().toISOString().split("T")[0];
     return feriados?.filter(f => f.data < today).reverse().slice(0, 10) || [];
   }, [feriados]);
+
+  // Get students who have classes on a specific date's day of week
+  const getStudentsForDate = (dateStr: string) => {
+    const dateObj = new Date(dateStr + "T00:00:00");
+    const dayOfWeek = dateObj.getDay(); // 0=Sun, 1=Mon...
+
+    // Find aulas on that day of week
+    const aulasOnDay = aulas?.filter(a =>
+      a.status === "agendada" &&
+      a.recorrente &&
+      a.dia_semana === dayOfWeek &&
+      a.aluno_id
+    ) || [];
+
+    // Also check aulas with data_especifica matching the date
+    const aulasEspecificas = aulas?.filter(a =>
+      a.status === "agendada" &&
+      a.data_especifica === dateStr &&
+      a.aluno_id
+    ) || [];
+
+    const allAulas = [...aulasOnDay, ...aulasEspecificas];
+    const studentIds = new Set(allAulas.map(a => a.aluno_id).filter(Boolean));
+
+    // Map to student info with class details
+    const students = Array.from(studentIds).map(id => {
+      const aluno = alunos?.find(a => a.id === id);
+      if (!aluno || aluno.status !== "ativo") return null;
+      const studentAulas = allAulas.filter(a => a.aluno_id === id);
+      const phone = aluno.responsavel_telefone || aluno.telefone;
+      return {
+        id: aluno.id,
+        nome: aluno.nome,
+        telefone: phone,
+        horarios: studentAulas.map(a => a.horario?.slice(0, 5) || "—").join(", "),
+        professor: studentAulas[0]?.professores?.nome || "—",
+        curso: studentAulas[0]?.cursos?.nome || "—",
+      };
+    }).filter(Boolean) as Array<{
+      id: string; nome: string; telefone: string | null;
+      horarios: string; professor: string; curso: string;
+    }>;
+
+    return students;
+  };
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
@@ -81,40 +131,76 @@ export default function Feriados() {
     setSelectedDate(undefined);
   };
 
-  const handleSendWhatsApp = async (feriado: typeof upcomingFeriados[0]) => {
+  const buildMessage = (feriado: typeof upcomingFeriados[0]) => {
+    const dateFormatted = new Date(feriado.data + "T00:00:00").toLocaleDateString("pt-BR", {
+      weekday: "long", day: "2-digit", month: "long",
+    });
+    let horarioInfo = "";
+    if (!feriado.dia_todo && feriado.horario_inicio && feriado.horario_fim) {
+      horarioInfo = ` das ${feriado.horario_inicio.slice(0, 5)} às ${feriado.horario_fim.slice(0, 5)}`;
+    }
+    return `📢 *Aviso Importante*\n\nOlá! Informamos que *não haverá aula* no dia *${dateFormatted}*${horarioInfo}.\n\n📌 *Motivo:* ${feriado.motivo || feriado.titulo}\n\nQualquer dúvida, entre em contato! 🎵`;
+  };
+
+  const sendToStudent = async (phone: string, message: string) => {
+    let cleanPhone = phone.replace(/\D/g, "");
+    if (!cleanPhone.startsWith("55")) cleanPhone = "55" + cleanPhone;
+    await supabase.functions.invoke("whatsapp-connection", {
+      body: { action: "send", phone: cleanPhone, message },
+    });
+  };
+
+  const handleSendToOne = async (feriado: typeof upcomingFeriados[0], studentId: string, phone: string) => {
+    setSendingStudentId(studentId);
+    try {
+      const message = buildMessage(feriado);
+      await sendToStudent(phone, message);
+      toast({ title: "Mensagem enviada!", description: "Aluno notificado com sucesso" });
+    } catch (error: any) {
+      toast({ title: "Erro ao enviar", description: error.message, variant: "destructive" });
+    } finally {
+      setSendingStudentId(null);
+    }
+  };
+
+  const handleSendWhatsApp = async (feriado: typeof upcomingFeriados[0], studentsList?: typeof upcomingFeriados) => {
     setSendingId(feriado.id);
     try {
-      const activeStudents = alunos?.filter(a => a.status === "ativo" && (a.responsavel_telefone || a.telefone)) || [];
-      if (activeStudents.length === 0) {
-        toast({ title: "Sem alunos", description: "Nenhum aluno ativo com telefone cadastrado", variant: "destructive" });
+      const students = getStudentsForDate(feriado.data);
+      const withPhone = students.filter(s => s.telefone);
+
+      if (withPhone.length === 0) {
+        // Fallback: send to all active students
+        const activeStudents = alunos?.filter(a => a.status === "ativo" && (a.responsavel_telefone || a.telefone)) || [];
+        if (activeStudents.length === 0) {
+          toast({ title: "Sem alunos", description: "Nenhum aluno com telefone cadastrado", variant: "destructive" });
+          return;
+        }
+        const message = buildMessage(feriado);
+        let sent = 0;
+        for (const aluno of activeStudents) {
+          const phone = aluno.responsavel_telefone || aluno.telefone;
+          if (!phone) continue;
+          try {
+            await sendToStudent(phone, message);
+            sent++;
+          } catch { /* continue */ }
+        }
+        await updateFeriado.mutateAsync({ id: feriado.id, notificacao_enviada: true });
+        toast({ title: "Mensagens enviadas!", description: `${sent} alunos notificados` });
         return;
       }
 
-      const dateFormatted = new Date(feriado.data + "T00:00:00").toLocaleDateString("pt-BR", {
-        weekday: "long", day: "2-digit", month: "long",
-      });
-      let horarioInfo = "";
-      if (!feriado.dia_todo && feriado.horario_inicio && feriado.horario_fim) {
-        horarioInfo = ` das ${feriado.horario_inicio.slice(0, 5)} às ${feriado.horario_fim.slice(0, 5)}`;
-      }
-
+      const message = buildMessage(feriado);
       let sent = 0;
-      for (const aluno of activeStudents) {
-        const phone = aluno.responsavel_telefone || aluno.telefone;
-        if (!phone) continue;
-        let cleanPhone = phone.replace(/\D/g, "");
-        if (!cleanPhone.startsWith("55")) cleanPhone = "55" + cleanPhone;
-        const message = `📢 *Aviso Importante*\n\nOlá! Informamos que *não haverá aula* no dia *${dateFormatted}*${horarioInfo}.\n\n📌 *Motivo:* ${feriado.motivo || feriado.titulo}\n\nQualquer dúvida, entre em contato! 🎵`;
+      for (const student of withPhone) {
         try {
-          await supabase.functions.invoke("whatsapp-connection", {
-            body: { action: "send", phone: cleanPhone, message },
-          });
+          await sendToStudent(student.telefone!, message);
           sent++;
         } catch { /* continue */ }
       }
-
       await updateFeriado.mutateAsync({ id: feriado.id, notificacao_enviada: true });
-      toast({ title: "Mensagens enviadas!", description: `${sent} de ${activeStudents.length} alunos notificados via WhatsApp` });
+      toast({ title: "Mensagens enviadas!", description: `${sent} de ${withPhone.length} alunos notificados` });
     } catch (error: any) {
       toast({ title: "Erro ao enviar", description: error.message, variant: "destructive" });
     } finally {
@@ -126,6 +212,115 @@ export default function Feriados() {
     return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   }
 
+  const renderStudentsList = (feriado: typeof upcomingFeriados[0]) => {
+    const students = getStudentsForDate(feriado.data);
+    const withPhone = students.filter(s => s.telefone);
+
+    return (
+      <AnimatePresence>
+        {expandedFeriadoId === feriado.id && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="overflow-hidden"
+          >
+            <div className="mt-3 pt-3 border-t border-border/50">
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-semibold">
+                    Alunos com aula neste dia
+                  </span>
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                    {students.length}
+                  </Badge>
+                </div>
+                {withPhone.length > 0 && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="text-xs h-7"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSendWhatsApp(feriado);
+                    }}
+                    disabled={sendingId === feriado.id}
+                  >
+                    {sendingId === feriado.id ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+                    ) : (
+                      <Send className="w-3.5 h-3.5 mr-1" />
+                    )}
+                    Enviar para todos ({withPhone.length})
+                  </Button>
+                )}
+              </div>
+
+              {students.length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground">
+                  <User className="w-8 h-8 mx-auto mb-2 opacity-20" />
+                  <p className="text-xs">Nenhum aluno com aula agendada neste dia</p>
+                </div>
+              ) : (
+                <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+                  {students.map((student) => (
+                    <div
+                      key={student.id}
+                      className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/30 border border-border/30 hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <User className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{student.nome}</p>
+                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                          <span>🕐 {student.horarios}</span>
+                          <span>•</span>
+                          <span className="truncate">{student.curso}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        {student.telefone ? (
+                          <>
+                            <span className="text-[10px] text-muted-foreground hidden sm:block">
+                              {student.telefone}
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSendToOne(feriado, student.id, student.telefone!);
+                              }}
+                              disabled={sendingStudentId === student.id}
+                            >
+                              {sendingStudentId === student.id ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <SendHorizonal className="w-3 h-3" />
+                              )}
+                            </Button>
+                          </>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                            Sem telefone
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  };
+
   const renderFeriadoCard = (feriado: typeof upcomingFeriados[0], index: number, isPast = false) => {
     const dateObj = new Date(feriado.data + "T00:00:00");
     const todayStr = new Date().toISOString().split("T")[0];
@@ -134,6 +329,8 @@ export default function Feriados() {
     const tomorrowStr = tomorrowDate.toISOString().split("T")[0];
     const isToday = feriado.data === todayStr;
     const isTomorrow = feriado.data === tomorrowStr;
+    const isExpanded = expandedFeriadoId === feriado.id;
+    const studentsCount = getStudentsForDate(feriado.data).length;
 
     return (
       <motion.div
@@ -142,7 +339,7 @@ export default function Feriados() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.04 * index }}
         className={cn(
-          "group flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border transition-all",
+          "group rounded-xl border transition-all",
           isPast
             ? "bg-muted/20 border-border/50 opacity-70"
             : isToday
@@ -152,93 +349,91 @@ export default function Feriados() {
             : "bg-card/50 border-border hover:border-primary/20 hover:shadow-sm"
         )}
       >
-        {/* Date block */}
-        <div className={cn(
-          "w-12 h-14 sm:w-14 sm:h-16 rounded-xl flex flex-col items-center justify-center flex-shrink-0 font-semibold",
-          isPast ? "bg-muted" :
-          isToday ? "bg-destructive/15 text-destructive" :
-          isTomorrow ? "bg-warning/15 text-warning" :
-          "bg-primary/10 text-primary"
-        )}>
-          <span className="text-[10px] sm:text-xs uppercase tracking-wide opacity-80">
-            {dateObj.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}
-          </span>
-          <span className="text-lg sm:text-xl font-bold leading-tight">{dateObj.getDate()}</span>
-          <span className="text-[10px] opacity-70">
-            {dateObj.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", "")}
-          </span>
-        </div>
-
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-semibold text-sm sm:text-base truncate">{feriado.titulo}</p>
-            {isToday && <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Hoje</Badge>}
-            {isTomorrow && <Badge variant="warning" className="text-[10px] px-1.5 py-0">Amanhã</Badge>}
+        <div
+          className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 cursor-pointer"
+          onClick={() => setExpandedFeriadoId(isExpanded ? null : feriado.id)}
+        >
+          {/* Date block */}
+          <div className={cn(
+            "w-12 h-14 sm:w-14 sm:h-16 rounded-xl flex flex-col items-center justify-center flex-shrink-0 font-semibold",
+            isPast ? "bg-muted" :
+            isToday ? "bg-destructive/15 text-destructive" :
+            isTomorrow ? "bg-warning/15 text-warning" :
+            "bg-primary/10 text-primary"
+          )}>
+            <span className="text-[10px] sm:text-xs uppercase tracking-wide opacity-80">
+              {dateObj.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}
+            </span>
+            <span className="text-lg sm:text-xl font-bold leading-tight">{dateObj.getDate()}</span>
+            <span className="text-[10px] opacity-70">
+              {dateObj.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", "")}
+            </span>
           </div>
-          {feriado.motivo && (
-            <p className="text-xs text-muted-foreground truncate mt-0.5">{feriado.motivo}</p>
-          )}
-          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-            <Badge variant="outline" className="text-[10px] font-normal">
-              {feriado.dia_todo ? (
-                <><CalendarIcon className="w-3 h-3 mr-1" />Dia todo</>
-              ) : (
-                <><Clock className="w-3 h-3 mr-1" />{feriado.horario_inicio?.slice(0, 5)} – {feriado.horario_fim?.slice(0, 5)}</>
-              )}
-            </Badge>
-            {feriado.notificacao_enviada && (
-              <Badge variant="success" className="text-[10px] font-normal px-1.5 py-0">
-                <CheckCircle2 className="w-3 h-3 mr-0.5" />Notificado
-              </Badge>
+
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="font-semibold text-sm sm:text-base truncate">{feriado.titulo}</p>
+              {isToday && <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Hoje</Badge>}
+              {isTomorrow && <Badge variant="warning" className="text-[10px] px-1.5 py-0">Amanhã</Badge>}
+            </div>
+            {feriado.motivo && (
+              <p className="text-xs text-muted-foreground truncate mt-0.5">{feriado.motivo}</p>
             )}
+            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+              <Badge variant="outline" className="text-[10px] font-normal">
+                {feriado.dia_todo ? (
+                  <><CalendarIcon className="w-3 h-3 mr-1" />Dia todo</>
+                ) : (
+                  <><Clock className="w-3 h-3 mr-1" />{feriado.horario_inicio?.slice(0, 5)} – {feriado.horario_fim?.slice(0, 5)}</>
+                )}
+              </Badge>
+              {studentsCount > 0 && (
+                <Badge variant="secondary" className="text-[10px] font-normal px-1.5 py-0">
+                  <Users className="w-3 h-3 mr-0.5" />{studentsCount} aluno{studentsCount !== 1 ? "s" : ""}
+                </Badge>
+              )}
+              {feriado.notificacao_enviada && (
+                <Badge variant="success" className="text-[10px] font-normal px-1.5 py-0">
+                  <CheckCircle2 className="w-3 h-3 mr-0.5" />Notificado
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <ChevronDown className={cn(
+              "w-4 h-4 text-muted-foreground transition-transform duration-200",
+              isExpanded && "rotate-180"
+            )} />
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => e.stopPropagation()}>
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Remover feriado?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Deseja remover "{feriado.titulo}" ({dateObj.toLocaleDateString("pt-BR")})?
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => deleteFeriado.mutate(feriado.id)}>Remover</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-1 flex-shrink-0">
-          {!isPast && feriado.notificar_whatsapp && !feriado.notificacao_enviada && (
-            <Button variant="outline" size="sm" className="text-xs h-8 hidden sm:flex"
-              onClick={() => handleSendWhatsApp(feriado)}
-              disabled={sendingId === feriado.id}>
-              {sendingId === feriado.id ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <><Send className="w-3.5 h-3.5 mr-1" />Notificar</>
-              )}
-            </Button>
-          )}
-          {!isPast && feriado.notificar_whatsapp && !feriado.notificacao_enviada && (
-            <Button variant="outline" size="icon" className="h-8 w-8 sm:hidden"
-              onClick={() => handleSendWhatsApp(feriado)}
-              disabled={sendingId === feriado.id}>
-              {sendingId === feriado.id ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <Send className="w-3.5 h-3.5" />
-              )}
-            </Button>
-          )}
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity">
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Remover feriado?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Deseja remover "{feriado.titulo}" ({dateObj.toLocaleDateString("pt-BR")})?
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={() => deleteFeriado.mutate(feriado.id)}>Remover</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+        {/* Expandable students list */}
+        <div className="px-3 sm:px-4 pb-1">
+          {renderStudentsList(feriado)}
         </div>
       </motion.div>
     );
