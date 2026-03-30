@@ -47,6 +47,7 @@ import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval } from "d
 import { ptBR } from "date-fns/locale";
 import { toast } from "@/hooks/use-toast";
 import { exportAlunos, exportPagamentos, exportCursos } from "@/lib/csv-export";
+import { generateFinancialPDF } from "@/lib/pdf-export";
 
 export default function Relatorios() {
   const [periodo, setPeriodo] = useState("mensal");
@@ -191,31 +192,73 @@ export default function Relatorios() {
   // Export all data
   const handleExportAll = () => {
     let exported = 0;
-    
-    if (alunos && alunos.length > 0) {
-      exportAlunos(alunos);
-      exported++;
-    }
-    
+    if (alunos && alunos.length > 0) { exportAlunos(alunos); exported++; }
     if (pagamentos && pagamentos.length > 0) {
-      const exportData = pagamentos.map(p => ({
-        ...p,
-        aluno_nome: alunos?.find(a => a.id === p.aluno_id)?.nome || "N/A",
-      }));
+      const exportData = pagamentos.map(p => ({ ...p, aluno_nome: alunos?.find(a => a.id === p.aluno_id)?.nome || "N/A" }));
       exportPagamentos(exportData);
       exported++;
     }
-    
-    if (cursos && cursos.length > 0) {
-      exportCursos(cursos);
-      exported++;
+    if (cursos && cursos.length > 0) { exportCursos(cursos); exported++; }
+    if (exported > 0) toast({ title: `${exported} relatório(s) exportado(s) em CSV` });
+    else toast({ title: "Nenhum dado para exportar", variant: "destructive" });
+  };
+
+  const handleExportFinancialPDF = () => {
+    if (!pagamentos || pagamentos.length === 0) {
+      toast({ title: "Nenhum dado para gerar PDF", variant: "destructive" });
+      return;
     }
-    
-    if (exported > 0) {
-      toast({ title: `${exported} relatório(s) exportado(s)` });
-    } else {
-      toast({ title: "Nenhum dado para exportar", variant: "destructive" });
+
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+    const monthPagamentos = pagamentos.filter(p => {
+      if (!p.data_vencimento) return false;
+      const d = new Date(p.data_vencimento + "T00:00:00");
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    });
+
+    if (monthPagamentos.length === 0) {
+      toast({ title: "Nenhum pagamento neste mês", variant: "destructive" });
+      return;
     }
+
+    const todayDate = new Date(); todayDate.setHours(0, 0, 0, 0);
+    const pagos = monthPagamentos.filter(p => p.status === "pago");
+    const pendentes = monthPagamentos.filter(p => p.status !== "pago" && new Date(p.data_vencimento + "T00:00:00") >= todayDate);
+    const atrasados = monthPagamentos.filter(p => p.status !== "pago" && new Date(p.data_vencimento + "T00:00:00") < todayDate);
+
+    const byType: Record<string, { valor: number; qtd: number }> = {};
+    const byMethod: Record<string, { valor: number; qtd: number }> = {};
+    monthPagamentos.forEach(p => {
+      const tipo = p.tipo || "outro";
+      if (!byType[tipo]) byType[tipo] = { valor: 0, qtd: 0 };
+      byType[tipo].valor += Number(p.valor); byType[tipo].qtd++;
+      if (p.status === "pago") {
+        const metodo = p.metodo_pagamento || "não informado";
+        if (!byMethod[metodo]) byMethod[metodo] = { valor: 0, qtd: 0 };
+        byMethod[metodo].valor += Number(p.valor); byMethod[metodo].qtd++;
+      }
+    });
+
+    generateFinancialPDF({
+      nomeEscola: "Escola de Música",
+      periodo: `${meses[currentMonth].toLowerCase()}_${currentYear}`,
+      mesAno: `${meses[currentMonth]} ${currentYear}`,
+      totalRecebido: pagos.reduce((a, p) => a + Number(p.valor), 0),
+      totalPendente: pendentes.reduce((a, p) => a + Number(p.valor), 0),
+      totalAtrasado: atrasados.reduce((a, p) => a + Number(p.valor), 0),
+      ticketMedio: monthPagamentos.reduce((a, p) => a + Number(p.valor), 0) / monthPagamentos.length,
+      qtdPagos: pagos.length,
+      qtdPendentes: pendentes.length,
+      qtdAtrasados: atrasados.length,
+      pagamentos: monthPagamentos.map(p => ({ ...p, aluno_nome: alunos?.find(a => a.id === p.aluno_id)?.nome || "N/A" })),
+      receitaPorTipo: Object.entries(byType).map(([tipo, d]) => ({ tipo, ...d })),
+      receitaPorMetodo: Object.entries(byMethod).map(([metodo, d]) => ({ metodo, ...d })),
+    });
+    toast({ title: "PDF gerado!", description: `Relatório financeiro de ${meses[currentMonth]} ${currentYear}` });
   };
 
   // Recent reports based on real data
@@ -297,9 +340,13 @@ export default function Relatorios() {
               <SelectItem value="anual">Anual</SelectItem>
             </SelectContent>
           </Select>
+          <Button variant="outline" className="gap-2" onClick={handleExportFinancialPDF}>
+            <FileText className="w-4 h-4" />
+            PDF Financeiro
+          </Button>
           <Button className="gap-2" onClick={handleExportAll}>
             <Download className="w-4 h-4" />
-            Exportar Tudo
+            Exportar CSV
           </Button>
         </div>
       </div>

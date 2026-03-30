@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
   DollarSign, TrendingUp, CreditCard, AlertCircle, CheckCircle2, Clock, Download, Plus, Loader2, Trash2,
-  Receipt, ShoppingCart, Wallet, ChevronLeft, ChevronRight, Info,
+  Receipt, ShoppingCart, Wallet, ChevronLeft, ChevronRight, Info, FileText,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ import { useConfiguracoes } from "@/hooks/useConfiguracoes";
 import { toast } from "@/hooks/use-toast";
 import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
 import { exportPagamentos } from "@/lib/csv-export";
+import { generateFinancialPDF } from "@/lib/pdf-export";
 import { ContasPagarTab } from "@/components/financeiro/ContasPagarTab";
 import { FluxoCaixaTab } from "@/components/financeiro/FluxoCaixaTab";
 import { PDVTab } from "@/components/financeiro/PDVTab";
@@ -233,7 +234,48 @@ export default function Financeiro() {
       return;
     }
     exportPagamentos(filteredPagamentos.map(p => ({ ...p, aluno_nome: getAlunoName(p.aluno_id) })));
-    toast({ title: "Exportação concluída", description: `${filteredPagamentos.length} pagamentos exportados` });
+    toast({ title: "Exportação concluída", description: `${filteredPagamentos.length} pagamentos exportados em CSV` });
+  };
+
+  const handleExportPDF = () => {
+    if (!monthPagamentos || monthPagamentos.length === 0) {
+      toast({ title: "Nenhum dado para exportar", description: "Nenhum pagamento encontrado neste período", variant: "destructive" });
+      return;
+    }
+
+    // Group by type
+    const byType: Record<string, { valor: number; qtd: number }> = {};
+    const byMethod: Record<string, { valor: number; qtd: number }> = {};
+    monthPagamentos.forEach(p => {
+      const tipo = p.tipo || "outro";
+      const metodo = p.metodo_pagamento || "não informado";
+      if (!byType[tipo]) byType[tipo] = { valor: 0, qtd: 0 };
+      byType[tipo].valor += Number(p.valor);
+      byType[tipo].qtd++;
+      if (p.status === "pago") {
+        if (!byMethod[metodo]) byMethod[metodo] = { valor: 0, qtd: 0 };
+        byMethod[metodo].valor += Number(p.valor);
+        byMethod[metodo].qtd++;
+      }
+    });
+
+    const periodoStr = `${meses[selectedMonth].toLowerCase()}_${selectedYear}`;
+    generateFinancialPDF({
+      nomeEscola: configuracoes?.nome || "Escola de Música",
+      periodo: periodoStr,
+      mesAno: `${meses[selectedMonth]} ${selectedYear}`,
+      totalRecebido,
+      totalPendente,
+      totalAtrasado,
+      ticketMedio,
+      qtdPagos: pagos,
+      qtdPendentes: qtdPendente,
+      qtdAtrasados: qtdAtrasado,
+      pagamentos: monthPagamentos.map(p => ({ ...p, aluno_nome: getAlunoName(p.aluno_id) })),
+      receitaPorTipo: Object.entries(byType).map(([tipo, d]) => ({ tipo, ...d })),
+      receitaPorMetodo: Object.entries(byMethod).map(([metodo, d]) => ({ metodo, ...d })),
+    });
+    toast({ title: "PDF gerado!", description: `Relatório de ${meses[selectedMonth]} ${selectedYear} exportado` });
   };
 
   if (isLoading) {
@@ -261,7 +303,10 @@ export default function Financeiro() {
             </Button>
           </div>
           <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="w-4 h-4 mr-1 sm:mr-2" /><span className="hidden sm:inline">Exportar</span><span className="sm:hidden">CSV</span>
+            <Download className="w-4 h-4 mr-1 sm:mr-2" /><span className="hidden sm:inline">CSV</span><span className="sm:hidden">CSV</span>
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExportPDF}>
+            <FileText className="w-4 h-4 mr-1 sm:mr-2" /><span className="hidden sm:inline">PDF</span><span className="sm:hidden">PDF</span>
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
