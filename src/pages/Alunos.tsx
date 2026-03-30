@@ -61,11 +61,12 @@ import { usePaymentStatuses } from "@/hooks/usePaymentStatus";
 import { PaymentStatusDot } from "@/components/ui/payment-status-dot";
 import { useCreateAula } from "@/hooks/useAulas";
 import { useTurmas, useAddAlunoTurma } from "@/hooks/useTurmas";
+import { useCursos } from "@/hooks/useCursos";
+import { useCreateMatricula, useMatriculas } from "@/hooks/useMatriculas";
 import { toast } from "@/hooks/use-toast";
 import { EnrollmentDialog } from "@/components/alunos/EnrollmentDialog";
 import { StudentEnrollments } from "@/components/alunos/StudentEnrollments";
-import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
-import { exportAlunos } from "@/lib/csv-export";
+import { Checkbox } from "@/components/ui/checkbox";
 import { CameraCapture } from "@/components/ui/camera-capture";
 import {
   AlertDialog,
