@@ -40,16 +40,20 @@ export function WeeklyPayments() {
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
 
-  const totalSemana = pagamentosSemana.reduce((acc, p) => acc + Number(p.valor), 0);
-  const totalPago = pagamentosSemana.filter(p => p.status === "pago").reduce((acc, p) => acc + Number(p.valor), 0);
-
-  // Pendente: all unpaid payments for the current month (not just this week)
-  const pagamentosPendentesMes = pagamentos?.filter(p => {
-    if (!p.data_vencimento || p.status === "pago") return false;
-    const venc = new Date(p.data_vencimento + "T00:00:00");
-    return venc.getMonth() === currentMonth && venc.getFullYear() === currentYear;
+  // TOTAL: All payments with status "pago" in the current month
+  const pagamentosPagosMes = pagamentos?.filter(p => {
+    if (p.status !== "pago" || !p.data_pagamento) return false;
+    const pagto = new Date(p.data_pagamento + "T00:00:00");
+    return pagto.getMonth() === currentMonth && pagto.getFullYear() === currentYear;
   }) || [];
-  const totalPendente = pagamentosPendentesMes.reduce((acc, p) => acc + Number(p.valor), 0);
+  const totalMes = pagamentosPagosMes.reduce((acc, p) => acc + Number(p.valor), 0);
+
+  // RECEBIDO: Payments with status "pago" received THIS WEEK
+  const recebidoSemana = pagamentos?.filter(p => {
+    if (p.status !== "pago" || !p.data_pagamento) return false;
+    const pagto = new Date(p.data_pagamento + "T00:00:00");
+    return pagto >= startOfWeek && pagto <= endOfWeek;
+  }).reduce((acc, p) => acc + Number(p.valor), 0) || 0;
 
   // ALL active students who haven't paid this month - not just this week
   const alunosDevedores = alunos?.filter(a => {
@@ -71,6 +75,31 @@ export function WeeklyPayments() {
     if (!aOverdue && bOverdue) return 1;
     return a.dia_vencimento! - b.dia_vencimento!;
   }) || [];
+
+  // PENDENTE: Sum of unpaid payments for current month + estimates for devedores without records
+  const totalPendenteRegistrado = pagamentos?.filter(p => {
+    if (!p.data_vencimento || p.status === "pago") return false;
+    const venc = new Date(p.data_vencimento + "T00:00:00");
+    return venc.getMonth() === currentMonth && venc.getFullYear() === currentYear;
+  }).reduce((acc, p) => acc + Number(p.valor), 0) || 0;
+
+  const alunosComRegistroPendente = new Set(
+    pagamentos?.filter(p => {
+      if (!p.data_vencimento || p.status === "pago") return false;
+      const venc = new Date(p.data_vencimento + "T00:00:00");
+      return venc.getMonth() === currentMonth && venc.getFullYear() === currentYear;
+    }).map(p => p.aluno_id) || []
+  );
+
+  const totalPendenteSemRegistro = alunosDevedores
+    .filter(a => !alunosComRegistroPendente.has(a.id))
+    .reduce((acc, aluno) => {
+      const ultimoPagamento = pagamentos?.filter(p => p.aluno_id === aluno.id)
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+      return acc + (ultimoPagamento ? Number(ultimoPagamento.valor) : 0);
+    }, 0);
+
+  const totalPendente = totalPendenteRegistrado + totalPendenteSemRegistro;
 
   const getDayName = (dateStr: string) => {
     const date = new Date(dateStr + "T00:00:00");
@@ -129,13 +158,13 @@ export function WeeklyPayments() {
           <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
            <div className="text-center p-2 sm:p-3 rounded-lg bg-muted/50 min-w-0">
               <p className="text-xs sm:text-2xl font-bold truncate">
-                {totalSemana.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                {totalMes.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
               </p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">Total</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Total Mês</p>
             </div>
             <div className="text-center p-2 sm:p-3 rounded-lg bg-success/10 min-w-0">
               <p className="text-xs sm:text-2xl font-bold text-success truncate">
-                {totalPago.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                {recebidoSemana.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
               </p>
               <p className="text-[10px] sm:text-xs text-muted-foreground">Recebido</p>
             </div>
