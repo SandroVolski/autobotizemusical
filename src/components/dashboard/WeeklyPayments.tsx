@@ -133,13 +133,13 @@ export function WeeklyPayments() {
           <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
            <div className="text-center p-2 sm:p-3 rounded-lg bg-muted/50 min-w-0">
               <p className="text-xs sm:text-2xl font-bold truncate">
-                {totalSemana.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                {totalMes.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
               </p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">Total</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Total Mês</p>
             </div>
             <div className="text-center p-2 sm:p-3 rounded-lg bg-success/10 min-w-0">
               <p className="text-xs sm:text-2xl font-bold text-success truncate">
-                {totalPago.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                {recebidoSemana.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
               </p>
               <p className="text-[10px] sm:text-xs text-muted-foreground">Recebido</p>
             </div>
