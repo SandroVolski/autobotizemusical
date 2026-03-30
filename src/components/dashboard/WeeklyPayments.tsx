@@ -16,7 +16,23 @@ export function WeeklyPayments() {
   const navigate = useNavigate();
   const { data: pagamentos } = usePagamentos();
   const { data: alunos } = useAlunos();
+  const { data: matriculas } = useMatriculas();
+  const { data: cursos } = useCursos();
   const paymentStatuses = usePaymentStatuses(alunos);
+
+  // Build a map: aluno_id -> total monthly value from active matriculas
+  const alunoValorMensal = new Map<string, number>();
+  if (matriculas && cursos) {
+    const cursoMap = new Map(cursos.map(c => [c.id, c]));
+    matriculas
+      .filter(m => m.status === "ativo")
+      .forEach(m => {
+        const curso = cursoMap.get(m.curso_id);
+        if (curso?.valor_mensal) {
+          alunoValorMensal.set(m.aluno_id, (alunoValorMensal.get(m.aluno_id) || 0) + Number(curso.valor_mensal));
+        }
+      });
+  }
 
   // Calculate week range (Sunday to Saturday)
   const today = new Date();
