@@ -278,6 +278,30 @@ export default function Alunos() {
           if (tipoAula === "turma" && selectedTurmaId) {
             addAlunoTurmaMutation.mutate({ turma_id: selectedTurmaId, aluno_id: editingAluno });
           }
+          // Sync matriculas: remove deselected, add newly selected
+          const { data: existingMatriculas } = await supabase
+            .from("matriculas")
+            .select("id, curso_id")
+            .eq("aluno_id", editingAluno)
+            .eq("status", "ativo");
+          
+          const existingCursoIds = existingMatriculas?.map(m => m.curso_id) || [];
+          // Remove deselected
+          const toRemove = existingMatriculas?.filter(m => !selectedCursoIds.includes(m.curso_id)) || [];
+          for (const m of toRemove) {
+            await supabase.from("matriculas").update({ status: "cancelado" }).eq("id", m.id);
+          }
+          // Add newly selected
+          const toAdd = selectedCursoIds.filter(cid => !existingCursoIds.includes(cid));
+          for (const cursoId of toAdd) {
+            await supabase.from("matriculas").insert({
+              aluno_id: editingAluno,
+              curso_id: cursoId,
+              data_inicio: new Date().toISOString().split("T")[0],
+              status: "ativo",
+            });
+          }
+          
           setIsDialogOpen(false);
           setEditingAluno(null);
           resetForm();
