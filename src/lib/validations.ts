@@ -33,13 +33,13 @@ export type ProfessorInput = z.infer<typeof professorSchema>;
 // Curso validation schema
 export const cursoSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório").max(200, "Nome muito longo"),
-  instrumento: z.string().max(100, "Instrumento muito longo").optional(),
-  nivel: z.string().optional(),
-  descricao: z.string().max(2000, "Descrição muito longa").optional(),
-  duracao: z.string().max(50, "Duração muito longa").optional(),
-  carga_horaria: z.string().max(50, "Carga horária muito longa").optional(),
-  valor_mensal: z.number().min(0, "Valor deve ser positivo").optional(),
-  status: z.string().optional(),
+  instrumento: z.string().max(100, "Instrumento muito longo").nullable().optional(),
+  nivel: z.string().nullable().optional(),
+  descricao: z.string().max(2000, "Descrição muito longa").nullable().optional(),
+  duracao: z.string().max(50, "Duração muito longa").nullable().optional(),
+  carga_horaria: z.string().max(50, "Carga horária muito longa").nullable().optional(),
+  valor_mensal: z.number().min(0, "Valor deve ser positivo").nullable().optional(),
+  status: z.string().nullable().optional(),
 });
 
 export type CursoInput = z.infer<typeof cursoSchema>;
