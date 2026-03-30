@@ -340,9 +340,13 @@ export default function Relatorios() {
               <SelectItem value="anual">Anual</SelectItem>
             </SelectContent>
           </Select>
+          <Button variant="outline" className="gap-2" onClick={handleExportFinancialPDF}>
+            <FileText className="w-4 h-4" />
+            PDF Financeiro
+          </Button>
           <Button className="gap-2" onClick={handleExportAll}>
             <Download className="w-4 h-4" />
-            Exportar Tudo
+            Exportar CSV
           </Button>
         </div>
       </div>
