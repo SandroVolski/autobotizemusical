@@ -39,34 +39,29 @@ export function WeeklyPayments() {
 
   const totalSemana = pagamentosSemana.reduce((acc, p) => acc + Number(p.valor), 0);
   const totalPago = pagamentosSemana.filter(p => p.status === "pago").reduce((acc, p) => acc + Number(p.valor), 0);
-  const totalPendente = totalSemana - totalPago;
+  const totalPendente = pagamentosSemana.filter(p => p.status !== "pago").reduce((acc, p) => acc + Number(p.valor), 0);
 
-  // Students who need to pay this week (based on dia_vencimento)
-  const alunosDevedoresSemana = alunos?.filter(a => {
+  // ALL active students who haven't paid this month - not just this week
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+  const alunosDevedores = alunos?.filter(a => {
     if (a.status !== "ativo" || !a.dia_vencimento) return false;
-    // Check if dia_vencimento falls within this week
-    for (let d = new Date(startOfWeek); d <= endOfWeek; d.setDate(d.getDate() + 1)) {
-      if (d.getDate() === a.dia_vencimento) {
-        // Check if there's already a payment for this month that is "pago"
-        const hasPaid = pagamentos?.some(p => {
-          if (p.aluno_id !== a.id || p.status === "pago" || !p.data_vencimento) return false;
-          // Actually check if NOT paid
-          return false;
-        });
-        // Check if payment for current month exists and is paid
-        const currentMonth = today.getMonth();
-        const currentYear = today.getFullYear();
-        const isPaidThisMonth = pagamentos?.some(p =>
-          p.aluno_id === a.id &&
-          p.status === "pago" &&
-          p.data_vencimento &&
-          new Date(p.data_vencimento + "T00:00:00").getMonth() === currentMonth &&
-          new Date(p.data_vencimento + "T00:00:00").getFullYear() === currentYear
-        );
-        if (!isPaidThisMonth) return true;
-      }
-    }
-    return false;
+    // Check if there's a paid payment for current month
+    const isPaidThisMonth = pagamentos?.some(p =>
+      p.aluno_id === a.id &&
+      p.status === "pago" &&
+      p.data_vencimento &&
+      new Date(p.data_vencimento + "T00:00:00").getMonth() === currentMonth &&
+      new Date(p.data_vencimento + "T00:00:00").getFullYear() === currentYear
+    );
+    return !isPaidThisMonth;
+  }).sort((a, b) => {
+    // Sort: overdue first (dia_vencimento already passed), then upcoming
+    const aOverdue = a.dia_vencimento! <= today.getDate();
+    const bOverdue = b.dia_vencimento! <= today.getDate();
+    if (aOverdue && !bOverdue) return -1;
+    if (!aOverdue && bOverdue) return 1;
+    return a.dia_vencimento! - b.dia_vencimento!;
   }) || [];
 
   const getDayName = (dateStr: string) => {
