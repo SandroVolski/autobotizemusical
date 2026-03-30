@@ -645,6 +645,48 @@ export type Database = {
         }
         Relationships: []
       }
+      feriados: {
+        Row: {
+          created_at: string
+          data: string
+          dia_todo: boolean
+          horario_fim: string | null
+          horario_inicio: string | null
+          id: string
+          motivo: string | null
+          notificacao_enviada: boolean
+          notificar_whatsapp: boolean
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data: string
+          dia_todo?: boolean
+          horario_fim?: string | null
+          horario_inicio?: string | null
+          id?: string
+          motivo?: string | null
+          notificacao_enviada?: boolean
+          notificar_whatsapp?: boolean
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          dia_todo?: boolean
+          horario_fim?: string | null
+          horario_inicio?: string | null
+          id?: string
+          motivo?: string | null
+          notificacao_enviada?: boolean
+          notificar_whatsapp?: boolean
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       historico_status_aluno: {
         Row: {
           aluno_id: string
