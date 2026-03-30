@@ -160,8 +160,8 @@ export default function Financeiro() {
 
   // Payment status pie chart for selected month
   const pagos = monthPagamentos.filter(p => p.status === "pago").length;
-  const pendentes = monthPagamentos.filter(p => p.status === "pendente").length;
-  const atrasados = monthPagamentos.filter(p => p.status === "atrasado").length;
+  const pendentes = qtdPendente;
+  const atrasados = qtdAtrasado;
   const total = pagos + pendentes + atrasados || 1;
 
   const paymentsByStatus = [
