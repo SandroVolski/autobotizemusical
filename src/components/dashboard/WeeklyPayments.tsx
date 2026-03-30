@@ -242,14 +242,15 @@ export function WeeklyPayments() {
 
             <TabsContent value="cobrar" className="mt-0">
               <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                {alunosDevedoresSemana.length === 0 ? (
+                {alunosDevedores.length === 0 ? (
                   <div className="text-center py-6 text-muted-foreground">
                     <CheckCircle className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                    <p className="text-sm">Todos os alunos estão em dia esta semana! 🎉</p>
+                    <p className="text-sm">Todos os alunos estão em dia! 🎉</p>
                   </div>
                 ) : (
-                  alunosDevedoresSemana.map((aluno, index) => {
+                  alunosDevedores.map((aluno, index) => {
                     const status = paymentStatuses.get(aluno.id);
+                    const isOverdue = aluno.dia_vencimento! <= today.getDate();
                     return (
                       <motion.div
                         key={aluno.id}
@@ -259,14 +260,16 @@ export function WeeklyPayments() {
                         className={`flex items-center gap-3 p-3 rounded-lg transition-colors cursor-pointer ${
                           status?.color === "red"
                             ? "bg-destructive/10 border border-destructive/20 hover:bg-destructive/15"
+                            : isOverdue
+                            ? "bg-destructive/5 border border-destructive/10 hover:bg-destructive/10"
                             : "bg-warning/5 border border-warning/15 hover:bg-warning/10"
                         }`}
                         onClick={() => navigate(`/alunos/${aluno.id}`)}
                       >
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                          status?.color === "red" ? "bg-destructive/20" : "bg-warning/20"
+                          status?.color === "red" || isOverdue ? "bg-destructive/20" : "bg-warning/20"
                         }`}>
-                          <UserRound className={`w-5 h-5 ${status?.color === "red" ? "text-destructive" : "text-warning"}`} />
+                          <UserRound className={`w-5 h-5 ${status?.color === "red" || isOverdue ? "text-destructive" : "text-warning"}`} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">
@@ -274,8 +277,15 @@ export function WeeklyPayments() {
                             {status && <PaymentStatusDot color={status.color} label={status.label} size="sm" />}
                           </div>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            Vencimento dia {aluno.dia_vencimento} • {getDayOfWeekName(aluno.dia_vencimento!)}
+                            Vencimento dia {aluno.dia_vencimento}
                           </p>
+                        </div>
+                        <div className="flex-shrink-0">
+                          <Badge variant={status?.color === "red" || isOverdue ? "destructive" : "warning"} className="text-[10px]">
+                            <AlertCircle className="w-3 h-3 mr-0.5" /> {status?.color === "red" || isOverdue ? "Devendo" : "Cobrar"}
+                          </Badge>
+                        </div>
+                      </motion.div>
                         </div>
                         <div className="flex-shrink-0">
                           <Badge variant={status?.color === "red" ? "destructive" : "warning"} className="text-[10px]">
