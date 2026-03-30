@@ -137,7 +137,7 @@ export default function Alunos() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [statusToggleAluno, setStatusToggleAluno] = useState<{ id: string; nome: string; currentStatus: string } | null>(null);
-
+  const [selectedCursoIds, setSelectedCursoIds] = useState<string[]>([]);
   const handleToggleStatus = async () => {
     if (!statusToggleAluno) return;
     const newStatus = statusToggleAluno.currentStatus === "ativo" ? "inativo" : "ativo";
