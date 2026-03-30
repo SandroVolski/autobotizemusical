@@ -303,7 +303,10 @@ export default function Financeiro() {
             </Button>
           </div>
           <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="w-4 h-4 mr-1 sm:mr-2" /><span className="hidden sm:inline">Exportar</span><span className="sm:hidden">CSV</span>
+            <Download className="w-4 h-4 mr-1 sm:mr-2" /><span className="hidden sm:inline">CSV</span><span className="sm:hidden">CSV</span>
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExportPDF}>
+            <FileText className="w-4 h-4 mr-1 sm:mr-2" /><span className="hidden sm:inline">PDF</span><span className="sm:hidden">PDF</span>
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
