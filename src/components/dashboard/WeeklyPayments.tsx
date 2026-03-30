@@ -6,6 +6,8 @@ import { DollarSign, ChevronRight, AlertCircle, CheckCircle, Clock, UserRound } 
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useAlunos } from "@/hooks/useAlunos";
 import { usePaymentStatuses } from "@/hooks/usePaymentStatus";
+import { useMatriculas } from "@/hooks/useMatriculas";
+import { useCursos } from "@/hooks/useCursos";
 import { PaymentStatusDot } from "@/components/ui/payment-status-dot";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,7 +16,23 @@ export function WeeklyPayments() {
   const navigate = useNavigate();
   const { data: pagamentos } = usePagamentos();
   const { data: alunos } = useAlunos();
+  const { data: matriculas } = useMatriculas();
+  const { data: cursos } = useCursos();
   const paymentStatuses = usePaymentStatuses(alunos);
+
+  // Build a map: aluno_id -> total monthly value from active matriculas
+  const alunoValorMensal = new Map<string, number>();
+  if (matriculas && cursos) {
+    const cursoMap = new Map(cursos.map(c => [c.id, c]));
+    matriculas
+      .filter(m => m.status === "ativo")
+      .forEach(m => {
+        const curso = cursoMap.get(m.curso_id);
+        if (curso?.valor_mensal) {
+          alunoValorMensal.set(m.aluno_id, (alunoValorMensal.get(m.aluno_id) || 0) + Number(curso.valor_mensal));
+        }
+      });
+  }
 
   // Calculate week range (Sunday to Saturday)
   const today = new Date();
@@ -79,12 +97,15 @@ export function WeeklyPayments() {
     return a.dia_vencimento! - b.dia_vencimento!;
   }) || [];
 
-  // PENDENTE: For each student in alunosDevedores, get the value they owe
+  // PENDENTE: For each student in alunosDevedores, use their curso valor_mensal from matriculas
   const totalPendente = alunosDevedores.reduce((acc, aluno) => {
     // First check if there's an unpaid payment record for this month
     const unpaidRecord = pagamentosMes.find(p => p.aluno_id === aluno.id && p.status !== "pago");
     if (unpaidRecord) return acc + Number(unpaidRecord.valor);
-    // Otherwise estimate from their most recent payment (any status)
+    // Use valor_mensal from active matriculas (curso price)
+    const valorCurso = alunoValorMensal.get(aluno.id);
+    if (valorCurso) return acc + valorCurso;
+    // Fallback: estimate from most recent payment
     const lastPayment = pagamentos
       ?.filter(p => p.aluno_id === aluno.id && p.valor)
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
@@ -278,6 +299,15 @@ export function WeeklyPayments() {
                   alunosDevedores.map((aluno, index) => {
                     const status = paymentStatuses.get(aluno.id);
                     const isOverdue = aluno.dia_vencimento! <= today.getDate();
+                    // Get value owed: unpaid record > curso price > last payment
+                    const unpaidRecord = pagamentosMes.find(p => p.aluno_id === aluno.id && p.status !== "pago");
+                    const valorDevido = unpaidRecord
+                      ? Number(unpaidRecord.valor)
+                      : alunoValorMensal.get(aluno.id) || (() => {
+                          const lp = pagamentos?.filter(p => p.aluno_id === aluno.id && p.valor)
+                            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+                          return lp ? Number(lp.valor) : 0;
+                        })();
                     return (
                       <motion.div
                         key={aluno.id}
@@ -307,8 +337,13 @@ export function WeeklyPayments() {
                             Vencimento dia {aluno.dia_vencimento}
                           </p>
                         </div>
-                        <div className="flex-shrink-0">
-                          <Badge variant={status?.color === "red" || isOverdue ? "destructive" : "warning"} className="text-[10px]">
+                        <div className="text-right flex-shrink-0">
+                          {valorDevido > 0 && (
+                            <p className="font-bold text-sm">
+                              {valorDevido.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                            </p>
+                          )}
+                          <Badge variant={status?.color === "red" || isOverdue ? "destructive" : "warning"} className="text-[10px] mt-0.5">
                             <AlertCircle className="w-3 h-3 mr-0.5" /> {status?.color === "red" || isOverdue ? "Devendo" : "Cobrar"}
                           </Badge>
                         </div>
