@@ -228,7 +228,7 @@ export function AppSidebar() {
         )}
         {showLabel && (
           <div className="overflow-hidden">
-            <h1 className="font-bold text-foreground whitespace-nowrap">{configuracoes?.nome || "Escola de Música"}</h1>
+            <h1 className="font-bold text-foreground whitespace-nowrap">Autobotize</h1>
             <p className="text-xs text-muted-foreground whitespace-nowrap">Gestão Musical</p>
           </div>
         )}
