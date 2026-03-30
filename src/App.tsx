@@ -31,6 +31,7 @@ import Contratos from "./pages/Contratos";
 import CRM from "./pages/CRM";
 import Confirmacoes from "./pages/Confirmacoes";
 import Cobrancas from "./pages/Cobrancas";
+import Feriados from "./pages/Feriados";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
