@@ -57,6 +57,7 @@ export default function Relatorios() {
   const { data: pagamentos, isLoading: loadingPagamentos } = usePagamentos();
   const { data: cursos, isLoading: loadingCursos } = useCursos();
   const { data: professores } = useProfessores();
+  const { data: contasPagar } = useContasPagar();
   const { data: aulas } = useAulas();
 
   const isLoading = loadingAlunos || loadingPagamentos || loadingCursos;
