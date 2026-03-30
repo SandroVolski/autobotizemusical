@@ -8,6 +8,7 @@ import { useSidebar } from "@/contexts/SidebarContext";
 import { NotificationsDropdown } from "@/components/notifications/NotificationsDropdown";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { useAuth } from "@/contexts/AuthContext";
+import { useConfiguracoes } from "@/hooks/useConfiguracoes";
 import { cn } from "@/lib/utils";
 
 interface AppLayoutProps {
@@ -17,6 +18,7 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const { collapsed, toggleCollapsed, isMobile, setMobileOpen } = useSidebar();
   const { user } = useAuth();
+  const { data: configuracoes } = useConfiguracoes();
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [isDark, setIsDark] = useState(() => !document.documentElement.classList.contains("light"));
@@ -46,7 +48,9 @@ export function AppLayout({ children }: AppLayoutProps) {
   }, []);
 
   const sidebarWidth = isMobile ? 0 : collapsed ? 72 : 280;
-  const userName = user?.user_metadata?.nome || user?.email?.split("@")[0] || "Usuário";
+  // Show school name from settings if available, otherwise fall back to user name
+  const schoolName = configuracoes?.nome;
+  const userName = schoolName || user?.user_metadata?.nome || user?.email?.split("@")[0] || "Usuário";
   const initials = userName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
 
   return (
