@@ -116,7 +116,7 @@ export default function Feriados() {
         try {
           await supabase.functions.invoke("whatsapp-connection", {
             body: {
-              action: "send_message",
+              action: "send",
               phone: cleanPhone,
               message,
             },
