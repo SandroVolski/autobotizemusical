@@ -299,6 +299,15 @@ export function WeeklyPayments() {
                   alunosDevedores.map((aluno, index) => {
                     const status = paymentStatuses.get(aluno.id);
                     const isOverdue = aluno.dia_vencimento! <= today.getDate();
+                    // Get value owed: unpaid record > curso price > last payment
+                    const unpaidRecord = pagamentosMes.find(p => p.aluno_id === aluno.id && p.status !== "pago");
+                    const valorDevido = unpaidRecord
+                      ? Number(unpaidRecord.valor)
+                      : alunoValorMensal.get(aluno.id) || (() => {
+                          const lp = pagamentos?.filter(p => p.aluno_id === aluno.id && p.valor)
+                            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+                          return lp ? Number(lp.valor) : 0;
+                        })();
                     return (
                       <motion.div
                         key={aluno.id}
@@ -328,8 +337,13 @@ export function WeeklyPayments() {
                             Vencimento dia {aluno.dia_vencimento}
                           </p>
                         </div>
-                        <div className="flex-shrink-0">
-                          <Badge variant={status?.color === "red" || isOverdue ? "destructive" : "warning"} className="text-[10px]">
+                        <div className="text-right flex-shrink-0">
+                          {valorDevido > 0 && (
+                            <p className="font-bold text-sm">
+                              {valorDevido.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                            </p>
+                          )}
+                          <Badge variant={status?.color === "red" || isOverdue ? "destructive" : "warning"} className="text-[10px] mt-0.5">
                             <AlertCircle className="w-3 h-3 mr-0.5" /> {status?.color === "red" || isOverdue ? "Devendo" : "Cobrar"}
                           </Badge>
                         </div>
