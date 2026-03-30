@@ -6,6 +6,8 @@ import { DollarSign, ChevronRight, AlertCircle, CheckCircle, Clock, UserRound } 
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useAlunos } from "@/hooks/useAlunos";
 import { usePaymentStatuses } from "@/hooks/usePaymentStatus";
+import { useMatriculas } from "@/hooks/useMatriculas";
+import { useCursos } from "@/hooks/useCursos";
 import { PaymentStatusDot } from "@/components/ui/payment-status-dot";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
