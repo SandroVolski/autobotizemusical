@@ -346,6 +346,7 @@ export default function Alunos() {
     setAulaRecorrente(false);
     setAulaDataEspecifica("");
     setSelectedTurmaId("");
+    setSelectedCursoIds([]);
   };
 
   const handleEdit = async (aluno: typeof alunos extends (infer T)[] | undefined ? T : never) => {
