@@ -227,6 +227,16 @@ const App = () => (
                 </AuthenticatedPage>
               }
             />
+            <Route
+              path="/feriados"
+              element={
+                <AuthenticatedPage>
+                  <RoleRoute allowedRoles={['admin', 'secretaria']}>
+                    <Feriados />
+                  </RoleRoute>
+                </AuthenticatedPage>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
