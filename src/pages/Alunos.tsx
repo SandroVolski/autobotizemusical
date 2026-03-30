@@ -61,9 +61,12 @@ import { usePaymentStatuses } from "@/hooks/usePaymentStatus";
 import { PaymentStatusDot } from "@/components/ui/payment-status-dot";
 import { useCreateAula } from "@/hooks/useAulas";
 import { useTurmas, useAddAlunoTurma } from "@/hooks/useTurmas";
+import { useCursos } from "@/hooks/useCursos";
+import { useCreateMatricula, useMatriculas } from "@/hooks/useMatriculas";
 import { toast } from "@/hooks/use-toast";
 import { EnrollmentDialog } from "@/components/alunos/EnrollmentDialog";
 import { StudentEnrollments } from "@/components/alunos/StudentEnrollments";
+import { Checkbox } from "@/components/ui/checkbox";
 import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
 import { exportAlunos } from "@/lib/csv-export";
 import { CameraCapture } from "@/components/ui/camera-capture";
@@ -134,7 +137,7 @@ export default function Alunos() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [statusToggleAluno, setStatusToggleAluno] = useState<{ id: string; nome: string; currentStatus: string } | null>(null);
-
+  const [selectedCursoIds, setSelectedCursoIds] = useState<string[]>([]);
   const handleToggleStatus = async () => {
     if (!statusToggleAluno) return;
     const newStatus = statusToggleAluno.currentStatus === "ativo" ? "inativo" : "ativo";
@@ -201,6 +204,8 @@ export default function Alunos() {
   const createAulaMutation = useCreateAula();
   const { data: turmasList } = useTurmas();
   const addAlunoTurmaMutation = useAddAlunoTurma();
+  const { data: cursosList } = useCursos();
+  const createMatriculaMutation = useCreateMatricula();
   const filteredAlunos = alunos?.filter(aluno => {
     // Text search
     const matchesSearch = aluno.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -273,6 +278,30 @@ export default function Alunos() {
           if (tipoAula === "turma" && selectedTurmaId) {
             addAlunoTurmaMutation.mutate({ turma_id: selectedTurmaId, aluno_id: editingAluno });
           }
+          // Sync matriculas: remove deselected, add newly selected
+          const { data: existingMatriculas } = await supabase
+            .from("matriculas")
+            .select("id, curso_id")
+            .eq("aluno_id", editingAluno)
+            .eq("status", "ativo");
+          
+          const existingCursoIds = existingMatriculas?.map(m => m.curso_id) || [];
+          // Remove deselected
+          const toRemove = existingMatriculas?.filter(m => !selectedCursoIds.includes(m.curso_id)) || [];
+          for (const m of toRemove) {
+            await supabase.from("matriculas").update({ status: "cancelado" }).eq("id", m.id);
+          }
+          // Add newly selected
+          const toAdd = selectedCursoIds.filter(cid => !existingCursoIds.includes(cid));
+          for (const cursoId of toAdd) {
+            await supabase.from("matriculas").insert({
+              aluno_id: editingAluno,
+              curso_id: cursoId,
+              data_inicio: new Date().toISOString().split("T")[0],
+              status: "ativo",
+            });
+          }
+          
           setIsDialogOpen(false);
           setEditingAluno(null);
           resetForm();
@@ -312,6 +341,16 @@ export default function Alunos() {
           if (data?.id && tipoAula === "turma" && selectedTurmaId) {
             addAlunoTurmaMutation.mutate({ turma_id: selectedTurmaId, aluno_id: data.id });
           }
+          // Create matriculas for selected courses
+          if (data?.id && selectedCursoIds.length > 0) {
+            for (const cursoId of selectedCursoIds) {
+              createMatriculaMutation.mutate({
+                aluno_id: data.id,
+                curso_id: cursoId,
+                data_inicio: new Date().toISOString().split("T")[0],
+              });
+            }
+          }
           setIsDialogOpen(false);
           resetForm();
         }
@@ -341,6 +380,7 @@ export default function Alunos() {
     setAulaRecorrente(false);
     setAulaDataEspecifica("");
     setSelectedTurmaId("");
+    setSelectedCursoIds([]);
   };
 
   const handleEdit = async (aluno: typeof alunos extends (infer T)[] | undefined ? T : never) => {
@@ -397,6 +437,19 @@ export default function Alunos() {
     if (turmaAluno && turmaAluno.length > 0) {
       setTipoAula("turma");
       setSelectedTurmaId(turmaAluno[0].turma_id);
+    }
+
+    // Load existing matriculas for this student
+    const { data: existingMatriculas } = await supabase
+      .from("matriculas")
+      .select("curso_id")
+      .eq("aluno_id", aluno.id)
+      .eq("status", "ativo");
+    
+    if (existingMatriculas && existingMatriculas.length > 0) {
+      setSelectedCursoIds(existingMatriculas.map(m => m.curso_id));
+    } else {
+      setSelectedCursoIds([]);
     }
     
     setIsDialogOpen(true);
@@ -697,6 +750,64 @@ export default function Alunos() {
                     <p className="text-xs text-muted-foreground">
                       O aluno será adicionado à turma selecionada automaticamente.
                     </p>
+                  </div>
+                )}
+              </div>
+              {/* Cursos / Matrículas */}
+              <div className="space-y-3 p-4 rounded-lg border border-secondary/20 bg-secondary/5">
+                <Label className="text-sm font-semibold flex items-center gap-2">
+                  <GraduationCap className="w-4 h-4" />
+                  Cursos do Aluno
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Selecione um ou mais cursos para vincular ao aluno. O valor mensal será usado para cálculos financeiros.
+                </p>
+                <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                  {cursosList?.filter(c => c.status === "ativo").map(curso => (
+                    <label
+                      key={curso.id}
+                      className={`flex items-center gap-3 p-2.5 rounded-lg border cursor-pointer transition-colors ${
+                        selectedCursoIds.includes(curso.id)
+                          ? "border-primary/40 bg-primary/10"
+                          : "border-border/50 hover:bg-muted/50"
+                      }`}
+                    >
+                      <Checkbox
+                        checked={selectedCursoIds.includes(curso.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedCursoIds(prev => [...prev, curso.id]);
+                          } else {
+                            setSelectedCursoIds(prev => prev.filter(id => id !== curso.id));
+                          }
+                        }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">{curso.nome}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {curso.instrumento && `${curso.instrumento} • `}
+                          {curso.valor_mensal
+                            ? Number(curso.valor_mensal).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) + "/mês"
+                            : "Sem valor definido"}
+                        </p>
+                      </div>
+                    </label>
+                  ))}
+                  {(!cursosList || cursosList.filter(c => c.status === "ativo").length === 0) && (
+                    <p className="text-xs text-muted-foreground text-center py-2">
+                      Nenhum curso cadastrado. Cadastre cursos primeiro.
+                    </p>
+                  )}
+                </div>
+                {selectedCursoIds.length > 0 && (
+                  <div className="flex items-center justify-between pt-1 text-xs">
+                    <span className="text-muted-foreground">{selectedCursoIds.length} curso(s) selecionado(s)</span>
+                    <span className="font-medium text-primary">
+                      Total: {cursosList
+                        ?.filter(c => selectedCursoIds.includes(c.id))
+                        .reduce((acc, c) => acc + (Number(c.valor_mensal) || 0), 0)
+                        .toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}/mês
+                    </span>
                   </div>
                 )}
               </div>
