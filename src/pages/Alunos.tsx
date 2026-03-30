@@ -317,6 +317,16 @@ export default function Alunos() {
           if (data?.id && tipoAula === "turma" && selectedTurmaId) {
             addAlunoTurmaMutation.mutate({ turma_id: selectedTurmaId, aluno_id: data.id });
           }
+          // Create matriculas for selected courses
+          if (data?.id && selectedCursoIds.length > 0) {
+            for (const cursoId of selectedCursoIds) {
+              createMatriculaMutation.mutate({
+                aluno_id: data.id,
+                curso_id: cursoId,
+                data_inicio: new Date().toISOString().split("T")[0],
+              });
+            }
+          }
           setIsDialogOpen(false);
           resetForm();
         }
