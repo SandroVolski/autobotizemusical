@@ -286,13 +286,6 @@ export function WeeklyPayments() {
                           </Badge>
                         </div>
                       </motion.div>
-                        </div>
-                        <div className="flex-shrink-0">
-                          <Badge variant={status?.color === "red" ? "destructive" : "warning"} className="text-[10px]">
-                            <AlertCircle className="w-3 h-3 mr-0.5" /> {status?.color === "red" ? "Devendo" : "Cobrar"}
-                          </Badge>
-                        </div>
-                      </motion.div>
                     );
                   })
                 )}
