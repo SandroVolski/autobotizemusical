@@ -37,6 +37,9 @@ export function WeeklyPayments() {
     return dateA.getTime() - dateB.getTime();
   }) || [];
 
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+
   const totalSemana = pagamentosSemana.reduce((acc, p) => acc + Number(p.valor), 0);
   const totalPago = pagamentosSemana.filter(p => p.status === "pago").reduce((acc, p) => acc + Number(p.valor), 0);
 
@@ -49,8 +52,6 @@ export function WeeklyPayments() {
   const totalPendente = pagamentosPendentesMes.reduce((acc, p) => acc + Number(p.valor), 0);
 
   // ALL active students who haven't paid this month - not just this week
-  const currentMonth = today.getMonth();
-  const currentYear = today.getFullYear();
   const alunosDevedores = alunos?.filter(a => {
     if (a.status !== "ativo" || !a.dia_vencimento) return false;
     // Check if there's a paid payment for current month
