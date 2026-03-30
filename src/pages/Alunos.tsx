@@ -414,6 +414,19 @@ export default function Alunos() {
       setTipoAula("turma");
       setSelectedTurmaId(turmaAluno[0].turma_id);
     }
+
+    // Load existing matriculas for this student
+    const { data: existingMatriculas } = await supabase
+      .from("matriculas")
+      .select("curso_id")
+      .eq("aluno_id", aluno.id)
+      .eq("status", "ativo");
+    
+    if (existingMatriculas && existingMatriculas.length > 0) {
+      setSelectedCursoIds(existingMatriculas.map(m => m.curso_id));
+    } else {
+      setSelectedCursoIds([]);
+    }
     
     setIsDialogOpen(true);
   };
