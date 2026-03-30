@@ -4,6 +4,14 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import AutobotizeLogo from "@/assets/autobotize-logo.webp";
 import IconeEscolaMusica from "@/assets/IconeEscolaMusica.png";
 import Espiral from "@/assets/espiral.gif";
+import ScreenAlunos from "@/assets/landing/screenshot-alunos.jpg";
+import ScreenAgenda from "@/assets/landing/screenshot-agenda.jpg";
+import ScreenFinanceiro from "@/assets/landing/screenshot-financeiro.jpg";
+import ScreenIA from "@/assets/landing/screenshot-ia.jpg";
+import ScreenMateriais from "@/assets/landing/screenshot-materiais.jpg";
+import ScreenComunicacao from "@/assets/landing/screenshot-comunicacao.jpg";
+import ScreenRelatorios from "@/assets/landing/screenshot-relatorios.jpg";
+import ScreenInstrumentos from "@/assets/landing/screenshot-instrumentos.jpg";
 gsap.registerPlugin(ScrollTrigger);
 
 // --- ÍCONES E UTILIDADES BÁSICAS ---
