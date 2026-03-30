@@ -70,7 +70,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const resetPassword = async (email: string) => {
-    const redirectUrl = `${window.location.origin}/redefinir-senha`;
+    const siteUrl = 'https://musica.autobotize.com';
+    const redirectUrl = `${siteUrl}/redefinir-senha`;
     
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: redirectUrl,
