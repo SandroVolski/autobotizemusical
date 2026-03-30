@@ -9,7 +9,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RoleRoute } from "@/components/RoleRoute";
 import LandingPage from "./pages/LandingPage";
-import SalesLandingPage from "./pages/SalesLandingPage";
+
 import Login from "./pages/Login";
 import RedefinirSenha from "./pages/RedefinirSenha";
 import Dashboard from "./pages/Dashboard";
@@ -54,7 +54,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/" element={<LandingPage />} />
-            <Route path="/landingpage" element={<SalesLandingPage />} />
+            
             <Route path="/login" element={<Login />} />
             <Route path="/redefinir-senha" element={<RedefinirSenha />} />
             <Route

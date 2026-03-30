@@ -4,6 +4,14 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import AutobotizeLogo from "@/assets/autobotize-logo.webp";
 import IconeEscolaMusica from "@/assets/IconeEscolaMusica.png";
 import Espiral from "@/assets/espiral.gif";
+import ScreenAlunos from "@/assets/landing/screenshot-alunos.jpg";
+import ScreenAgenda from "@/assets/landing/screenshot-agenda.jpg";
+import ScreenFinanceiro from "@/assets/landing/screenshot-financeiro.jpg";
+import ScreenIA from "@/assets/landing/screenshot-ia.jpg";
+import ScreenMateriais from "@/assets/landing/screenshot-materiais.jpg";
+import ScreenComunicacao from "@/assets/landing/screenshot-comunicacao.jpg";
+import ScreenRelatorios from "@/assets/landing/screenshot-relatorios.jpg";
+import ScreenInstrumentos from "@/assets/landing/screenshot-instrumentos.jpg";
 gsap.registerPlugin(ScrollTrigger);
 
 // --- ÍCONES E UTILIDADES BÁSICAS ---
@@ -1490,49 +1498,49 @@ export const NotebookFeaturesSection = () => {
     {
       title: "Gestão de Alunos",
       desc: "Registo completo, histórico de matrículas, progresso individual e comunicação direta.",
-      img: "https://images.unsplash.com/photo-1577891776198-c28c302f0b1a?auto=format&fit=crop&w=800&q=80",
+      img: ScreenAlunos,
       bgText: "GESTÃO",
     },
     {
       title: "Agenda Inteligente",
       desc: "Agendamento automático, controlo de presença e sincronização com calendários externos.",
-      img: "https://images.unsplash.com/photo-1506784365847-bbad939e9335?auto=format&fit=crop&w=800&q=80",
+      img: ScreenAgenda,
       bgText: "ESCOLA",
     },
     {
       title: "Controle Financeiro",
       desc: "Mensalidades, cobranças automáticas, relatórios de incumprimento e projeções.",
-      img: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=800&q=80",
+      img: ScreenFinanceiro,
       bgText: "FINANÇAS",
     },
     {
       title: "IA Pedagógica",
       desc: "Sugestões de repertório, planos de aula personalizados e análise de evolução.",
-      img: "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=800&q=80",
+      img: ScreenIA,
       bgText: "INTELIGÊNCIA",
     },
     {
       title: "Material Didático",
       desc: "Biblioteca digital, pautas, vídeo-aulas e recursos partilhados.",
-      img: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?auto=format&fit=crop&w=800&q=80",
+      img: ScreenMateriais,
       bgText: "MÚSICA",
     },
     {
       title: "Comunicação",
       desc: "Avisos automáticos, lembretes de aulas e notificações personalizadas.",
-      img: "https://images.unsplash.com/photo-1577563906417-45a11b3f9f7c?auto=format&fit=crop&w=800&q=80",
+      img: ScreenComunicacao,
       bgText: "CONEXÃO",
     },
     {
       title: "Relatórios Avançados",
       desc: "Dashboards em tempo real, métricas de desempenho e insights acionáveis.",
-      img: "https://images.unsplash.com/photo-1551288049-bbbda536ad0a?auto=format&fit=crop&w=800&q=80",
+      img: ScreenRelatorios,
       bgText: "DADOS",
     },
     {
       title: "Multi-instrumentos",
       desc: "Suporte para todos os instrumentos com configurações específicas para cada um.",
-      img: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=800&q=80",
+      img: ScreenInstrumentos,
       bgText: "SISTEMA",
     },
   ];
