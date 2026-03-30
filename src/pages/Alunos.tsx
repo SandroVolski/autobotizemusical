@@ -67,6 +67,8 @@ import { toast } from "@/hooks/use-toast";
 import { EnrollmentDialog } from "@/components/alunos/EnrollmentDialog";
 import { StudentEnrollments } from "@/components/alunos/StudentEnrollments";
 import { Checkbox } from "@/components/ui/checkbox";
+import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
+import { exportAlunos } from "@/lib/csv-export";
 import { CameraCapture } from "@/components/ui/camera-capture";
 import {
   AlertDialog,
