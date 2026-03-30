@@ -259,6 +259,10 @@ export default function Relatorios() {
       pagamentos: monthPagamentos.map(p => ({ ...p, aluno_nome: alunos?.find(a => a.id === p.aluno_id)?.nome || "N/A" })),
       receitaPorTipo: Object.entries(byType).map(([tipo, d]) => ({ tipo, ...d })),
       receitaPorMetodo: Object.entries(byMethod).map(([metodo, d]) => ({ metodo, ...d })),
+      alunos: alunos?.map(a => ({ nome: a.nome, status: a.status, data_nascimento: a.data_nascimento, data_matricula: a.data_matricula, telefone: a.telefone, email: a.email })),
+      professores: professores?.map(p => ({ nome: p.nome, especialidade: p.especialidade, salario: p.salario, status: p.status })),
+      cursos: cursos?.map(c => ({ nome: c.nome, valor_mensal: c.valor_mensal, status: c.status, instrumento: c.instrumento })),
+      contasPagar: contasPagar?.map(c => ({ descricao: c.descricao, valor: c.valor, data_vencimento: c.data_vencimento, status: c.status, categoria: c.categoria })),
     });
     toast({ title: "PDF gerado!", description: `Relatório financeiro de ${meses[currentMonth]} ${currentYear}` });
   };
