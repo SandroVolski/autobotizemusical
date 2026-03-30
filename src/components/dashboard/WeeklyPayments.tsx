@@ -39,7 +39,14 @@ export function WeeklyPayments() {
 
   const totalSemana = pagamentosSemana.reduce((acc, p) => acc + Number(p.valor), 0);
   const totalPago = pagamentosSemana.filter(p => p.status === "pago").reduce((acc, p) => acc + Number(p.valor), 0);
-  const totalPendente = pagamentosSemana.filter(p => p.status !== "pago").reduce((acc, p) => acc + Number(p.valor), 0);
+
+  // Pendente: all unpaid payments for the current month (not just this week)
+  const pagamentosPendentesMes = pagamentos?.filter(p => {
+    if (!p.data_vencimento || p.status === "pago") return false;
+    const venc = new Date(p.data_vencimento + "T00:00:00");
+    return venc.getMonth() === currentMonth && venc.getFullYear() === currentYear;
+  }) || [];
+  const totalPendente = pagamentosPendentesMes.reduce((acc, p) => acc + Number(p.valor), 0);
 
   // ALL active students who haven't paid this month - not just this week
   const currentMonth = today.getMonth();
