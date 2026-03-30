@@ -76,6 +76,31 @@ export function WeeklyPayments() {
     return a.dia_vencimento! - b.dia_vencimento!;
   }) || [];
 
+  // PENDENTE: Sum of unpaid payments for current month + estimates for devedores without records
+  const totalPendenteRegistrado = pagamentos?.filter(p => {
+    if (!p.data_vencimento || p.status === "pago") return false;
+    const venc = new Date(p.data_vencimento + "T00:00:00");
+    return venc.getMonth() === currentMonth && venc.getFullYear() === currentYear;
+  }).reduce((acc, p) => acc + Number(p.valor), 0) || 0;
+
+  const alunosComRegistroPendente = new Set(
+    pagamentos?.filter(p => {
+      if (!p.data_vencimento || p.status === "pago") return false;
+      const venc = new Date(p.data_vencimento + "T00:00:00");
+      return venc.getMonth() === currentMonth && venc.getFullYear() === currentYear;
+    }).map(p => p.aluno_id) || []
+  );
+
+  const totalPendenteSemRegistro = alunosDevedores
+    .filter(a => !alunosComRegistroPendente.has(a.id))
+    .reduce((acc, aluno) => {
+      const ultimoPagamento = pagamentos?.filter(p => p.aluno_id === aluno.id)
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+      return acc + (ultimoPagamento ? Number(ultimoPagamento.valor) : 0);
+    }, 0);
+
+  const totalPendente = totalPendenteRegistrado + totalPendenteSemRegistro;
+
   const getDayName = (dateStr: string) => {
     const date = new Date(dateStr + "T00:00:00");
     const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
