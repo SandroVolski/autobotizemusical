@@ -47,19 +47,13 @@ export function useConfirmacaoMensagensRealtime() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const channel = supabase
-      .channel("confirmacao-mensagens-realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "confirmacao_aula_mensagens" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["confirmacao-mensagens"] });
-        }
-      )
-      .subscribe();
+    // Poll every 15 seconds instead of Realtime (table removed from publication for security)
+    const interval = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ["confirmacao-mensagens"] });
+    }, 15000);
 
     return () => {
-      supabase.removeChannel(channel);
+      clearInterval(interval);
     };
   }, [queryClient]);
 }
