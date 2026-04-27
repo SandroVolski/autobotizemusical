@@ -28,7 +28,6 @@ export type Database = {
           nome: string
           objetivo: string | null
           observacoes: string | null
-          owner_user_id: string
           responsavel_nome: string | null
           responsavel_telefone: string | null
           status: string | null
@@ -48,7 +47,6 @@ export type Database = {
           nome: string
           objetivo?: string | null
           observacoes?: string | null
-          owner_user_id?: string
           responsavel_nome?: string | null
           responsavel_telefone?: string | null
           status?: string | null
@@ -68,7 +66,6 @@ export type Database = {
           nome?: string
           objetivo?: string | null
           observacoes?: string | null
-          owner_user_id?: string
           responsavel_nome?: string | null
           responsavel_telefone?: string | null
           status?: string | null
@@ -971,7 +968,6 @@ export type Database = {
           id: string
           metodo_pagamento: string | null
           observacoes: string | null
-          owner_user_id: string
           referencia: string | null
           status: string | null
           tipo: string | null
@@ -986,7 +982,6 @@ export type Database = {
           id?: string
           metodo_pagamento?: string | null
           observacoes?: string | null
-          owner_user_id?: string
           referencia?: string | null
           status?: string | null
           tipo?: string | null
@@ -1001,7 +996,6 @@ export type Database = {
           id?: string
           metodo_pagamento?: string | null
           observacoes?: string | null
-          owner_user_id?: string
           referencia?: string | null
           status?: string | null
           tipo?: string | null
