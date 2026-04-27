@@ -90,6 +90,7 @@ export type Database = {
           horario: string | null
           id: string
           observacoes: string | null
+          owner_user_id: string
           professor_id: string | null
           recorrente: boolean | null
           sala: string | null
@@ -110,6 +111,7 @@ export type Database = {
           horario?: string | null
           id?: string
           observacoes?: string | null
+          owner_user_id?: string
           professor_id?: string | null
           recorrente?: boolean | null
           sala?: string | null
@@ -130,6 +132,7 @@ export type Database = {
           horario?: string | null
           id?: string
           observacoes?: string | null
+          owner_user_id?: string
           professor_id?: string | null
           recorrente?: boolean | null
           sala?: string | null
@@ -171,6 +174,7 @@ export type Database = {
           feedback: string | null
           id: string
           nota: number | null
+          owner_user_id: string
           professor_id: string | null
           updated_at: string | null
         }
@@ -182,6 +186,7 @@ export type Database = {
           feedback?: string | null
           id?: string
           nota?: number | null
+          owner_user_id?: string
           professor_id?: string | null
           updated_at?: string | null
         }
@@ -193,6 +198,7 @@ export type Database = {
           feedback?: string | null
           id?: string
           nota?: number | null
+          owner_user_id?: string
           professor_id?: string | null
           updated_at?: string | null
         }
@@ -221,6 +227,7 @@ export type Database = {
           data_expiracao: string | null
           data_publicacao: string | null
           id: string
+          owner_user_id: string
           prioridade: string | null
           tipo: string | null
           titulo: string
@@ -233,6 +240,7 @@ export type Database = {
           data_expiracao?: string | null
           data_publicacao?: string | null
           id?: string
+          owner_user_id?: string
           prioridade?: string | null
           tipo?: string | null
           titulo: string
@@ -245,6 +253,7 @@ export type Database = {
           data_expiracao?: string | null
           data_publicacao?: string | null
           id?: string
+          owner_user_id?: string
           prioridade?: string | null
           tipo?: string | null
           titulo?: string
@@ -324,6 +333,7 @@ export type Database = {
           created_at: string
           habilitado: boolean
           id: string
+          owner_user_id: string
           telefone_override: string | null
           updated_at: string
         }
@@ -332,6 +342,7 @@ export type Database = {
           created_at?: string
           habilitado?: boolean
           id?: string
+          owner_user_id?: string
           telefone_override?: string | null
           updated_at?: string
         }
@@ -340,6 +351,7 @@ export type Database = {
           created_at?: string
           habilitado?: boolean
           id?: string
+          owner_user_id?: string
           telefone_override?: string | null
           updated_at?: string
         }
@@ -363,6 +375,7 @@ export type Database = {
           erro: string | null
           id: string
           mensagem: string
+          owner_user_id: string
           respondido_em: string | null
           resposta_aluno: string | null
           status: string
@@ -377,6 +390,7 @@ export type Database = {
           erro?: string | null
           id?: string
           mensagem: string
+          owner_user_id?: string
           respondido_em?: string | null
           resposta_aluno?: string | null
           status?: string
@@ -391,6 +405,7 @@ export type Database = {
           erro?: string | null
           id?: string
           mensagem?: string
+          owner_user_id?: string
           respondido_em?: string | null
           resposta_aluno?: string | null
           status?: string
@@ -423,6 +438,7 @@ export type Database = {
           fornecedor: string | null
           id: string
           observacoes: string | null
+          owner_user_id: string
           status: string | null
           updated_at: string
           valor: number
@@ -436,6 +452,7 @@ export type Database = {
           fornecedor?: string | null
           id?: string
           observacoes?: string | null
+          owner_user_id?: string
           status?: string | null
           updated_at?: string
           valor: number
@@ -449,6 +466,7 @@ export type Database = {
           fornecedor?: string | null
           id?: string
           observacoes?: string | null
+          owner_user_id?: string
           status?: string | null
           updated_at?: string
           valor?: number
@@ -465,6 +483,7 @@ export type Database = {
           data_inicio: string | null
           id: string
           instrumento_id: string | null
+          owner_user_id: string
           status: string | null
           tipo: string
           updated_at: string
@@ -478,6 +497,7 @@ export type Database = {
           data_inicio?: string | null
           id?: string
           instrumento_id?: string | null
+          owner_user_id?: string
           status?: string | null
           tipo?: string
           updated_at?: string
@@ -491,6 +511,7 @@ export type Database = {
           data_inicio?: string | null
           id?: string
           instrumento_id?: string | null
+          owner_user_id?: string
           status?: string | null
           tipo?: string
           updated_at?: string
@@ -529,6 +550,7 @@ export type Database = {
           instrumento: string | null
           nivel: string | null
           nome: string
+          owner_user_id: string
           status: string | null
           updated_at: string
           valor_mensal: number | null
@@ -542,6 +564,7 @@ export type Database = {
           instrumento?: string | null
           nivel?: string | null
           nome: string
+          owner_user_id?: string
           status?: string | null
           updated_at?: string
           valor_mensal?: number | null
@@ -555,6 +578,7 @@ export type Database = {
           instrumento?: string | null
           nivel?: string | null
           nome?: string
+          owner_user_id?: string
           status?: string | null
           updated_at?: string
           valor_mensal?: number | null
@@ -659,6 +683,7 @@ export type Database = {
           motivo: string | null
           notificacao_enviada: boolean
           notificar_whatsapp: boolean
+          owner_user_id: string
           titulo: string
           updated_at: string
         }
@@ -672,6 +697,7 @@ export type Database = {
           motivo?: string | null
           notificacao_enviada?: boolean
           notificar_whatsapp?: boolean
+          owner_user_id?: string
           titulo: string
           updated_at?: string
         }
@@ -685,6 +711,7 @@ export type Database = {
           motivo?: string | null
           notificacao_enviada?: boolean
           notificar_whatsapp?: boolean
+          owner_user_id?: string
           titulo?: string
           updated_at?: string
         }
@@ -697,6 +724,7 @@ export type Database = {
           data_mudanca: string
           id: string
           observacao: string | null
+          owner_user_id: string
           status_anterior: string | null
           status_novo: string
         }
@@ -706,6 +734,7 @@ export type Database = {
           data_mudanca?: string
           id?: string
           observacao?: string | null
+          owner_user_id?: string
           status_anterior?: string | null
           status_novo: string
         }
@@ -715,6 +744,7 @@ export type Database = {
           data_mudanca?: string
           id?: string
           observacao?: string | null
+          owner_user_id?: string
           status_anterior?: string | null
           status_novo?: string
         }
@@ -742,6 +772,7 @@ export type Database = {
           nome: string
           numero_serie: string | null
           observacoes: string | null
+          owner_user_id: string
           status: string | null
           tipo: string | null
           updated_at: string
@@ -760,6 +791,7 @@ export type Database = {
           nome: string
           numero_serie?: string | null
           observacoes?: string | null
+          owner_user_id?: string
           status?: string | null
           tipo?: string | null
           updated_at?: string
@@ -778,6 +810,7 @@ export type Database = {
           nome?: string
           numero_serie?: string | null
           observacoes?: string | null
+          owner_user_id?: string
           status?: string | null
           tipo?: string | null
           updated_at?: string
@@ -795,6 +828,7 @@ export type Database = {
           nome: string
           observacoes: string | null
           origem: string | null
+          owner_user_id: string
           status: string | null
           telefone: string | null
           updated_at: string
@@ -808,6 +842,7 @@ export type Database = {
           nome: string
           observacoes?: string | null
           origem?: string | null
+          owner_user_id?: string
           status?: string | null
           telefone?: string | null
           updated_at?: string
@@ -821,6 +856,7 @@ export type Database = {
           nome?: string
           observacoes?: string | null
           origem?: string | null
+          owner_user_id?: string
           status?: string | null
           telefone?: string | null
           updated_at?: string
@@ -833,6 +869,7 @@ export type Database = {
           curso_id: string | null
           descricao: string | null
           id: string
+          owner_user_id: string
           plano_aula_id: string | null
           tipo: string | null
           titulo: string
@@ -844,6 +881,7 @@ export type Database = {
           curso_id?: string | null
           descricao?: string | null
           id?: string
+          owner_user_id?: string
           plano_aula_id?: string | null
           tipo?: string | null
           titulo: string
@@ -855,6 +893,7 @@ export type Database = {
           curso_id?: string | null
           descricao?: string | null
           id?: string
+          owner_user_id?: string
           plano_aula_id?: string | null
           tipo?: string | null
           titulo?: string
@@ -887,6 +926,7 @@ export type Database = {
           data_inicio: string
           id: string
           observacoes: string | null
+          owner_user_id: string
           status: string | null
           updated_at: string | null
         }
@@ -898,6 +938,7 @@ export type Database = {
           data_inicio?: string
           id?: string
           observacoes?: string | null
+          owner_user_id?: string
           status?: string | null
           updated_at?: string | null
         }
@@ -909,6 +950,7 @@ export type Database = {
           data_inicio?: string
           id?: string
           observacoes?: string | null
+          owner_user_id?: string
           status?: string | null
           updated_at?: string | null
         }
@@ -1028,6 +1070,7 @@ export type Database = {
           materiais: string | null
           nivel: string | null
           objetivos: string | null
+          owner_user_id: string
           titulo: string
           updated_at: string
         }
@@ -1040,6 +1083,7 @@ export type Database = {
           materiais?: string | null
           nivel?: string | null
           objetivos?: string | null
+          owner_user_id?: string
           titulo: string
           updated_at?: string
         }
@@ -1052,6 +1096,7 @@ export type Database = {
           materiais?: string | null
           nivel?: string | null
           objetivos?: string | null
+          owner_user_id?: string
           titulo?: string
           updated_at?: string
         }
@@ -1065,6 +1110,7 @@ export type Database = {
           data: string
           id: string
           observacoes: string | null
+          owner_user_id: string
           status: string | null
           updated_at: string | null
         }
@@ -1075,6 +1121,7 @@ export type Database = {
           data?: string
           id?: string
           observacoes?: string | null
+          owner_user_id?: string
           status?: string | null
           updated_at?: string | null
         }
@@ -1085,6 +1132,7 @@ export type Database = {
           data?: string
           id?: string
           observacoes?: string | null
+          owner_user_id?: string
           status?: string | null
           updated_at?: string | null
         }
@@ -1114,6 +1162,7 @@ export type Database = {
           estoque_minimo: number | null
           id: string
           nome: string
+          owner_user_id: string
           preco: number
           status: string | null
           updated_at: string
@@ -1126,6 +1175,7 @@ export type Database = {
           estoque_minimo?: number | null
           id?: string
           nome: string
+          owner_user_id?: string
           preco?: number
           status?: string | null
           updated_at?: string
@@ -1138,6 +1188,7 @@ export type Database = {
           estoque_minimo?: number | null
           id?: string
           nome?: string
+          owner_user_id?: string
           preco?: number
           status?: string | null
           updated_at?: string
@@ -1155,6 +1206,7 @@ export type Database = {
           id: string
           instrumentos: string[] | null
           nome: string
+          owner_user_id: string
           salario: number | null
           status: string | null
           telefone: string | null
@@ -1170,6 +1222,7 @@ export type Database = {
           id?: string
           instrumentos?: string[] | null
           nome: string
+          owner_user_id?: string
           salario?: number | null
           status?: string | null
           telefone?: string | null
@@ -1185,6 +1238,7 @@ export type Database = {
           id?: string
           instrumentos?: string[] | null
           nome?: string
+          owner_user_id?: string
           salario?: number | null
           status?: string | null
           telefone?: string | null
@@ -1238,6 +1292,7 @@ export type Database = {
           horario_reposicao: string | null
           id: string
           observacoes: string | null
+          owner_user_id: string
           professor_id: string | null
           status: string | null
           tipo_falta: string
@@ -1252,6 +1307,7 @@ export type Database = {
           horario_reposicao?: string | null
           id?: string
           observacoes?: string | null
+          owner_user_id?: string
           professor_id?: string | null
           status?: string | null
           tipo_falta?: string
@@ -1266,6 +1322,7 @@ export type Database = {
           horario_reposicao?: string | null
           id?: string
           observacoes?: string | null
+          owner_user_id?: string
           professor_id?: string | null
           status?: string | null
           tipo_falta?: string
@@ -1325,6 +1382,7 @@ export type Database = {
           created_at: string
           data_entrada: string | null
           id: string
+          owner_user_id: string
           status: string | null
           turma_id: string
         }
@@ -1333,6 +1391,7 @@ export type Database = {
           created_at?: string
           data_entrada?: string | null
           id?: string
+          owner_user_id?: string
           status?: string | null
           turma_id: string
         }
@@ -1341,6 +1400,7 @@ export type Database = {
           created_at?: string
           data_entrada?: string | null
           id?: string
+          owner_user_id?: string
           status?: string | null
           turma_id?: string
         }
@@ -1372,6 +1432,7 @@ export type Database = {
           max_alunos: number | null
           nome: string
           observacoes: string | null
+          owner_user_id: string
           professor_id: string | null
           sala: string | null
           status: string | null
@@ -1387,6 +1448,7 @@ export type Database = {
           max_alunos?: number | null
           nome: string
           observacoes?: string | null
+          owner_user_id?: string
           professor_id?: string | null
           sala?: string | null
           status?: string | null
@@ -1402,6 +1464,7 @@ export type Database = {
           max_alunos?: number | null
           nome?: string
           observacoes?: string | null
+          owner_user_id?: string
           professor_id?: string | null
           sala?: string | null
           status?: string | null
@@ -1453,6 +1516,7 @@ export type Database = {
           itens: Json
           metodo_pagamento: string | null
           observacoes: string | null
+          owner_user_id: string
           total: number
         }
         Insert: {
@@ -1462,6 +1526,7 @@ export type Database = {
           itens?: Json
           metodo_pagamento?: string | null
           observacoes?: string | null
+          owner_user_id?: string
           total?: number
         }
         Update: {
@@ -1471,6 +1536,7 @@ export type Database = {
           itens?: Json
           metodo_pagamento?: string | null
           observacoes?: string | null
+          owner_user_id?: string
           total?: number
         }
         Relationships: [
