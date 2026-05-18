@@ -1383,10 +1383,10 @@ export const SocialProofSphere = () => {
   return (
     <div id="depoimentos" className="relative w-full min-h-[85vh] md:min-h-screen bg-black flex flex-col items-center select-none py-16 overflow-hidden montserrat-font">
       <div className="w-full text-center mb-8 z-[100] relative pointer-events-none px-6">
-        <h3 className="text-[#00FFA1] font-bold tracking-[0.5em] uppercase text-[10px] mb-4 opacity-70">Depoimentos</h3>
-        <h1 className="text-white text-4xl md:text-6xl font-black tracking-tight leading-none mx-auto max-w-4xl">
+        <p className="text-[#00FFA1] font-bold tracking-[0.5em] uppercase text-[10px] mb-4 opacity-70">Depoimentos</p>
+        <h2 className="text-white text-4xl md:text-6xl font-black tracking-tight leading-none mx-auto max-w-4xl">
           Impacto do nosso <span className="text-[#8000FF] italic">ecossistema</span>
-        </h1>
+        </h2>
       </div>
       <div className="flex-1 w-full relative flex items-center justify-center">
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black to-transparent z-[20] pointer-events-none"></div>
@@ -1906,7 +1906,7 @@ export const SpiralCTASection = () => {
           <img
             ref={imageRef}
             src={Espiral}
-            alt="Espiral"
+            alt="Espiral decorativa de transição entre seções"
             className="
               w-56 h-56
               sm:w-64 sm:h-64
