@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Helmet } from "react-helmet-async";
 import { Music, Mail, Lock, Eye, EyeOff, ArrowRight, User, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -133,6 +134,14 @@ export default function Login() {
       </div>;
   }
   return <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      <Helmet>
+        <title>Login — Autobotize | Gestão de Escolas de Música</title>
+        <meta name="description" content="Acesse sua conta Autobotize para gerenciar matrículas, aulas, finanças e comunicação da sua escola de música em um só lugar." />
+        <link rel="canonical" href="https://musica.autobotize.com/login" />
+        <meta property="og:title" content="Login — Autobotize" />
+        <meta property="og:description" content="Faça login no Autobotize para acessar a gestão completa da sua escola de música." />
+        <meta property="og:url" content="https://musica.autobotize.com/login" />
+      </Helmet>
       {/* Background effects */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-secondary/10" />
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse-slow" />
@@ -183,7 +192,7 @@ export default function Login() {
               <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center mb-4 glow-primary">
                 <Music className="w-10 h-10 text-primary-foreground" />
               </div>
-              <h1 className="text-2xl font-bold">Autobotize</h1>
+              <h1 className="text-2xl font-bold">Autobotize — Login de Gestão Musical</h1>
               <p className="text-lg gradient-text font-semibold">Gestão Musical</p>
               <p className="text-sm text-muted-foreground mt-2">
                 Faça login para acessar o sistema
@@ -226,7 +235,7 @@ export default function Login() {
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} className="pl-10 pr-10" required minLength={6} />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                    <button type="button" aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"} onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
