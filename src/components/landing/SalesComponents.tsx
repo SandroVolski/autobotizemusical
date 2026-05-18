@@ -1383,10 +1383,10 @@ export const SocialProofSphere = () => {
   return (
     <div id="depoimentos" className="relative w-full min-h-[85vh] md:min-h-screen bg-black flex flex-col items-center select-none py-16 overflow-hidden montserrat-font">
       <div className="w-full text-center mb-8 z-[100] relative pointer-events-none px-6">
-        <h3 className="text-[#00FFA1] font-bold tracking-[0.5em] uppercase text-[10px] mb-4 opacity-70">Depoimentos</h3>
-        <h1 className="text-white text-4xl md:text-6xl font-black tracking-tight leading-none mx-auto max-w-4xl">
+        <p className="text-[#00FFA1] font-bold tracking-[0.5em] uppercase text-[10px] mb-4 opacity-70">Depoimentos</p>
+        <h2 className="text-white text-4xl md:text-6xl font-black tracking-tight leading-none mx-auto max-w-4xl">
           Impacto do nosso <span className="text-[#8000FF] italic">ecossistema</span>
-        </h1>
+        </h2>
       </div>
       <div className="flex-1 w-full relative flex items-center justify-center">
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black to-transparent z-[20] pointer-events-none"></div>
@@ -1644,6 +1644,7 @@ export const NotebookFeaturesSection = () => {
   // Componente Mobile separado para evitar conflitos de DOM
   const MobileCarousel = () => (
     <div id="recursos-premium" className="relative w-full bg-zinc-950 py-16 overflow-hidden">
+      <h2 className="sr-only">Recursos Premium da Autobotize para Escolas de Música</h2>
       {/* Label */}
       <div className="flex justify-center mb-8">
         <span className="text-[#8000FF] font-black tracking-[0.5em] uppercase text-[9px] bg-zinc-900/60 py-2 px-6 backdrop-blur-md rounded-full border border-white/5">
@@ -1734,6 +1735,7 @@ export const NotebookFeaturesSection = () => {
   // Versão DESKTOP com pinning e animação 3D do notebook
   return (
     <div id="recursos-premium" ref={notebookContainerRef} className="relative h-screen w-full overflow-hidden bg-zinc-950">
+      <h2 className="sr-only">Recursos Premium da Autobotize para Escolas de Música</h2>
       <div className="absolute top-10 left-0 w-full z-50 pointer-events-none flex justify-center">
         <span className="text-[#8000FF] font-black tracking-[0.5em] uppercase text-[9px] bg-zinc-900/60 py-2 px-6 backdrop-blur-md rounded-full border border-white/5">
           Recursos Premium
@@ -1906,7 +1908,7 @@ export const SpiralCTASection = () => {
           <img
             ref={imageRef}
             src={Espiral}
-            alt="Espiral"
+            alt="Espiral decorativa de transição entre seções"
             className="
               w-56 h-56
               sm:w-64 sm:h-64

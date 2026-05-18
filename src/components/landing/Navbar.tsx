@@ -60,7 +60,7 @@ export const Navbar = () => {
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* Logo */}
             <a href="/" className="flex items-center gap-2">
-              <img src={autobotizeLogo} alt="Autobotize" className="w-10 h-10 rounded-xl object-cover" />
+              <img src={autobotizeLogo} alt="Autobotize — Gestão de Escolas de Música" className="w-10 h-10 rounded-xl object-cover" />
               <span className="font-bold text-xl">Autobotize</span>
             </a>
 
@@ -103,6 +103,7 @@ export const Navbar = () => {
 
             {/* Mobile Menu Button */}
             <button
+              aria-label={isMobileMenuOpen ? "Fechar menu de navegação" : "Abrir menu de navegação"}
               className="md:hidden relative z-[210] p-2 rounded-lg bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
@@ -159,10 +160,11 @@ export const Navbar = () => {
               {/* Menu Header */}
               <div className="flex items-center justify-between px-4 h-16 border-b border-border">
                 <div className="flex items-center gap-2">
-                  <img src={autobotizeLogo} alt="Autobotize" className="w-8 h-8 rounded-lg object-cover" />
+                  <img src={autobotizeLogo} alt="Autobotize — Gestão de Escolas de Música" className="w-8 h-8 rounded-lg object-cover" />
                   <span className="font-bold text-lg">Autobotize</span>
                 </div>
                 <button
+                  aria-label="Fechar menu de navegação"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="p-2 rounded-lg bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors"
                 >

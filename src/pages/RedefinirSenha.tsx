@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Helmet } from "react-helmet-async";
 import { Music, Lock, Eye, EyeOff, ArrowRight, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -146,6 +147,14 @@ export default function RedefinirSenha() {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      <Helmet>
+        <title>Redefinir Senha — Autobotize</title>
+        <meta name="description" content="Crie uma nova senha para sua conta Autobotize e continue gerenciando sua escola de música com segurança." />
+        <link rel="canonical" href="https://musica.autobotize.com/redefinir-senha" />
+        <meta property="og:title" content="Redefinir Senha — Autobotize" />
+        <meta property="og:description" content="Defina uma nova senha para acessar a plataforma Autobotize." />
+        <meta property="og:url" content="https://musica.autobotize.com/redefinir-senha" />
+      </Helmet>
       {/* Background effects */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-secondary/10" />
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse-slow" />
@@ -169,7 +178,7 @@ export default function RedefinirSenha() {
               <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center mb-4 glow-primary">
                 <Music className="w-10 h-10 text-primary-foreground" />
               </div>
-              <h1 className="text-2xl font-bold">Redefinir Senha</h1>
+              <h1 className="text-2xl font-bold">Redefinir Senha — Autobotize</h1>
               <p className="text-sm text-muted-foreground mt-2">
                 Digite sua nova senha abaixo
               </p>
@@ -198,6 +207,7 @@ export default function RedefinirSenha() {
                   />
                   <button
                     type="button"
+                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   >
@@ -227,6 +237,7 @@ export default function RedefinirSenha() {
                   />
                   <button
                     type="button"
+                    aria-label={showConfirmPassword ? "Ocultar confirmação de senha" : "Mostrar confirmação de senha"}
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   >
