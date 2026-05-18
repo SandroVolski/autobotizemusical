@@ -1,0 +1,7 @@
+# Autobotize
+
+> Plataforma completa de gestão para escolas de música: matrículas, aulas, finanças, comunicação e IA pedagógica.
+
+## Pages
+
+- [Home](/): Visão geral da plataforma Autobotize, recursos e planos.
