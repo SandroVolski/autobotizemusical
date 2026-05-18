@@ -1644,6 +1644,7 @@ export const NotebookFeaturesSection = () => {
   // Componente Mobile separado para evitar conflitos de DOM
   const MobileCarousel = () => (
     <div id="recursos-premium" className="relative w-full bg-zinc-950 py-16 overflow-hidden">
+      <h2 className="sr-only">Recursos Premium da Autobotize para Escolas de Música</h2>
       {/* Label */}
       <div className="flex justify-center mb-8">
         <span className="text-[#8000FF] font-black tracking-[0.5em] uppercase text-[9px] bg-zinc-900/60 py-2 px-6 backdrop-blur-md rounded-full border border-white/5">
@@ -1734,6 +1735,7 @@ export const NotebookFeaturesSection = () => {
   // Versão DESKTOP com pinning e animação 3D do notebook
   return (
     <div id="recursos-premium" ref={notebookContainerRef} className="relative h-screen w-full overflow-hidden bg-zinc-950">
+      <h2 className="sr-only">Recursos Premium da Autobotize para Escolas de Música</h2>
       <div className="absolute top-10 left-0 w-full z-50 pointer-events-none flex justify-center">
         <span className="text-[#8000FF] font-black tracking-[0.5em] uppercase text-[9px] bg-zinc-900/60 py-2 px-6 backdrop-blur-md rounded-full border border-white/5">
           Recursos Premium
