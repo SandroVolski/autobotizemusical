@@ -75,7 +75,7 @@ export const HeroSection = () => {
   }, []);
   return <section ref={sectionRef} className="relative h-screen w-full overflow-hidden">
       {/* Video Background */}
-      <video ref={videoRef} autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover scale-100">
+      <video ref={videoRef} autoPlay muted loop playsInline preload="auto" fetchPriority="high" className="absolute inset-0 w-full h-full object-cover scale-100">
         <source src="/videos/hero-background.mp4" type="video/mp4" />
       </video>
 
@@ -102,7 +102,7 @@ export const HeroSection = () => {
           </h1>
 
           {/* Subheading */}
-          <p ref={subRef} className="text-lg sm:text-xl md:text-2xl text-white/80 mb-10 max-w-3xl mx-auto leading-relaxed">
+          <p ref={subRef} className="text-lg sm:text-xl md:text-2xl text-white/95 mb-10 max-w-3xl mx-auto leading-relaxed">
             Automatize matrículas, gerencie aulas, controle finanças e potencialize
             o aprendizado com inteligência artificial.
           </p>
