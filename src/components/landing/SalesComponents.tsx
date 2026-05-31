@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import AutobotizeLogo from "@/assets/autobotize-logo.webp";
-import IconeEscolaMusica from "@/assets/IconeEscolaMusica.png";
+import IconeEscolaMusica from "@/assets/IconeEscolaMusica.webp";
 import Espiral from "@/assets/espiral.gif";
 import ScreenAlunos from "@/assets/landing/screenshot-alunos.jpg";
 import ScreenAgenda from "@/assets/landing/screenshot-agenda.jpg";
