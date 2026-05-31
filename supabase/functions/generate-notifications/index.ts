@@ -38,8 +38,9 @@ Deno.serve(async (req) => {
         });
       }
 
-      const { data: isAdmin } = await supabaseAuth.rpc('has_role', { _user_id: user.id, _role: 'admin' });
-      const { data: isSecretaria } = await supabaseAuth.rpc('has_role', { _user_id: user.id, _role: 'secretaria' });
+      const adminCheckClient = createClient(supabaseUrl, supabaseServiceKey);
+      const { data: isAdmin } = await adminCheckClient.rpc('has_role', { _user_id: user.id, _role: 'admin' });
+      const { data: isSecretaria } = await adminCheckClient.rpc('has_role', { _user_id: user.id, _role: 'secretaria' });
       if (!isAdmin && !isSecretaria) {
         return new Response(JSON.stringify({ error: "Acesso negado" }), {
           status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },

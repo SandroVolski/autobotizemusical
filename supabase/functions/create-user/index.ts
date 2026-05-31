@@ -46,8 +46,13 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Check if requesting user is admin
-    const { data: isAdmin } = await userClient.rpc("has_role", {
+    // Create admin client with service role key
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
+    // Check if requesting user is admin (via service role to avoid exposing has_role to clients)
+    const { data: isAdmin } = await adminClient.rpc("has_role", {
       _user_id: requestingUser.id,
       _role: "admin",
     });
@@ -68,11 +73,6 @@ const handler = async (req: Request): Promise<Response> => {
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
-
-    // Create admin client with service role key
-    const adminClient = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
 
     // Create the user
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
