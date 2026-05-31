@@ -33,9 +33,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Require admin or secretaria role
-    const { data: isAdmin } = await authClient.rpc("has_role", { _user_id: user.id, _role: "admin" });
-    const { data: isSecretaria } = await authClient.rpc("has_role", { _user_id: user.id, _role: "secretaria" });
+    // Require admin or secretaria role (use service role to avoid exposing has_role to clients)
+    const roleClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const { data: isAdmin } = await roleClient.rpc("has_role", { _user_id: user.id, _role: "admin" });
+    const { data: isSecretaria } = await roleClient.rpc("has_role", { _user_id: user.id, _role: "secretaria" });
     if (!isAdmin && !isSecretaria) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
