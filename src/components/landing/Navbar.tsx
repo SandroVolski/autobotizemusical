@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Sparkles, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import autobotizeLogo from "@/assets/autobotize-logo.webp";
+import autobotizeLogo from "@/assets/autobotize-logo-sm.webp";
 
 const navLinks = [
   { label: "Recursos", href: "#recursos-premium" },
