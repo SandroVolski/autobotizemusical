@@ -75,7 +75,7 @@ export const HeroSection = () => {
   }, []);
   return <section ref={sectionRef} className="relative h-screen w-full overflow-hidden">
       {/* Video Background */}
-      <video ref={videoRef} autoPlay muted loop playsInline preload="auto" fetchPriority="high" className="absolute inset-0 w-full h-full object-cover scale-100">
+      <video ref={videoRef} autoPlay muted loop playsInline preload="auto" {...({ fetchpriority: "high" } as any)} className="absolute inset-0 w-full h-full object-cover scale-100">
         <source src="/videos/hero-background.mp4" type="video/mp4" />
       </video>
 
