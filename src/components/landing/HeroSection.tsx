@@ -39,9 +39,7 @@ export const HeroSection = () => {
     });
 
     // Entrance animation timeline (no scroll pinning)
-    const entranceTl = gsap.timeline({
-      delay: 0.3
-    });
+    const entranceTl = gsap.timeline();
     entranceTl.to(badgeRef.current, {
       opacity: 1,
       y: 0,
