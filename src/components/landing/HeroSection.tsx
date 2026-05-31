@@ -25,10 +25,6 @@ export const HeroSection = () => {
       opacity: 0,
       y: 30
     });
-    gsap.set(headingRef.current, {
-      opacity: 0,
-      y: 50
-    });
     gsap.set(subRef.current, {
       opacity: 0,
       y: 30
@@ -51,17 +47,12 @@ export const HeroSection = () => {
       y: 0,
       duration: 0.6,
       ease: "power3.out"
-    }).to(headingRef.current, {
-      opacity: 1,
-      y: 0,
-      duration: 0.8,
-      ease: "power3.out"
-    }, "-=0.4").to(subRef.current, {
+    }).to(subRef.current, {
       opacity: 1,
       y: 0,
       duration: 0.6,
       ease: "power3.out"
-    }, "-=0.5").to(ctaRef.current, {
+    }, "-=0.4").to(ctaRef.current, {
       opacity: 1,
       y: 0,
       duration: 0.6,
