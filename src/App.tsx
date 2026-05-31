@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -10,29 +11,28 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RoleRoute } from "@/components/RoleRoute";
 import LandingPage from "./pages/LandingPage";
 
-import Login from "./pages/Login";
-import RedefinirSenha from "./pages/RedefinirSenha";
-import Dashboard from "./pages/Dashboard";
-import Alunos from "./pages/Alunos";
-import AlunoPerfil from "./pages/AlunoPerfil";
-import Agenda from "./pages/Agenda";
-import Financeiro from "./pages/Financeiro";
-import HubIA from "./pages/HubIA";
-import Instrumentos from "./pages/Instrumentos";
-import Cursos from "./pages/Cursos";
-import Relatorios from "./pages/Relatorios";
-import Pedagogico from "./pages/Pedagogico";
-import Professores from "./pages/Professores";
-// import Comunicacao from "./pages/Comunicacao";
-import Configuracoes from "./pages/Configuracoes";
-import Turmas from "./pages/Turmas";
-import Reposicoes from "./pages/Reposicoes";
-import Contratos from "./pages/Contratos";
-import CRM from "./pages/CRM";
-import Confirmacoes from "./pages/Confirmacoes";
-import Cobrancas from "./pages/Cobrancas";
-import Feriados from "./pages/Feriados";
-import NotFound from "./pages/NotFound";
+const Login = lazy(() => import("./pages/Login"));
+const RedefinirSenha = lazy(() => import("./pages/RedefinirSenha"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Alunos = lazy(() => import("./pages/Alunos"));
+const AlunoPerfil = lazy(() => import("./pages/AlunoPerfil"));
+const Agenda = lazy(() => import("./pages/Agenda"));
+const Financeiro = lazy(() => import("./pages/Financeiro"));
+const HubIA = lazy(() => import("./pages/HubIA"));
+const Instrumentos = lazy(() => import("./pages/Instrumentos"));
+const Cursos = lazy(() => import("./pages/Cursos"));
+const Relatorios = lazy(() => import("./pages/Relatorios"));
+const Pedagogico = lazy(() => import("./pages/Pedagogico"));
+const Professores = lazy(() => import("./pages/Professores"));
+const Configuracoes = lazy(() => import("./pages/Configuracoes"));
+const Turmas = lazy(() => import("./pages/Turmas"));
+const Reposicoes = lazy(() => import("./pages/Reposicoes"));
+const Contratos = lazy(() => import("./pages/Contratos"));
+const CRM = lazy(() => import("./pages/CRM"));
+const Confirmacoes = lazy(() => import("./pages/Confirmacoes"));
+const Cobrancas = lazy(() => import("./pages/Cobrancas"));
+const Feriados = lazy(() => import("./pages/Feriados"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
@@ -52,6 +52,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <Suspense fallback={null}>
           <Routes>
             <Route path="/" element={<LandingPage />} />
             
@@ -237,6 +238,7 @@ const App = () => (
             />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
