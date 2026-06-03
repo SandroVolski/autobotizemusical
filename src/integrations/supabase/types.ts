@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       alunos: {
         Row: {
+          apelido: string | null
           created_at: string
           data_matricula: string | null
           data_nascimento: string | null
@@ -36,6 +37,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          apelido?: string | null
           created_at?: string
           data_matricula?: string | null
           data_nascimento?: string | null
@@ -56,6 +58,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          apelido?: string | null
           created_at?: string
           data_matricula?: string | null
           data_nascimento?: string | null
@@ -1548,6 +1551,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      whatsapp_instances: {
+        Row: {
+          conectado_em: string | null
+          created_at: string
+          id: string
+          instance_name: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conectado_em?: string | null
+          created_at?: string
+          id?: string
+          instance_name: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conectado_em?: string | null
+          created_at?: string
+          id?: string
+          instance_name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {

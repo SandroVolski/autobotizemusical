@@ -52,9 +52,8 @@ Deno.serve(async (req) => {
 
     const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL");
     const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");
-    const EVOLUTION_INSTANCE = Deno.env.get("EVOLUTION_INSTANCE");
 
-    if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY || !EVOLUTION_INSTANCE) {
+    if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY) {
       return new Response(
         JSON.stringify({ error: "Evolution API não configurada." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -93,11 +92,26 @@ Deno.serve(async (req) => {
     let sent = 0;
     let errors = 0;
     let totalAulas = 0;
+    let skipped = 0;
+    const skippedReasons: string[] = [];
 
     const diasSemana = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
     const defaultMsg = `Olá {nome}! 🎵\n\nLembramos que você tem aula amanhã ({dia}) às {horario}.\n\nVocê confirma presença?\n\n✅ Responda *SIM* para confirmar\n❌ Responda *NÃO* para cancelar`;
 
     for (const ownerId of tenantIds) {
+    // Resolve this tenant's WhatsApp instance
+    const { data: instanceRow } = await supabase
+      .from("whatsapp_instances")
+      .select("instance_name, status")
+      .eq("user_id", ownerId)
+      .maybeSingle();
+    if (!instanceRow?.instance_name) {
+      skipped++;
+      skippedReasons.push(`Tenant ${ownerId.slice(0,8)} sem instância WhatsApp configurada`);
+      continue;
+    }
+    const TENANT_INSTANCE = instanceRow.instance_name;
+
     // 1) Get RECURRING classes (scoped to this tenant)
     let recurringQuery = supabase
       .from("aulas")
@@ -170,6 +184,33 @@ Deno.serve(async (req) => {
     const enabledSet = new Map(configs.map((c: any) => [c.aluno_id, c]));
     totalAulas += aulas.length;
 
+    // MANUAL FALLBACK: if a specific aluno_id was requested but no aulas matched,
+    // send a confirmation without an aula link so the user still gets the message.
+    if (forceManual && manualAlunoId && aulas.length === 0) {
+      const { data: aluno } = await supabase
+        .from("alunos")
+        .select("id, nome, telefone, responsavel_telefone")
+        .eq("owner_user_id", ownerId)
+        .eq("id", manualAlunoId)
+        .maybeSingle();
+      if (aluno) {
+        const telefone = aluno.telefone || aluno.responsavel_telefone || "";
+        if (telefone) {
+          aulas.push({
+            id: null as any,
+            aluno_id: aluno.id,
+            horario: null,
+            dia_semana: null,
+            data_especifica: null,
+            alunos: aluno,
+          } as any);
+        } else {
+          skipped++;
+          skippedReasons.push(`${aluno.nome}: sem telefone cadastrado`);
+        }
+      }
+    }
+
     for (const aula of aulas) {
       const aluno = aula.alunos as any;
       if (!aluno) continue;
@@ -231,7 +272,7 @@ Deno.serve(async (req) => {
 
       try {
         const response = await fetch(
-          `${EVOLUTION_API_URL}/message/sendText/${EVOLUTION_INSTANCE}`,
+          `${EVOLUTION_API_URL}/message/sendText/${TENANT_INSTANCE}`,
           {
             method: "POST",
             headers: {
@@ -260,7 +301,7 @@ Deno.serve(async (req) => {
       await supabase.from("confirmacao_aula_mensagens").insert({
         owner_user_id: ownerId,
         aluno_id: aula.aluno_id,
-        aula_id: aula.id,
+        aula_id: aula.id || null,
         telefone: phoneWithCountry,
         mensagem,
         status,
@@ -272,7 +313,7 @@ Deno.serve(async (req) => {
     } // end per-tenant loop
 
     return new Response(
-      JSON.stringify({ success: true, sent, errors, total: totalAulas, tenants: tenantIds.length }),
+      JSON.stringify({ success: true, sent, errors, skipped, skippedReasons, total: totalAulas, tenants: tenantIds.length }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {

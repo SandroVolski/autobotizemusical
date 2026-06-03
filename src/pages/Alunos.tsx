@@ -114,6 +114,7 @@ export default function Alunos() {
   const [previewPhoto, setPreviewPhoto] = useState<{ url: string; nome: string } | null>(null);
   const [newAluno, setNewAluno] = useState<NovoAluno>({
     nome: "",
+    apelido: "",
     email: "",
     telefone: "",
     data_nascimento: "",
@@ -208,8 +209,10 @@ export default function Alunos() {
   const createMatriculaMutation = useCreateMatricula();
   const filteredAlunos = alunos?.filter(aluno => {
     // Text search
-    const matchesSearch = aluno.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (aluno.email?.toLowerCase().includes(searchQuery.toLowerCase()));
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = aluno.nome.toLowerCase().includes(q) ||
+      ((aluno as any).apelido?.toLowerCase().includes(q)) ||
+      (aluno.email?.toLowerCase().includes(q));
     
     // Filters
     if (filterValues.status && aluno.status !== filterValues.status) return false;
@@ -361,6 +364,7 @@ export default function Alunos() {
   const resetForm = () => {
     setNewAluno({
       nome: "",
+      apelido: "",
       email: "",
       telefone: "",
       data_nascimento: "",
@@ -387,6 +391,7 @@ export default function Alunos() {
     setEditingAluno(aluno.id);
     setNewAluno({
       nome: aluno.nome,
+      apelido: (aluno as any).apelido || "",
       email: aluno.email || "",
       telefone: aluno.telefone || "",
       data_nascimento: aluno.data_nascimento || "",
@@ -580,6 +585,16 @@ export default function Alunos() {
                   value={newAluno.nome}
                   onChange={(e) => setNewAluno(prev => ({ ...prev, nome: e.target.value }))}
                 />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="apelido">Apelido (uso interno)</Label>
+                <Input
+                  id="apelido"
+                  placeholder="Ex: João Junior"
+                  value={newAluno.apelido || ""}
+                  onChange={(e) => setNewAluno(prev => ({ ...prev, apelido: e.target.value }))}
+                />
+                <p className="text-xs text-muted-foreground">Apenas para te ajudar a identificar o aluno. Não é usado nas mensagens enviadas.</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
@@ -990,8 +1005,11 @@ export default function Alunos() {
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <h3 className="font-semibold truncate">{aluno.nome}</h3>
+                          {(aluno as any).apelido && (
+                            <span className="text-xs text-muted-foreground italic truncate">"{(aluno as any).apelido}"</span>
+                          )}
                           <Badge variant={aluno.status === "ativo" ? "success" : "outline"}>
                             {aluno.status}
                           </Badge>

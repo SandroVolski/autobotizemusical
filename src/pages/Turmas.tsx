@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
-  Users, Plus, Music, Clock, Loader2, UserPlus, UserMinus, CheckCircle2, X, Calendar
+  Users, Plus, Music, Clock, Loader2, UserPlus, UserMinus, CheckCircle2, X, Calendar, Pencil, Trash2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,11 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useTurmas, useTurmaAlunos, useCreateTurma, useAddAlunoTurma, useRemoveAlunoTurma } from "@/hooks/useTurmas";
+import { useTurmas, useTurmaAlunos, useCreateTurma, useAddAlunoTurma, useRemoveAlunoTurma, useUpdateTurma, useDeleteTurma } from "@/hooks/useTurmas";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useProfessores } from "@/hooks/useProfessores";
 import { useCursos } from "@/hooks/useCursos";
 import { useAlunos } from "@/hooks/useAlunos";
@@ -59,6 +63,8 @@ export default function Turmas() {
   const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split("T")[0]);
   const [selectedAlunosIds, setSelectedAlunosIds] = useState<string[]>([]);
   const [studentSearch, setStudentSearch] = useState("");
+  const [editingTurma, setEditingTurma] = useState<any | null>(null);
+  const [deleteTurmaId, setDeleteTurmaId] = useState<string | null>(null);
   const [newTurma, setNewTurma] = useState({
     nome: "", professor_id: "", curso_id: "", dia_semana: 1,
     horario: "08:00", max_alunos: 10, sala: "",
@@ -71,6 +77,8 @@ export default function Turmas() {
   const { data: alunos } = useAlunos();
   const { data: counts } = useTurmaAlunosCounts();
   const createTurma = useCreateTurma();
+  const updateTurma = useUpdateTurma();
+  const deleteTurma = useDeleteTurma();
   const addAluno = useAddAlunoTurma();
   const removeAluno = useRemoveAlunoTurma();
   const createPresenca = useCreatePresenca();
@@ -165,6 +173,34 @@ export default function Turmas() {
     addAluno.mutate({ turma_id: selectedTurma, aluno_id: selectedAlunoId }, {
       onSuccess: () => { setAddAlunoDialogOpen(false); setSelectedAlunoId(""); },
     });
+  };
+
+  const openEditTurma = (e: React.MouseEvent, turma: any) => {
+    e.stopPropagation();
+    setEditingTurma({
+      id: turma.id,
+      nome: turma.nome || "",
+      professor_id: turma.professor_id || "",
+      curso_id: turma.curso_id || "",
+      dia_semana: turma.dia_semana ?? 1,
+      horario: turma.horario || "08:00",
+      max_alunos: turma.max_alunos ?? 10,
+      sala: turma.sala || "",
+    });
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingTurma) return;
+    updateTurma.mutate({
+      id: editingTurma.id,
+      nome: editingTurma.nome,
+      professor_id: editingTurma.professor_id || null,
+      curso_id: editingTurma.curso_id || null,
+      dia_semana: editingTurma.dia_semana,
+      horario: editingTurma.horario,
+      max_alunos: editingTurma.max_alunos,
+      sala: editingTurma.sala || null,
+    }, { onSuccess: () => setEditingTurma(null) });
   };
 
   if (isLoading) {
@@ -314,9 +350,23 @@ export default function Turmas() {
                       <CardTitle className="text-lg">{turma.nome}</CardTitle>
                       {curso && <p className="text-sm text-muted-foreground">{curso}</p>}
                     </div>
-                    <Badge variant={turma.status === "ativa" ? "default" : "secondary"}>
-                      {turma.status === "ativa" ? "Ativa" : "Inativa"}
-                    </Badge>
+                    <div className="flex items-center gap-1">
+                      <Badge variant={turma.status === "ativa" ? "default" : "secondary"}>
+                        {turma.status === "ativa" ? "Ativa" : "Inativa"}
+                      </Badge>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => openEditTurma(e, turma)} title="Editar turma">
+                        <Pencil className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive hover:text-destructive"
+                        onClick={(e) => { e.stopPropagation(); setDeleteTurmaId(turma.id); }}
+                        title="Excluir turma"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -463,6 +513,95 @@ export default function Turmas() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Turma Dialog */}
+      <Dialog open={!!editingTurma} onOpenChange={(o) => !o && setEditingTurma(null)}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader><DialogTitle>Editar Turma</DialogTitle></DialogHeader>
+          {editingTurma && (
+            <div className="grid gap-4 py-2">
+              <div className="grid gap-2">
+                <Label>Nome</Label>
+                <Input value={editingTurma.nome} onChange={(e) => setEditingTurma((p: any) => ({ ...p, nome: e.target.value }))} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Professor</Label>
+                  <Select value={editingTurma.professor_id} onValueChange={(v) => setEditingTurma((p: any) => ({ ...p, professor_id: v }))}>
+                    <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                    <SelectContent>
+                      {professores?.map(p => <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label>Curso</Label>
+                  <Select value={editingTurma.curso_id} onValueChange={(v) => setEditingTurma((p: any) => ({ ...p, curso_id: v }))}>
+                    <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                    <SelectContent>
+                      {cursos?.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="grid gap-2">
+                  <Label>Dia</Label>
+                  <Select value={String(editingTurma.dia_semana)} onValueChange={(v) => setEditingTurma((p: any) => ({ ...p, dia_semana: Number(v) }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {diasSemana.map((d, i) => <SelectItem key={i} value={String(i)}>{d}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label>Horário</Label>
+                  <Input type="time" value={editingTurma.horario?.slice(0, 5) || ""} onChange={(e) => setEditingTurma((p: any) => ({ ...p, horario: e.target.value }))} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Máx.</Label>
+                  <Input type="number" value={editingTurma.max_alunos} onChange={(e) => setEditingTurma((p: any) => ({ ...p, max_alunos: Number(e.target.value) }))} />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label>Sala</Label>
+                <Input value={editingTurma.sala} onChange={(e) => setEditingTurma((p: any) => ({ ...p, sala: e.target.value }))} />
+              </div>
+              <Button onClick={handleSaveEdit} disabled={updateTurma.isPending} className="w-full">
+                {updateTurma.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                Salvar
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Turma Confirmation */}
+      <AlertDialog open={!!deleteTurmaId} onOpenChange={(o) => !o && setDeleteTurmaId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir esta turma?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação remove a turma e desvincula todos os alunos. Não afeta o cadastro dos alunos. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleteTurmaId) {
+                  deleteTurma.mutate(deleteTurmaId, {
+                    onSuccess: () => { setDeleteTurmaId(null); if (selectedTurma === deleteTurmaId) setSheetOpen(false); }
+                  });
+                }
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

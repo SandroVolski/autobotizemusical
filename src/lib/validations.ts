@@ -3,6 +3,7 @@ import { z } from "zod";
 // Aluno validation schema
 export const alunoSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório").max(200, "Nome muito longo"),
+  apelido: z.string().max(100, "Apelido muito longo").nullable().optional(),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   telefone: z.string().max(20, "Telefone muito longo").optional(),
   data_nascimento: z.string().optional(),

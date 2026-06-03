@@ -6,6 +6,7 @@ import { alunoSchema } from "@/lib/validations";
 export interface Aluno {
   id: string;
   nome: string;
+  apelido: string | null;
   email: string | null;
   telefone: string | null;
   data_nascimento: string | null;
@@ -25,6 +26,7 @@ export interface Aluno {
 
 export interface NovoAluno {
   nome: string;
+  apelido?: string;
   email?: string;
   telefone?: string;
   data_nascimento?: string;
