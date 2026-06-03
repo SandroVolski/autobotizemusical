@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import autobotizeLogo from "@/assets/autobotize-logo-4.webp";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -189,8 +190,8 @@ export default function Login() {
           }} transition={{
             delay: 0.2
           }} className="text-center mb-8">
-              <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center mb-4 glow-primary">
-                <Music className="w-10 h-10 text-primary-foreground" />
+              <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center mb-4 glow-primary overflow-hidden">
+                <img src={autobotizeLogo} alt="Autobotize" className="w-16 h-16 object-contain" />
               </div>
               <h1 className="text-2xl font-bold">Autobotize — Login de Gestão Musical</h1>
               <p className="text-lg gradient-text font-semibold">Gestão Musical</p>
