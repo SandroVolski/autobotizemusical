@@ -50,13 +50,25 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get all admin/secretaria user IDs to send notifications to
+    // Get all admin/secretaria user IDs to send notifications to.
+    // In this multi-tenant app, each admin/secretaria user IS their own tenant
+    // (data is scoped via owner_user_id = auth.uid()). When the caller is an
+    // authenticated user (not cron/service-role), only process that tenant to
+    // prevent cross-tenant data leakage.
     const { data: adminRoles } = await supabase
       .from("user_roles")
       .select("user_id")
       .in("role", ["admin", "secretaria"]);
 
-    const userIds = [...new Set((adminRoles || []).map((r) => r.user_id))];
+    let userIds = [...new Set((adminRoles || []).map((r) => r.user_id))];
+    if (!isServiceRole) {
+      const callerToken = authHeader.replace("Bearer ", "");
+      const callerClient = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: `Bearer ${callerToken}` } },
+      });
+      const { data: { user: caller } } = await callerClient.auth.getUser();
+      userIds = caller ? userIds.filter((id) => id === caller.id) : [];
+    }
     if (userIds.length === 0) {
       return new Response(JSON.stringify({ message: "No admin users found" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -82,26 +94,32 @@ Deno.serve(async (req) => {
     await supabase
       .from("notificacoes")
       .delete()
+      .in("user_id", userIds)
       .eq("lida", true)
       .lt("created_at", threeDaysAgo.toISOString());
 
     await supabase
       .from("notificacoes")
       .delete()
+      .in("user_id", userIds)
       .lt("created_at", fourteenDaysAgo.toISOString());
 
-    // ============================================================
-    // 2. BIRTHDAYS: Today and next 3 days
-    // ============================================================
-    const { data: alunos } = await supabase
-      .from("alunos")
-      .select("id, nome, data_nascimento, status")
-      .eq("status", "ativo")
-      .not("data_nascimento", "is", null);
+    // Process each tenant (owner_user_id) independently so notifications never
+    // mix data across schools.
+    const newNotifications: any[] = [];
 
-    const birthdayNotifications: any[] = [];
+    for (const ownerId of userIds) {
+      // BIRTHDAYS
+      const { data: alunos } = await supabase
+        .from("alunos")
+        .select("id, nome, data_nascimento, status")
+        .eq("owner_user_id", ownerId)
+        .eq("status", "ativo")
+        .not("data_nascimento", "is", null);
 
-    for (const aluno of alunos || []) {
+      const tenantNotifs: any[] = [];
+
+      for (const aluno of alunos || []) {
       if (!aluno.data_nascimento) continue;
       const [year, month, day] = aluno.data_nascimento.split("-").map(Number);
 
@@ -119,7 +137,7 @@ Deno.serve(async (req) => {
               : `🎂 ${aluno.nome} faz ${age} anos em ${offset} dia${offset > 1 ? "s" : ""}`;
           const tipo = offset === 0 ? "sucesso" : "info";
 
-          birthdayNotifications.push({
+          tenantNotifs.push({
             aluno_id: aluno.id,
             titulo,
             mensagem: offset === 0
@@ -132,27 +150,25 @@ Deno.serve(async (req) => {
           break;
         }
       }
-    }
+      }
 
-    // ============================================================
-    // 3. PAYMENTS: Overdue, due today, due this week
-    // ============================================================
-    const sevenDaysFromNow = new Date(today);
-    sevenDaysFromNow.setDate(today.getDate() + 7);
-    const sevenDaysStr = sevenDaysFromNow.toISOString().split("T")[0];
+      // PAYMENTS
+      const sevenDaysFromNow = new Date(today);
+      sevenDaysFromNow.setDate(today.getDate() + 7);
+      const sevenDaysStr = sevenDaysFromNow.toISOString().split("T")[0];
 
-    const { data: pagamentos } = await supabase
-      .from("pagamentos")
-      .select("id, aluno_id, valor, data_vencimento, status, alunos(nome)")
-      .eq("status", "pendente")
-      .not("data_vencimento", "is", null)
-      .lte("data_vencimento", sevenDaysStr)
-      .order("data_vencimento", { ascending: true });
+      const { data: pagamentos } = await supabase
+        .from("pagamentos")
+        .select("id, aluno_id, valor, data_vencimento, status, alunos(nome)")
+        .eq("owner_user_id", ownerId)
+        .eq("status", "pendente")
+        .not("data_vencimento", "is", null)
+        .lte("data_vencimento", sevenDaysStr)
+        .order("data_vencimento", { ascending: true });
 
-    const paymentNotifications: any[] = [];
-    let overdueCount = 0;
-    let dueTodayCount = 0;
-    let dueThisWeekCount = 0;
+      let overdueCount = 0;
+      let dueTodayCount = 0;
+      let dueThisWeekCount = 0;
 
     for (const pag of pagamentos || []) {
       if (!pag.data_vencimento) continue;
@@ -165,9 +181,8 @@ Deno.serve(async (req) => {
       else dueThisWeekCount++;
     }
 
-    // Summary notifications instead of individual ones
-    if (overdueCount > 0) {
-      paymentNotifications.push({
+      if (overdueCount > 0) {
+        tenantNotifs.push({
         titulo: `💰 ${overdueCount} pagamento${overdueCount > 1 ? "s" : ""} atrasado${overdueCount > 1 ? "s" : ""}`,
         mensagem: `Existem ${overdueCount} pagamento${overdueCount > 1 ? "s" : ""} com vencimento ultrapassado. Verifique as cobranças.`,
         tipo: "alerta",
@@ -176,8 +191,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (dueTodayCount > 0) {
-      paymentNotifications.push({
+      if (dueTodayCount > 0) {
+        tenantNotifs.push({
         titulo: `⚠️ ${dueTodayCount} pagamento${dueTodayCount > 1 ? "s" : ""} vence${dueTodayCount > 1 ? "m" : ""} hoje`,
         mensagem: "Fique atento aos vencimentos de hoje.",
         tipo: "alerta",
@@ -186,8 +201,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (dueThisWeekCount > 0) {
-      paymentNotifications.push({
+      if (dueThisWeekCount > 0) {
+        tenantNotifs.push({
         titulo: `📋 ${dueThisWeekCount} pagamento${dueThisWeekCount > 1 ? "s" : ""} vence${dueThisWeekCount > 1 ? "m" : ""} esta semana`,
         mensagem: "Pagamentos com vencimento nos próximos dias.",
         tipo: "info",
@@ -196,17 +211,16 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ============================================================
-    // 4. CLASSES TODAY
-    // ============================================================
-    const { data: aulasHoje } = await supabase
-      .from("aulas")
-      .select("id, horario, aluno_id, sala, alunos(nome), cursos(nome)")
-      .eq("dia_semana", currentDayOfWeek)
-      .eq("status", "ativo");
+      // CLASSES TODAY
+      const { data: aulasHoje } = await supabase
+        .from("aulas")
+        .select("id, horario, aluno_id, sala, alunos(nome), cursos(nome)")
+        .eq("owner_user_id", ownerId)
+        .eq("dia_semana", currentDayOfWeek)
+        .eq("status", "ativo");
 
-    if ((aulasHoje?.length || 0) > 0) {
-      paymentNotifications.push({
+      if ((aulasHoje?.length || 0) > 0) {
+        tenantNotifs.push({
         titulo: `📚 ${aulasHoje!.length} aula${aulasHoje!.length > 1 ? "s" : ""} hoje`,
         mensagem: `Você tem ${aulasHoje!.length} aula${aulasHoje!.length > 1 ? "s" : ""} agendada${aulasHoje!.length > 1 ? "s" : ""} para hoje. Confira a agenda.`,
         tipo: "info",
@@ -215,27 +229,27 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ============================================================
-    // 5. STUDENTS WITH NO RECENT ATTENDANCE (inactive risk)
-    // ============================================================
-    const twoWeeksAgo = new Date(today);
-    twoWeeksAgo.setDate(today.getDate() - 14);
-    
-    const { data: alunosAtivos } = await supabase
-      .from("alunos")
-      .select("id, nome")
-      .eq("status", "ativo");
+      // ATTENDANCE RISK
+      const twoWeeksAgo = new Date(today);
+      twoWeeksAgo.setDate(today.getDate() - 14);
 
-    const { data: presencasRecentes } = await supabase
-      .from("presencas")
-      .select("aluno_id")
-      .gte("data", twoWeeksAgo.toISOString().split("T")[0]);
+      const { data: alunosAtivos } = await supabase
+        .from("alunos")
+        .select("id, nome")
+        .eq("owner_user_id", ownerId)
+        .eq("status", "ativo");
+
+      const { data: presencasRecentes } = await supabase
+        .from("presencas")
+        .select("aluno_id")
+        .eq("owner_user_id", ownerId)
+        .gte("data", twoWeeksAgo.toISOString().split("T")[0]);
 
     const alunosComPresenca = new Set((presencasRecentes || []).map((p) => p.aluno_id));
     const alunosSemPresenca = (alunosAtivos || []).filter((a) => !alunosComPresenca.has(a.id));
 
-    if (alunosSemPresenca.length > 0) {
-      paymentNotifications.push({
+      if (alunosSemPresenca.length > 0) {
+        tenantNotifs.push({
         titulo: `⚡ ${alunosSemPresenca.length} aluno${alunosSemPresenca.length > 1 ? "s" : ""} sem presença recente`,
         mensagem: `${alunosSemPresenca.slice(0, 3).map((a) => a.nome).join(", ")}${alunosSemPresenca.length > 3 ? ` e mais ${alunosSemPresenca.length - 3}` : ""} não tiveram presença nos últimos 14 dias.`,
         tipo: "alerta",
@@ -244,16 +258,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ============================================================
-    // 6. REPOSIÇÕES PENDENTES
-    // ============================================================
-    const { data: reposicoesPendentes } = await supabase
-      .from("reposicoes")
-      .select("id")
-      .eq("status", "pendente");
+      // REPOSIÇÕES PENDENTES
+      const { data: reposicoesPendentes } = await supabase
+        .from("reposicoes")
+        .select("id")
+        .eq("owner_user_id", ownerId)
+        .eq("status", "pendente");
 
-    if ((reposicoesPendentes?.length || 0) > 0) {
-      paymentNotifications.push({
+      if ((reposicoesPendentes?.length || 0) > 0) {
+        tenantNotifs.push({
         titulo: `🔄 ${reposicoesPendentes!.length} reposição${reposicoesPendentes!.length > 1 ? "ões" : ""} pendente${reposicoesPendentes!.length > 1 ? "s" : ""}`,
         mensagem: "Existem reposições de aula aguardando agendamento.",
         tipo: "info",
@@ -262,28 +275,18 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ============================================================
-    // INSERT NOTIFICATIONS (avoid duplicates by tag)
-    // ============================================================
-    const allNotifications = [...birthdayNotifications, ...paymentNotifications];
+      // Dedup against existing notifications for this tenant today
+      const { data: existingNotifs } = await supabase
+        .from("notificacoes")
+        .select("titulo")
+        .eq("user_id", ownerId)
+        .gte("created_at", todayStr + "T00:00:00.000Z");
+      const existingTitles = new Set((existingNotifs || []).map((n) => n.titulo));
 
-    // Check existing notifications for today to avoid duplicates
-    const tags = allNotifications.map((n) => n.tag).filter(Boolean);
-    
-    const { data: existingNotifs } = await supabase
-      .from("notificacoes")
-      .select("mensagem, titulo")
-      .in("user_id", userIds)
-      .gte("created_at", todayStr + "T00:00:00.000Z");
-
-    const existingTitles = new Set((existingNotifs || []).map((n) => n.titulo));
-
-    const newNotifications: any[] = [];
-    for (const userId of userIds) {
-      for (const notif of allNotifications) {
+      for (const notif of tenantNotifs) {
         if (existingTitles.has(notif.titulo)) continue;
         newNotifications.push({
-          user_id: userId,
+          user_id: ownerId,
           titulo: notif.titulo,
           mensagem: notif.mensagem,
           tipo: notif.tipo,
@@ -302,11 +305,7 @@ Deno.serve(async (req) => {
       JSON.stringify({
         message: "Notifications generated",
         created: newNotifications.length,
-        cleaned: "old notifications removed",
-        details: {
-          birthdays: birthdayNotifications.length,
-          payments: paymentNotifications.length,
-        },
+        tenants: userIds.length,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
