@@ -29,11 +29,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useAlunos } from "@/hooks/useAlunos";
-import { usePagamentos } from "@/hooks/usePagamentos";
 import { useConfiguracoes } from "@/hooks/useConfiguracoes";
 import autobotizeLogo from "@/assets/autobotize-logo-4.webp";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MenuGroup {
   label: string;
@@ -107,14 +107,39 @@ export function AppSidebar() {
   const { collapsed, toggleCollapsed, isMobile, mobileOpen, setMobileOpen, setIsHovering, hoverMode } = useSidebar();
   const { signOut } = useAuth();
   const location = useLocation();
-
-  const { data: alunos } = useAlunos();
-  const { data: pagamentos } = usePagamentos();
   const { data: configuracoes } = useConfiguracoes();
 
+  const { data: totalAlunosAtivos } = useQuery({
+    queryKey: ["sidebar-alunos-ativos"],
+    staleTime: 60 * 1000,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("alunos")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "ativo");
+
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
+  const { data: totalPagamentosPendentes } = useQuery({
+    queryKey: ["sidebar-pagamentos-pendentes"],
+    staleTime: 60 * 1000,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("pagamentos")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pendente");
+
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
   const badgeValues: Record<string, number | undefined> = {
-    alunos: alunos?.filter((a) => a.status === "ativo").length,
-    financeiro: pagamentos?.filter((p) => p.status === "pendente").length,
+    alunos: totalAlunosAtivos,
+    financeiro: totalPagamentosPendentes,
   };
 
   // Track which groups are open — auto-open group containing active route
