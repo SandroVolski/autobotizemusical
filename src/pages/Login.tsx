@@ -190,10 +190,14 @@ export default function Login() {
           }} transition={{
             delay: 0.2
           }} className="text-center mb-8">
-              <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center mb-4 glow-primary overflow-hidden">
-                <img src={autobotizeLogo} alt="Autobotize" className="w-16 h-16 object-contain" />
+              <div className="mx-auto mb-4 flex items-center justify-center">
+                <img
+                  src={autobotizeLogo}
+                  alt="Autobotize"
+                  className="h-20 w-auto object-contain drop-shadow-[0_0_24px_hsl(var(--primary)/0.45)]"
+                />
               </div>
-              <h1 className="text-2xl font-bold">Autobotize — Login de Gestão Musical</h1>
+              <h1 className="text-2xl font-bold">Autobotize</h1>
               <p className="text-lg gradient-text font-semibold">Gestão Musical</p>
               <p className="text-sm text-muted-foreground mt-2">
                 Faça login para acessar o sistema
