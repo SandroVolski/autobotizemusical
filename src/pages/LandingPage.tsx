@@ -4,8 +4,22 @@ import { HeroSection } from "@/components/landing/HeroSection";
 import { FloatingElements } from "@/components/landing/FloatingElements";
 import { PhoneMockupSection } from "@/components/landing/PhoneMockupSection";
 import { RevealSection, NotebookFeaturesSection, SocialProofSphere, MusicalTransition, SpiralCTASection, PricingSection, NewFooter } from "@/components/landing/SalesComponents";
+import { IntroSplash } from "@/components/landing/IntroSplash";
+import { useState } from "react";
 const LandingPage = () => {
+  const [showIntro, setShowIntro] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return !sessionStorage.getItem("autobotize_intro_seen");
+  });
   return <div className="min-h-screen relative bg-black">
+      {showIntro && (
+        <IntroSplash
+          onFinish={() => {
+            sessionStorage.setItem("autobotize_intro_seen", "1");
+            setShowIntro(false);
+          }}
+        />
+      )}
       <Helmet>
         <title>Autobotize — Gestão Completa para sua Escola de Música</title>
         <meta name="description" content="Autobotize é a plataforma definitiva para gestão de escolas de música: automatize matrículas, aulas, finanças e potencialize o aprendizado com IA." />
