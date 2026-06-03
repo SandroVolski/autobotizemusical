@@ -51,6 +51,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useAlunos, useUpdateAluno } from "@/hooks/useAlunos";
 import { useMatriculas } from "@/hooks/useMatriculas";
+import { StudentEnrollments } from "@/components/alunos/StudentEnrollments";
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useAulas } from "@/hooks/useAulas";
 import { usePresencas } from "@/hooks/usePresencas";
