@@ -29,12 +29,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useAlunos } from "@/hooks/useAlunos";
-import { usePagamentos } from "@/hooks/usePagamentos";
 import { useConfiguracoes } from "@/hooks/useConfiguracoes";
 import autobotizeLogo from "@/assets/autobotize-logo-4.webp";
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 interface MenuGroup {
   label: string;
@@ -108,15 +106,43 @@ export function AppSidebar() {
   const { collapsed, toggleCollapsed, isMobile, mobileOpen, setMobileOpen, setIsHovering, hoverMode } = useSidebar();
   const { signOut } = useAuth();
   const location = useLocation();
-  const queryClient = useQueryClient();
-
-  const { data: alunos } = useAlunos();
-  const { data: pagamentos } = usePagamentos();
   const { data: configuracoes } = useConfiguracoes();
 
+  const { data: totalAlunosAtivos } = useQuery({
+    queryKey: ["sidebar-alunos-ativos"],
+    staleTime: 60 * 1000,
+    queryFn: async () => {
+      const { count, error } = await import("@/integrations/supabase/client").then(({ supabase }) =>
+        supabase
+          .from("alunos")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "ativo")
+      );
+
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
+  const { data: totalPagamentosPendentes } = useQuery({
+    queryKey: ["sidebar-pagamentos-pendentes"],
+    staleTime: 60 * 1000,
+    queryFn: async () => {
+      const { count, error } = await import("@/integrations/supabase/client").then(({ supabase }) =>
+        supabase
+          .from("pagamentos")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "pendente")
+      );
+
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
   const badgeValues: Record<string, number | undefined> = {
-    alunos: alunos?.filter((a) => a.status === "ativo").length,
-    financeiro: pagamentos?.filter((p) => p.status === "pendente").length,
+    alunos: totalAlunosAtivos,
+    financeiro: totalPagamentosPendentes,
   };
 
   // Track which groups are open — auto-open group containing active route
@@ -138,17 +164,7 @@ export function AppSidebar() {
   };
 
   const handleSignOut = async () => { await signOut(); };
-  const handleNavClick = (path: string) => {
-    if (isMobile) setMobileOpen(false);
-
-    if (path === "/alunos") {
-      void queryClient.prefetchQuery({ queryKey: ["alunos"] });
-    }
-
-    if (path === "/financeiro") {
-      void queryClient.prefetchQuery({ queryKey: ["pagamentos"] });
-    }
-  };
+  const handleNavClick = () => { if (isMobile) setMobileOpen(false); };
 
   const renderNavItem = (item: typeof menuGroups[0]["items"][0], showLabel: boolean) => {
     const isActive = location.pathname === item.path;
@@ -158,7 +174,7 @@ export function AppSidebar() {
       <li key={item.path}>
         <NavLink
           to={item.path}
-          onClick={() => handleNavClick(item.path)}
+          onClick={handleNavClick}
           className={cn(
             "flex items-center rounded-lg transition-all duration-200 group relative text-sm h-10 px-3 gap-3",
             collapsed && !isMobile && "justify-center overflow-hidden",
