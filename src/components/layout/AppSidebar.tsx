@@ -33,6 +33,7 @@ import { useConfiguracoes } from "@/hooks/useConfiguracoes";
 import autobotizeLogo from "@/assets/autobotize-logo-4.webp";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MenuGroup {
   label: string;
@@ -112,12 +113,10 @@ export function AppSidebar() {
     queryKey: ["sidebar-alunos-ativos"],
     staleTime: 60 * 1000,
     queryFn: async () => {
-      const { count, error } = await import("@/integrations/supabase/client").then(({ supabase }) =>
-        supabase
-          .from("alunos")
-          .select("id", { count: "exact", head: true })
-          .eq("status", "ativo")
-      );
+      const { count, error } = await supabase
+        .from("alunos")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "ativo");
 
       if (error) throw error;
       return count ?? 0;
@@ -128,12 +127,10 @@ export function AppSidebar() {
     queryKey: ["sidebar-pagamentos-pendentes"],
     staleTime: 60 * 1000,
     queryFn: async () => {
-      const { count, error } = await import("@/integrations/supabase/client").then(({ supabase }) =>
-        supabase
-          .from("pagamentos")
-          .select("id", { count: "exact", head: true })
-          .eq("status", "pendente")
-      );
+      const { count, error } = await supabase
+        .from("pagamentos")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pendente");
 
       if (error) throw error;
       return count ?? 0;
