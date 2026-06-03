@@ -92,3 +92,56 @@ export function useRemoveAlunoTurma() {
     onError: () => toast({ title: "Erro ao remover aluno", variant: "destructive" }),
   });
 }
+
+export function useUpdateTurma() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...turma }: { id: string } & Partial<{
+      nome: string;
+      professor_id: string | null;
+      curso_id: string | null;
+      dia_semana: number;
+      horario: string;
+      duracao_minutos: number;
+      max_alunos: number;
+      sala: string | null;
+      status: string;
+    }>) => {
+      const cleaned = Object.fromEntries(
+        Object.entries(turma).map(([k, v]) => [k, v === "" ? null : v])
+      );
+      const { data, error } = await supabase
+        .from("turmas")
+        .update(cleaned)
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["turmas"] });
+      toast({ title: "Turma atualizada!" });
+    },
+    onError: () => toast({ title: "Erro ao atualizar turma", variant: "destructive" }),
+  });
+}
+
+export function useDeleteTurma() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      // Remove vínculos primeiro
+      await supabase.from("turma_alunos").delete().eq("turma_id", id);
+      const { error } = await supabase.from("turmas").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["turmas"] });
+      qc.invalidateQueries({ queryKey: ["turma_alunos"] });
+      qc.invalidateQueries({ queryKey: ["turma_alunos_counts"] });
+      toast({ title: "Turma excluída" });
+    },
+    onError: () => toast({ title: "Erro ao excluir turma", variant: "destructive" }),
+  });
+}
