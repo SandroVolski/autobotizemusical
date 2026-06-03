@@ -51,6 +51,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useAlunos, useUpdateAluno } from "@/hooks/useAlunos";
 import { useMatriculas } from "@/hooks/useMatriculas";
+import { StudentEnrollments } from "@/components/alunos/StudentEnrollments";
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useAulas } from "@/hooks/useAulas";
 import { usePresencas } from "@/hooks/usePresencas";
@@ -424,27 +425,7 @@ export default function AlunoPerfil() {
                 <Button size="sm" onClick={() => setEnrollmentOpen(true)}><Plus className="w-4 h-4 mr-1" /> Nova Matrícula</Button>
               </CardHeader>
               <CardContent>
-                {!matriculas || matriculas.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-6 text-sm">Nenhuma matrícula encontrada</p>
-                ) : (
-                  <div className="space-y-3">
-                    {matriculas.map((m) => (
-                      <div key={m.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                        <div className="flex items-center gap-3">
-                          <BookOpen className="w-4 h-4 text-primary" />
-                          <div>
-                            <p className="font-medium text-sm">{m.cursos?.nome || "Curso"}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(m.data_inicio).toLocaleDateString("pt-BR")}
-                              {m.data_fim && ` → ${new Date(m.data_fim).toLocaleDateString("pt-BR")}`}
-                            </p>
-                          </div>
-                        </div>
-                        <Badge variant={m.status === "ativo" ? "success" : "outline"}>{m.status}</Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                {id && <StudentEnrollments alunoId={id} />}
               </CardContent>
             </Card>
           </TabsContent>
