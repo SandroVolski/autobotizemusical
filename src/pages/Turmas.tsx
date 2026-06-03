@@ -72,6 +72,8 @@ export default function Turmas() {
 
   const { data: turmas, isLoading } = useTurmas();
   const { data: turmaAlunos } = useTurmaAlunos(selectedTurma);
+  const [editAddAlunoId, setEditAddAlunoId] = useState("");
+  const { data: editTurmaAlunos } = useTurmaAlunos(editingTurma?.id || null);
   const { data: professores } = useProfessores();
   const { data: cursos } = useCursos();
   const { data: alunos } = useAlunos();
