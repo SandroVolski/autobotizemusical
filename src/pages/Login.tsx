@@ -194,7 +194,7 @@ export default function Login() {
                 <img
                   src={autobotizeLogo}
                   alt="Autobotize"
-                  className="h-20 w-auto object-contain drop-shadow-[0_0_24px_hsl(var(--primary)/0.45)]"
+                  className="h-20 w-auto object-contain rounded-xl drop-shadow-[0_0_24px_hsl(var(--primary)/0.45)]"
                 />
               </div>
               <h1 className="text-2xl font-bold">Autobotize</h1>

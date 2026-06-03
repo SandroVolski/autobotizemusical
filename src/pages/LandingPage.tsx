@@ -4,7 +4,6 @@ import { HeroSection } from "@/components/landing/HeroSection";
 import { FloatingElements } from "@/components/landing/FloatingElements";
 import { PhoneMockupSection } from "@/components/landing/PhoneMockupSection";
 import { RevealSection, NotebookFeaturesSection, SocialProofSphere, MusicalTransition, SpiralCTASection, PricingSection, NewFooter } from "@/components/landing/SalesComponents";
-import { useState } from "react";
 const LandingPage = () => {
   return <div className="min-h-screen relative bg-black">
       <Helmet>
