@@ -13,7 +13,7 @@ export interface Matricula {
   created_at: string;
   updated_at: string;
   alunos?: { nome: string } | null;
-  cursos?: { nome: string; instrumento: string } | null;
+  cursos?: { nome: string; instrumento: string; valor_mensal?: number | null } | null;
 }
 
 export interface NovaMatricula {
@@ -34,7 +34,7 @@ export function useMatriculas(alunoId?: string) {
         .select(`
           *,
           alunos(nome),
-          cursos(nome, instrumento)
+          cursos(nome, instrumento, valor_mensal)
         `)
         .order("data_inicio", { ascending: false });
       

@@ -752,7 +752,13 @@ export default function Alunos() {
                 {tipoAula === "turma" && (
                   <div className="grid gap-2">
                     <Label>Selecione a Turma</Label>
-                    <Select value={selectedTurmaId} onValueChange={setSelectedTurmaId}>
+                    <Select value={selectedTurmaId} onValueChange={(v) => {
+                      setSelectedTurmaId(v);
+                      const turma: any = turmasList?.find((t: any) => t.id === v);
+                      if (turma?.curso_id) {
+                        setSelectedCursoIds(prev => prev.includes(turma.curso_id) ? prev : [...prev, turma.curso_id]);
+                      }
+                    }}>
                       <SelectTrigger><SelectValue placeholder="Escolha uma turma" /></SelectTrigger>
                       <SelectContent>
                         {turmasList?.filter((t: any) => t.status === "ativa").map((t: any) => (
@@ -763,7 +769,7 @@ export default function Alunos() {
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-muted-foreground">
-                      O aluno será adicionado à turma selecionada automaticamente.
+                      O aluno será adicionado à turma e o curso vinculado será marcado automaticamente.
                     </p>
                   </div>
                 )}

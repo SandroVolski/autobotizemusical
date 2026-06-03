@@ -72,6 +72,8 @@ export default function Turmas() {
 
   const { data: turmas, isLoading } = useTurmas();
   const { data: turmaAlunos } = useTurmaAlunos(selectedTurma);
+  const [editAddAlunoId, setEditAddAlunoId] = useState("");
+  const { data: editTurmaAlunos } = useTurmaAlunos(editingTurma?.id || null);
   const { data: professores } = useProfessores();
   const { data: cursos } = useCursos();
   const { data: alunos } = useAlunos();
@@ -566,6 +568,53 @@ export default function Turmas() {
               <div className="grid gap-2">
                 <Label>Sala</Label>
                 <Input value={editingTurma.sala} onChange={(e) => setEditingTurma((p: any) => ({ ...p, sala: e.target.value }))} />
+              </div>
+              {/* Alunos da Turma */}
+              <div className="grid gap-2 p-3 rounded-lg border border-border bg-muted/30">
+                <Label className="text-sm font-semibold">Alunos da Turma ({editTurmaAlunos?.length || 0})</Label>
+                <div className="space-y-1 max-h-[160px] overflow-y-auto">
+                  {editTurmaAlunos?.map((ta: any) => (
+                    <div key={ta.id} className="flex items-center justify-between p-2 rounded-md bg-card border border-border/50">
+                      <span className="text-sm">{ta.alunos?.nome || "Aluno"}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive"
+                        onClick={() => removeAluno.mutate({ turma_id: editingTurma.id, aluno_id: ta.aluno_id })}
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                  {(!editTurmaAlunos || editTurmaAlunos.length === 0) && (
+                    <p className="text-xs text-muted-foreground text-center py-2">Nenhum aluno na turma</p>
+                  )}
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <Select value={editAddAlunoId} onValueChange={setEditAddAlunoId}>
+                    <SelectTrigger className="flex-1"><SelectValue placeholder="Adicionar aluno..." /></SelectTrigger>
+                    <SelectContent>
+                      {alunos?.filter(a => a.status === "ativo" && !editTurmaAlunos?.some((ta: any) => ta.aluno_id === a.id)).map(a => (
+                        <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!editAddAlunoId || addAluno.isPending}
+                    onClick={() => {
+                      if (!editAddAlunoId) return;
+                      addAluno.mutate(
+                        { turma_id: editingTurma.id, aluno_id: editAddAlunoId },
+                        { onSuccess: () => setEditAddAlunoId("") }
+                      );
+                    }}
+                  >
+                    <UserPlus className="w-4 h-4 mr-1" />Adicionar
+                  </Button>
+                </div>
               </div>
               <Button onClick={handleSaveEdit} disabled={updateTurma.isPending} className="w-full">
                 {updateTurma.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}

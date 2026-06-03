@@ -27,6 +27,12 @@ export function StudentEnrollments({ alunoId }: StudentEnrollmentsProps) {
     );
   }
 
+  const ativas = matriculas.filter(m => m.status === "ativo");
+  const totalMensal = ativas.reduce(
+    (acc, m) => acc + (Number(m.cursos?.valor_mensal) || 0),
+    0
+  );
+
   return (
     <div className="space-y-2">
       {matriculas.map(matricula => (
@@ -40,6 +46,11 @@ export function StudentEnrollments({ alunoId }: StudentEnrollmentsProps) {
                 {new Date(matricula.data_inicio).toLocaleDateString("pt-BR")}
                 {matricula.data_fim && ` - ${new Date(matricula.data_fim).toLocaleDateString("pt-BR")}`}
               </p>
+              {matricula.cursos?.valor_mensal != null && (
+                <p className="text-xs font-medium text-primary">
+                  {Number(matricula.cursos.valor_mensal).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}/mês
+                </p>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -58,6 +69,14 @@ export function StudentEnrollments({ alunoId }: StudentEnrollmentsProps) {
           </div>
         </div>
       ))}
+      {ativas.length > 1 && (
+        <div className="flex items-center justify-between pt-2 border-t border-border/50 text-sm">
+          <span className="text-muted-foreground">Total mensal ({ativas.length} matrículas)</span>
+          <span className="font-semibold text-primary">
+            {totalMensal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
