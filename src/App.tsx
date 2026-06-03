@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -12,45 +12,93 @@ import { RoleRoute } from "@/components/RoleRoute";
 import { Loader2 } from "lucide-react";
 import LandingPage from "./pages/LandingPage";
 
-const Login = lazy(() => import("./pages/Login"));
-const RedefinirSenha = lazy(() => import("./pages/RedefinirSenha"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const Alunos = lazy(() => import("./pages/Alunos"));
-const AlunoPerfil = lazy(() => import("./pages/AlunoPerfil"));
-const Agenda = lazy(() => import("./pages/Agenda"));
-const Financeiro = lazy(() => import("./pages/Financeiro"));
-const HubIA = lazy(() => import("./pages/HubIA"));
-const Instrumentos = lazy(() => import("./pages/Instrumentos"));
-const Cursos = lazy(() => import("./pages/Cursos"));
-const Relatorios = lazy(() => import("./pages/Relatorios"));
-const Pedagogico = lazy(() => import("./pages/Pedagogico"));
-const Professores = lazy(() => import("./pages/Professores"));
-const Configuracoes = lazy(() => import("./pages/Configuracoes"));
-const Turmas = lazy(() => import("./pages/Turmas"));
-const Reposicoes = lazy(() => import("./pages/Reposicoes"));
-const Contratos = lazy(() => import("./pages/Contratos"));
-const CRM = lazy(() => import("./pages/CRM"));
-const Confirmacoes = lazy(() => import("./pages/Confirmacoes"));
-const Cobrancas = lazy(() => import("./pages/Cobrancas"));
-const Feriados = lazy(() => import("./pages/Feriados"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+// Route imports - lazy for code splitting, but pre-fetched on idle to keep navigation instant.
+const loaders = {
+  Login: () => import("./pages/Login"),
+  RedefinirSenha: () => import("./pages/RedefinirSenha"),
+  Dashboard: () => import("./pages/Dashboard"),
+  Alunos: () => import("./pages/Alunos"),
+  AlunoPerfil: () => import("./pages/AlunoPerfil"),
+  Agenda: () => import("./pages/Agenda"),
+  Financeiro: () => import("./pages/Financeiro"),
+  HubIA: () => import("./pages/HubIA"),
+  Instrumentos: () => import("./pages/Instrumentos"),
+  Cursos: () => import("./pages/Cursos"),
+  Relatorios: () => import("./pages/Relatorios"),
+  Pedagogico: () => import("./pages/Pedagogico"),
+  Professores: () => import("./pages/Professores"),
+  Configuracoes: () => import("./pages/Configuracoes"),
+  Turmas: () => import("./pages/Turmas"),
+  Reposicoes: () => import("./pages/Reposicoes"),
+  Contratos: () => import("./pages/Contratos"),
+  CRM: () => import("./pages/CRM"),
+  Confirmacoes: () => import("./pages/Confirmacoes"),
+  Cobrancas: () => import("./pages/Cobrancas"),
+  Feriados: () => import("./pages/Feriados"),
+  NotFound: () => import("./pages/NotFound"),
+};
+const Login = lazy(loaders.Login);
+const RedefinirSenha = lazy(loaders.RedefinirSenha);
+const Dashboard = lazy(loaders.Dashboard);
+const Alunos = lazy(loaders.Alunos);
+const AlunoPerfil = lazy(loaders.AlunoPerfil);
+const Agenda = lazy(loaders.Agenda);
+const Financeiro = lazy(loaders.Financeiro);
+const HubIA = lazy(loaders.HubIA);
+const Instrumentos = lazy(loaders.Instrumentos);
+const Cursos = lazy(loaders.Cursos);
+const Relatorios = lazy(loaders.Relatorios);
+const Pedagogico = lazy(loaders.Pedagogico);
+const Professores = lazy(loaders.Professores);
+const Configuracoes = lazy(loaders.Configuracoes);
+const Turmas = lazy(loaders.Turmas);
+const Reposicoes = lazy(loaders.Reposicoes);
+const Contratos = lazy(loaders.Contratos);
+const CRM = lazy(loaders.CRM);
+const Confirmacoes = lazy(loaders.Confirmacoes);
+const Cobrancas = lazy(loaders.Cobrancas);
+const Feriados = lazy(loaders.Feriados);
+const NotFound = lazy(loaders.NotFound);
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
+// Minimal inline fallback - kept invisible briefly to avoid flashing on fast chunk loads.
 const RouteFallback = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background">
-    <div className="flex flex-col items-center gap-4">
-      <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      <p className="text-muted-foreground">Carregando...</p>
-    </div>
+  <div className="flex items-center justify-center py-16">
+    <Loader2 className="w-6 h-6 animate-spin text-primary opacity-60" />
   </div>
 );
+
+const PagePrefetcher = () => {
+  useEffect(() => {
+    const idle = (cb: () => void) =>
+      "requestIdleCallback" in window
+        ? (window as any).requestIdleCallback(cb, { timeout: 2000 })
+        : setTimeout(cb, 1500);
+    idle(() => {
+      Object.values(loaders).forEach((load) => {
+        try { load(); } catch {}
+      });
+    });
+  }, []);
+  return null;
+};
 
 // Wrapper component for authenticated pages
 const AuthenticatedPage = ({ children }: { children: React.ReactNode }) => (
   <ProtectedRoute>
     <SidebarProvider>
-      <AppLayout>{children}</AppLayout>
+      <AppLayout>
+        <Suspense fallback={<RouteFallback />}>{children}</Suspense>
+      </AppLayout>
     </SidebarProvider>
   </ProtectedRoute>
 );
@@ -62,6 +110,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <PagePrefetcher />
           <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/" element={<LandingPage />} />
