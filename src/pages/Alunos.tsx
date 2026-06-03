@@ -114,6 +114,7 @@ export default function Alunos() {
   const [previewPhoto, setPreviewPhoto] = useState<{ url: string; nome: string } | null>(null);
   const [newAluno, setNewAluno] = useState<NovoAluno>({
     nome: "",
+    apelido: "",
     email: "",
     telefone: "",
     data_nascimento: "",
@@ -361,6 +362,7 @@ export default function Alunos() {
   const resetForm = () => {
     setNewAluno({
       nome: "",
+      apelido: "",
       email: "",
       telefone: "",
       data_nascimento: "",
@@ -387,6 +389,7 @@ export default function Alunos() {
     setEditingAluno(aluno.id);
     setNewAluno({
       nome: aluno.nome,
+      apelido: (aluno as any).apelido || "",
       email: aluno.email || "",
       telefone: aluno.telefone || "",
       data_nascimento: aluno.data_nascimento || "",
@@ -580,6 +583,16 @@ export default function Alunos() {
                   value={newAluno.nome}
                   onChange={(e) => setNewAluno(prev => ({ ...prev, nome: e.target.value }))}
                 />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="apelido">Apelido (uso interno)</Label>
+                <Input
+                  id="apelido"
+                  placeholder="Ex: João Junior"
+                  value={newAluno.apelido || ""}
+                  onChange={(e) => setNewAluno(prev => ({ ...prev, apelido: e.target.value }))}
+                />
+                <p className="text-xs text-muted-foreground">Apenas para te ajudar a identificar o aluno. Não é usado nas mensagens enviadas.</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
