@@ -57,6 +57,9 @@ Deno.serve(async (req) => {
     const body = await req.json();
     console.log("Webhook received:", JSON.stringify(body).substring(0, 1000));
 
+    // Evolution sends the instance name on the payload. Use it to resolve the tenant.
+    const incomingInstance: string = body.instance || body.data?.instance || "";
+
     // Evolution API sends different event types
     const event = body.event || body.type;
     
@@ -126,6 +129,23 @@ Deno.serve(async (req) => {
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+    // Resolve owner from the instance that delivered this webhook.
+    let ownerUserId: string | null = null;
+    if (incomingInstance) {
+      const { data: instanceRow } = await supabase
+        .from("whatsapp_instances")
+        .select("user_id")
+        .eq("instance_name", incomingInstance)
+        .maybeSingle();
+      ownerUserId = instanceRow?.user_id || null;
+    }
+    if (!ownerUserId) {
+      console.log("Could not map instance to tenant:", incomingInstance);
+      return new Response(JSON.stringify({ ok: true, ignored: "unknown_instance" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Generate all phone variants for matching
     const phoneVariants = getPhoneVariants(senderPhone);
     console.log("Phone variants to search:", JSON.stringify(phoneVariants));
@@ -135,6 +155,7 @@ Deno.serve(async (req) => {
       const { data: msgs, error } = await supabase
         .from("confirmacao_aula_mensagens")
         .select("id")
+        .eq("owner_user_id", ownerUserId)
         .eq("telefone", phone)
         .in("status", ["enviado", "pendente"])
         .order("created_at", { ascending: false })
