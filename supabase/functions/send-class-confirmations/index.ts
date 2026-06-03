@@ -23,24 +23,31 @@ Deno.serve(async (req) => {
       });
     }
 
-    const authClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: { user }, error: userError } = await authClient.auth.getUser();
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const callerToken = authHeader.replace("Bearer ", "");
+    const isServiceRole = callerToken === SUPABASE_SERVICE_ROLE_KEY;
 
-    // Require admin or secretaria role (use service role to avoid exposing has_role to clients)
-    const roleClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    const { data: isAdmin } = await roleClient.rpc("has_role", { _user_id: user.id, _role: "admin" });
-    const { data: isSecretaria } = await roleClient.rpc("has_role", { _user_id: user.id, _role: "secretaria" });
-    if (!isAdmin && !isSecretaria) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // For non-service-role callers, verify user + admin/secretaria role and
+    // capture the caller's tenant id so we only act on their own data.
+    let callerOwnerId: string | null = null;
+    if (!isServiceRole) {
+      const authClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        global: { headers: { Authorization: authHeader } },
       });
+      const { data: { user }, error: userError } = await authClient.auth.getUser();
+      if (userError || !user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const roleClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      const { data: isAdmin } = await roleClient.rpc("has_role", { _user_id: user.id, _role: "admin" });
+      const { data: isSecretaria } = await roleClient.rpc("has_role", { _user_id: user.id, _role: "secretaria" });
+      if (!isAdmin && !isSecretaria) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      callerOwnerId = user.id;
     }
 
     const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL");
@@ -69,10 +76,33 @@ Deno.serve(async (req) => {
     const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
     const currentDayOfWeek = in24h.getDay();
 
-    // 1) Get RECURRING classes
+    // Determine which tenants (owner_user_id) to process.
+    // - Manual/user call: only the caller's tenant.
+    // - Cron/service-role: iterate over every tenant that has any configured class.
+    let tenantIds: string[] = [];
+    if (callerOwnerId) {
+      tenantIds = [callerOwnerId];
+    } else {
+      const { data: owners } = await supabase
+        .from("aulas")
+        .select("owner_user_id")
+        .eq("status", "agendada");
+      tenantIds = [...new Set((owners || []).map((o: any) => o.owner_user_id).filter(Boolean))];
+    }
+
+    let sent = 0;
+    let errors = 0;
+    let totalAulas = 0;
+
+    const diasSemana = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+    const defaultMsg = `Olá {nome}! 🎵\n\nLembramos que você tem aula amanhã ({dia}) às {horario}.\n\nVocê confirma presença?\n\n✅ Responda *SIM* para confirmar\n❌ Responda *NÃO* para cancelar`;
+
+    for (const ownerId of tenantIds) {
+    // 1) Get RECURRING classes (scoped to this tenant)
     let recurringQuery = supabase
       .from("aulas")
       .select("id, aluno_id, horario, dia_semana, alunos(nome, telefone, responsavel_telefone)")
+      .eq("owner_user_id", ownerId)
       .eq("status", "agendada")
       .eq("recorrente", true);
 
@@ -92,6 +122,7 @@ Deno.serve(async (req) => {
     let oneOffQuery = supabase
       .from("aulas")
       .select("id, aluno_id, horario, dia_semana, data_especifica, alunos(nome, telefone, responsavel_telefone)")
+      .eq("owner_user_id", ownerId)
       .eq("status", "agendada")
       .or(`recorrente.eq.false,recorrente.is.null`);
 
@@ -120,26 +151,24 @@ Deno.serve(async (req) => {
       const { data: cfgs, error: configsError } = await supabase
         .from("confirmacao_aula_config")
         .select("aluno_id, habilitado, telefone_override")
+        .eq("owner_user_id", ownerId)
         .eq("habilitado", true);
       if (configsError) throw configsError;
       configs = cfgs || [];
     }
 
-    // Get custom message template
+    // Get custom message template (scoped to this tenant)
     const { data: escolaConfig } = await supabase
       .from("configuracoes_escola")
       .select("mensagem_confirmacao")
+      .eq("user_id", ownerId)
       .limit(1)
       .maybeSingle();
 
-    const defaultMsg = `Olá {nome}! 🎵\n\nLembramos que você tem aula amanhã ({dia}) às {horario}.\n\nVocê confirma presença?\n\n✅ Responda *SIM* para confirmar\n❌ Responda *NÃO* para cancelar`;
     const msgTemplate = (escolaConfig as any)?.mensagem_confirmacao || defaultMsg;
 
     const enabledSet = new Map(configs.map((c: any) => [c.aluno_id, c]));
-    let sent = 0;
-    let errors = 0;
-
-    const diasSemana = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+    totalAulas += aulas.length;
 
     for (const aula of aulas) {
       const aluno = aula.alunos as any;
@@ -229,6 +258,7 @@ Deno.serve(async (req) => {
       }
 
       await supabase.from("confirmacao_aula_mensagens").insert({
+        owner_user_id: ownerId,
         aluno_id: aula.aluno_id,
         aula_id: aula.id,
         telefone: phoneWithCountry,
@@ -239,9 +269,10 @@ Deno.serve(async (req) => {
         erro,
       });
     }
+    } // end per-tenant loop
 
     return new Response(
-      JSON.stringify({ success: true, sent, errors, total: aulas?.length || 0 }),
+      JSON.stringify({ success: true, sent, errors, total: totalAulas, tenants: tenantIds.length }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
