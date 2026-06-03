@@ -5,6 +5,28 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Derive a per-tenant instance name from the user id. Stable, URL-safe.
+function instanceNameFor(userId: string): string {
+  return `escola_${userId.replace(/-/g, "").slice(0, 24)}`;
+}
+
+async function getOrCreateInstanceRow(serviceClient: any, userId: string) {
+  const { data: existing } = await serviceClient
+    .from("whatsapp_instances")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (existing) return existing;
+  const instance_name = instanceNameFor(userId);
+  const { data: created, error } = await serviceClient
+    .from("whatsapp_instances")
+    .insert({ user_id: userId, instance_name, status: "desconectado" })
+    .select()
+    .single();
+  if (error) throw error;
+  return created;
+}
+
 async function extractQr(data: any): Promise<string | null> {
   if (!data) return null;
   if (typeof data === "string" && data.length > 50) return data;
@@ -23,9 +45,8 @@ Deno.serve(async (req) => {
   try {
     const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL");
     const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");
-    const EVOLUTION_INSTANCE = Deno.env.get("EVOLUTION_INSTANCE");
 
-    if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY || !EVOLUTION_INSTANCE) {
+    if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY) {
       return new Response(
         JSON.stringify({ error: "Evolution API não configurada." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -68,6 +89,10 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Resolve THIS tenant's Evolution instance (one per user).
+    const instanceRow = await getOrCreateInstanceRow(serviceClient, user.id);
+    const EVOLUTION_INSTANCE = instanceRow.instance_name;
+
     const body = await req.json();
     const { action, phone, message } = body;
     const apiHeaders = {
@@ -81,6 +106,16 @@ Deno.serve(async (req) => {
         const res = await fetch(`${baseUrl}/instance/connectionState/${EVOLUTION_INSTANCE}`, { headers: apiHeaders });
         const data = await res.json();
         console.log("Status response:", JSON.stringify(data));
+        const state = data?.state || data?.instance?.state;
+        if (state) {
+          await serviceClient
+            .from("whatsapp_instances")
+            .update({
+              status: state === "open" ? "conectado" : "desconectado",
+              conectado_em: state === "open" ? new Date().toISOString() : instanceRow.conectado_em,
+            })
+            .eq("user_id", user.id);
+        }
         return new Response(JSON.stringify(data), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
