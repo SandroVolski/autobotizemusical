@@ -569,7 +569,11 @@ export default function Configuracoes() {
                         const file = e.target.files?.[0];
                         if (!file) return;
                         const ext = file.name.split('.').pop();
-                        const fileName = `qrcode-${Date.now()}.${ext}`;
+                        if (!user) {
+                          toast.error("Sessão expirada. Faça login novamente.");
+                          return;
+                        }
+                        const fileName = `${user.id}/qrcode-${Date.now()}.${ext}`;
                         const { data, error } = await supabase.storage
                           .from('pix-qrcodes')
                           .upload(fileName, file, { upsert: true });
