@@ -209,8 +209,10 @@ export default function Alunos() {
   const createMatriculaMutation = useCreateMatricula();
   const filteredAlunos = alunos?.filter(aluno => {
     // Text search
-    const matchesSearch = aluno.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (aluno.email?.toLowerCase().includes(searchQuery.toLowerCase()));
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = aluno.nome.toLowerCase().includes(q) ||
+      ((aluno as any).apelido?.toLowerCase().includes(q)) ||
+      (aluno.email?.toLowerCase().includes(q));
     
     // Filters
     if (filterValues.status && aluno.status !== filterValues.status) return false;
@@ -1003,8 +1005,11 @@ export default function Alunos() {
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <h3 className="font-semibold truncate">{aluno.nome}</h3>
+                          {(aluno as any).apelido && (
+                            <span className="text-xs text-muted-foreground italic truncate">"{(aluno as any).apelido}"</span>
+                          )}
                           <Badge variant={aluno.status === "ativo" ? "success" : "outline"}>
                             {aluno.status}
                           </Badge>
