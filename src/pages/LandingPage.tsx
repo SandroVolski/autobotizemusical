@@ -4,7 +4,6 @@ import { HeroSection } from "@/components/landing/HeroSection";
 import { FloatingElements } from "@/components/landing/FloatingElements";
 import { PhoneMockupSection } from "@/components/landing/PhoneMockupSection";
 import { RevealSection, NotebookFeaturesSection, SocialProofSphere, MusicalTransition, SpiralCTASection, PricingSection, NewFooter } from "@/components/landing/SalesComponents";
-import { IntroSplash } from "@/components/landing/IntroSplash";
 import { useState } from "react";
 const LandingPage = () => {
   const [showIntro, setShowIntro] = useState(() => {
