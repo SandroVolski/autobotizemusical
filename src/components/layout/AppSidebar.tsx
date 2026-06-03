@@ -34,6 +34,7 @@ import { usePagamentos } from "@/hooks/usePagamentos";
 import { useConfiguracoes } from "@/hooks/useConfiguracoes";
 import autobotizeLogo from "@/assets/autobotize-logo-4.webp";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface MenuGroup {
   label: string;
@@ -107,6 +108,7 @@ export function AppSidebar() {
   const { collapsed, toggleCollapsed, isMobile, mobileOpen, setMobileOpen, setIsHovering, hoverMode } = useSidebar();
   const { signOut } = useAuth();
   const location = useLocation();
+  const queryClient = useQueryClient();
 
   const { data: alunos } = useAlunos();
   const { data: pagamentos } = usePagamentos();
@@ -136,7 +138,17 @@ export function AppSidebar() {
   };
 
   const handleSignOut = async () => { await signOut(); };
-  const handleNavClick = () => { if (isMobile) setMobileOpen(false); };
+  const handleNavClick = (path: string) => {
+    if (isMobile) setMobileOpen(false);
+
+    if (path === "/alunos") {
+      void queryClient.prefetchQuery({ queryKey: ["alunos"] });
+    }
+
+    if (path === "/financeiro") {
+      void queryClient.prefetchQuery({ queryKey: ["pagamentos"] });
+    }
+  };
 
   const renderNavItem = (item: typeof menuGroups[0]["items"][0], showLabel: boolean) => {
     const isActive = location.pathname === item.path;
@@ -146,7 +158,7 @@ export function AppSidebar() {
       <li key={item.path}>
         <NavLink
           to={item.path}
-          onClick={handleNavClick}
+          onClick={() => handleNavClick(item.path)}
           className={cn(
             "flex items-center rounded-lg transition-all duration-200 group relative text-sm h-10 px-3 gap-3",
             collapsed && !isMobile && "justify-center overflow-hidden",
