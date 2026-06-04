@@ -203,7 +203,7 @@ function MessageTemplateSettings() {
         </div>
         <div className="p-4 rounded-lg bg-muted/50 border">
           <p className="text-xs font-medium text-muted-foreground mb-2">Pré-visualização:</p>
-          <p className="text-sm whitespace-pre-line">{mensagem.replaceAll("{nome}", usarApelido ? "Joãozinho" : "João Silva").replaceAll("{apelido}", "Joãozinho").replaceAll("{dia}", "Segunda").replaceAll("{horario}", "14:00")}</p>
+          <p className="text-sm whitespace-pre-line">{mensagem.replace(/\{nome\}/g, usarApelido ? "Joãozinho" : "João Silva").replace(/\{apelido\}/g, "Joãozinho").replace(/\{dia\}/g, "Segunda").replace(/\{horario\}/g, "14:00")}</p>
         </div>
       </CardContent>
     </Card>
