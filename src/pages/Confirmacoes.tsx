@@ -178,16 +178,16 @@ function MessageTemplateSettings() {
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2"><MessageSquare className="w-5 h-5 text-primary" />Mensagem de Confirmação</CardTitle>
         <CardDescription>
-          Personalize a mensagem enviada aos alunos. Use as variáveis: <code className="text-xs bg-muted px-1 py-0.5 rounded">{"{nome}"}</code>, <code className="text-xs bg-muted px-1 py-0.5 rounded">{"{dia}"}</code>, <code className="text-xs bg-muted px-1 py-0.5 rounded">{"{horario}"}</code>
+          Personalize a mensagem enviada aos alunos. Use as variáveis: <code className="text-xs bg-muted px-1 py-0.5 rounded">{"{nome}"}</code>, <code className="text-xs bg-muted px-1 py-0.5 rounded">{"{apelido}"}</code>, <code className="text-xs bg-muted px-1 py-0.5 rounded">{"{dia}"}</code>, <code className="text-xs bg-muted px-1 py-0.5 rounded">{"{horario}"}</code>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <Textarea value={mensagem} onChange={(e) => { setMensagem(e.target.value); setDirty(true); }} rows={8} className="font-mono text-sm" />
         <div className="flex items-start justify-between gap-4 p-3 rounded-lg border bg-muted/30">
           <div className="space-y-0.5">
-            <p className="text-sm font-medium">Usar apelido do aluno</p>
+            <p className="text-sm font-medium">Usar apelido no lugar do nome</p>
             <p className="text-xs text-muted-foreground">
-              Quando ativado, a variável <code className="text-xs">{"{nome}"}</code> nas mensagens automáticas (Confirmações e Cobranças) usa o apelido cadastrado. Se o aluno não tiver apelido, o nome completo é usado.
+              Quando ativado, a variável <code className="text-xs">{"{nome}"}</code> nas mensagens automáticas (Confirmações e Cobranças) será substituída pelo apelido cadastrado. Se o aluno não tiver apelido, o nome completo é usado. Você também pode usar a variável <code className="text-xs">{"{apelido}"}</code> diretamente — ela sempre usa o apelido (ou o nome como fallback), independente desta opção.
             </p>
           </div>
           <Switch checked={usarApelido} onCheckedChange={(v) => { setUsarApelido(v); setDirty(true); }} />
@@ -203,7 +203,7 @@ function MessageTemplateSettings() {
         </div>
         <div className="p-4 rounded-lg bg-muted/50 border">
           <p className="text-xs font-medium text-muted-foreground mb-2">Pré-visualização:</p>
-          <p className="text-sm whitespace-pre-line">{mensagem.replace("{nome}", "João Silva").replace("{dia}", "Segunda").replace("{horario}", "14:00")}</p>
+          <p className="text-sm whitespace-pre-line">{mensagem.replace(/\{nome\}/g, usarApelido ? "Joãozinho" : "João Silva").replace(/\{apelido\}/g, "Joãozinho").replace(/\{dia\}/g, "Segunda").replace(/\{horario\}/g, "14:00")}</p>
         </div>
       </CardContent>
     </Card>
