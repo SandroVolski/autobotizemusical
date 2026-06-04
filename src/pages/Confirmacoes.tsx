@@ -157,14 +157,16 @@ function MessageTemplateSettings() {
   const updateConfig = useUpdateConfiguracoes();
   const defaultMsg = `Olá {nome}! 🎵\n\nLembramos que você tem aula amanhã ({dia}) às {horario}.\n\nVocê confirma presença?\n\n✅ Responda *SIM* para confirmar\n❌ Responda *NÃO* para cancelar`;
   const [mensagem, setMensagem] = useState(defaultMsg);
+  const [usarApelido, setUsarApelido] = useState(false);
   const [dirty, setDirty] = useState(false);
 
   useEffect(() => {
     if (config && (config as any).mensagem_confirmacao) setMensagem((config as any).mensagem_confirmacao);
+    if (config) setUsarApelido(!!(config as any).usar_apelido_whatsapp);
   }, [config]);
 
   const handleSave = () => {
-    updateConfig.mutate({ mensagem_confirmacao: mensagem } as any, {
+    updateConfig.mutate({ mensagem_confirmacao: mensagem, usar_apelido_whatsapp: usarApelido } as any, {
       onSuccess: () => { setDirty(false); toast({ title: "Mensagem salva!", description: "O template de confirmação foi atualizado." }); }
     });
   };
@@ -181,6 +183,15 @@ function MessageTemplateSettings() {
       </CardHeader>
       <CardContent className="space-y-4">
         <Textarea value={mensagem} onChange={(e) => { setMensagem(e.target.value); setDirty(true); }} rows={8} className="font-mono text-sm" />
+        <div className="flex items-start justify-between gap-4 p-3 rounded-lg border bg-muted/30">
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium">Usar apelido do aluno</p>
+            <p className="text-xs text-muted-foreground">
+              Quando ativado, a variável <code className="text-xs">{"{nome}"}</code> nas mensagens automáticas (Confirmações e Cobranças) usa o apelido cadastrado. Se o aluno não tiver apelido, o nome completo é usado.
+            </p>
+          </div>
+          <Switch checked={usarApelido} onCheckedChange={(v) => { setUsarApelido(v); setDirty(true); }} />
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button onClick={handleSave} disabled={!dirty || updateConfig.isPending} className="gap-2 text-xs sm:text-sm">
             {updateConfig.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
