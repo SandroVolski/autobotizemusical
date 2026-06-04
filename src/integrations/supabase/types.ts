@@ -284,6 +284,7 @@ export type Database = {
           pix_tipo_chave: string | null
           telefone: string | null
           updated_at: string | null
+          usar_apelido_whatsapp: boolean
           user_id: string | null
         }
         Insert: {
@@ -305,6 +306,7 @@ export type Database = {
           pix_tipo_chave?: string | null
           telefone?: string | null
           updated_at?: string | null
+          usar_apelido_whatsapp?: boolean
           user_id?: string | null
         }
         Update: {
@@ -326,6 +328,7 @@ export type Database = {
           pix_tipo_chave?: string | null
           telefone?: string | null
           updated_at?: string | null
+          usar_apelido_whatsapp?: boolean
           user_id?: string | null
         }
         Relationships: []

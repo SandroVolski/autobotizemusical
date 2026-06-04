@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
     // 1) Get RECURRING classes (scoped to this tenant)
     let recurringQuery = supabase
       .from("aulas")
-      .select("id, aluno_id, horario, dia_semana, alunos(nome, telefone, responsavel_telefone)")
+      .select("id, aluno_id, horario, dia_semana, alunos(nome, apelido, telefone, responsavel_telefone)")
       .eq("owner_user_id", ownerId)
       .eq("status", "agendada")
       .eq("recorrente", true);
@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
     const in24hISO = in24h.toISOString().split("T")[0];
     let oneOffQuery = supabase
       .from("aulas")
-      .select("id, aluno_id, horario, dia_semana, data_especifica, alunos(nome, telefone, responsavel_telefone)")
+      .select("id, aluno_id, horario, dia_semana, data_especifica, alunos(nome, apelido, telefone, responsavel_telefone)")
       .eq("owner_user_id", ownerId)
       .eq("status", "agendada")
       .or(`recorrente.eq.false,recorrente.is.null`);
@@ -174,12 +174,13 @@ Deno.serve(async (req) => {
     // Get custom message template (scoped to this tenant)
     const { data: escolaConfig } = await supabase
       .from("configuracoes_escola")
-      .select("mensagem_confirmacao")
+      .select("mensagem_confirmacao, usar_apelido_whatsapp")
       .eq("user_id", ownerId)
       .limit(1)
       .maybeSingle();
 
     const msgTemplate = (escolaConfig as any)?.mensagem_confirmacao || defaultMsg;
+    const usarApelido = !!(escolaConfig as any)?.usar_apelido_whatsapp;
 
     const enabledSet = new Map(configs.map((c: any) => [c.aluno_id, c]));
     totalAulas += aulas.length;
@@ -189,7 +190,7 @@ Deno.serve(async (req) => {
     if (forceManual && manualAlunoId && aulas.length === 0) {
       const { data: aluno } = await supabase
         .from("alunos")
-        .select("id, nome, telefone, responsavel_telefone")
+        .select("id, nome, apelido, telefone, responsavel_telefone")
         .eq("owner_user_id", ownerId)
         .eq("id", manualAlunoId)
         .maybeSingle();
@@ -248,8 +249,9 @@ Deno.serve(async (req) => {
       const diaNome = diasSemana[dayIndex];
 
       // Build message from template
+      const displayName = usarApelido && aluno.apelido ? aluno.apelido : aluno.nome;
       const mensagem = msgTemplate
-        .replace(/\{nome\}/g, aluno.nome)
+        .replace(/\{nome\}/g, displayName)
         .replace(/\{dia\}/g, diaNome)
         .replace(/\{horario\}/g, horarioFormatado);
 

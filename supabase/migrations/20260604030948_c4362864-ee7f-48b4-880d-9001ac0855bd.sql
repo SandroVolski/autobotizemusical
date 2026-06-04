@@ -1,0 +1,1 @@
+ALTER TABLE public.configuracoes_escola ADD COLUMN IF NOT EXISTS usar_apelido_whatsapp boolean NOT NULL DEFAULT false;
