@@ -250,8 +250,10 @@ Deno.serve(async (req) => {
 
       // Build message from template
       const displayName = usarApelido && aluno.apelido ? aluno.apelido : aluno.nome;
+      const apelidoOrNome = aluno.apelido || aluno.nome;
       const mensagem = msgTemplate
         .replace(/\{nome\}/g, displayName)
+        .replace(/\{apelido\}/g, apelidoOrNome)
         .replace(/\{dia\}/g, diaNome)
         .replace(/\{horario\}/g, horarioFormatado);
 
