@@ -41,6 +41,7 @@ export default function Cobrancas() {
   // PIX info
   const pixChave = (configuracoes as any)?.pix_chave || "";
   const pixTipoChave = (configuracoes as any)?.pix_tipo_chave || "";
+  const usarApelido = !!(configuracoes as any)?.usar_apelido_whatsapp;
 
   // Load prefs
   useEffect(() => {
@@ -125,9 +126,10 @@ export default function Cobrancas() {
 
   const buildMessage = (aluno: any, tipo: "atrasado" | "lembrete") => {
     const nome = aluno.responsavel_nome || aluno.nome;
+    const nomeAluno = usarApelido && aluno.apelido ? aluno.apelido : aluno.nome;
     let message = tipo === "atrasado"
-      ? `Olá ${nome}! 🎵\n\nGostaríamos de lembrar que o pagamento da mensalidade do(a) aluno(a) *${aluno.nome}* está pendente (vencimento dia ${aluno.dia_vencimento}).\n\nPor favor, entre em contato para regularizar. Obrigado! 😊`
-      : `Olá ${nome}! 🎵\n\nLembramos que a mensalidade do(a) aluno(a) *${aluno.nome}* vence no dia *${aluno.dia_vencimento}*.\n\nQualquer dúvida, estamos à disposição! 😊`;
+      ? `Olá ${nome}! 🎵\n\nGostaríamos de lembrar que o pagamento da mensalidade do(a) aluno(a) *${nomeAluno}* está pendente (vencimento dia ${aluno.dia_vencimento}).\n\nPor favor, entre em contato para regularizar. Obrigado! 😊`
+      : `Olá ${nome}! 🎵\n\nLembramos que a mensalidade do(a) aluno(a) *${nomeAluno}* vence no dia *${aluno.dia_vencimento}*.\n\nQualquer dúvida, estamos à disposição! 😊`;
     
     // Append PIX info for overdue payments
     if (tipo === "atrasado" && pixChave) {
