@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { useAlunos } from "@/hooks/useAlunos";
 import { useConfirmacaoConfigs, useConfirmacaoMensagens, useConfirmacaoMensagensRealtime, useToggleConfirmacao, useBulkEnableConfirmacao, useUpdateMensagemStatus } from "@/hooks/useConfirmacoes";
 import { useConfiguracoes, useUpdateConfiguracoes } from "@/hooks/useConfiguracoes";
+import { ResponsavelToggleBanner } from "@/components/ResponsavelToggleBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -310,6 +311,8 @@ export default function Confirmacoes() {
         <Card><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-secondary/10"><CheckCircle2 className="w-5 h-5 text-secondary" /></div><div><p className="text-2xl font-bold">{totalConfirmados}</p><p className="text-xs text-muted-foreground">Confirmados</p></div></CardContent></Card>
         <Card><CardContent className="p-4 flex items-center gap-3"><div className="p-2 rounded-lg bg-destructive/10"><XCircle className="w-5 h-5 text-destructive" /></div><div><p className="text-2xl font-bold">{totalCancelados}</p><p className="text-xs text-muted-foreground">Cancelados</p></div></CardContent></Card>
       </div>
+
+      <ResponsavelToggleBanner />
 
       <Tabs defaultValue={defaultTab} key={defaultTab} className="space-y-4">
         <div className="overflow-x-auto">
