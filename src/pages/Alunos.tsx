@@ -243,6 +243,11 @@ export default function Alunos() {
       return;
     }
 
+    if (!temResponsavel) {
+      newAluno.responsavel_nome = "";
+      newAluno.responsavel_telefone = "";
+    }
+
     if (editingAluno) {
       setIsUploading(true);
       const fotoUrl = await uploadPhoto(editingAluno);
