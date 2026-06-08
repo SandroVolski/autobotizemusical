@@ -878,32 +878,39 @@ export default function Alunos() {
                   </div>
                 )}
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="endereco">Endereço</Label>
-                <Input 
-                  id="endereco" 
-                  placeholder="Endereço completo"
-                  value={newAluno.endereco}
-                  onChange={(e) => setNewAluno(prev => ({ ...prev, endereco: e.target.value }))}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="objetivo">Objetivo</Label>
-                <Input 
-                  id="objetivo" 
-                  placeholder="Ex: Aprender a tocar piano"
-                  value={newAluno.objetivo}
-                  onChange={(e) => setNewAluno(prev => ({ ...prev, objetivo: e.target.value }))}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="observacoes">Observações</Label>
-                <Textarea 
-                  id="observacoes" 
-                  placeholder="Observações adicionais..."
-                  value={newAluno.observacoes}
-                  onChange={(e) => setNewAluno(prev => ({ ...prev, observacoes: e.target.value }))}
-                />
+              {/* Section: Outras Informações */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-1 border-b">
+                  <Edit className="w-4 h-4 text-primary" />
+                  <h3 className="text-sm font-semibold">Outras Informações</h3>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="endereco">Endereço</Label>
+                  <Input
+                    id="endereco"
+                    placeholder="Endereço completo"
+                    value={newAluno.endereco}
+                    onChange={(e) => setNewAluno(prev => ({ ...prev, endereco: e.target.value }))}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="objetivo">Objetivo</Label>
+                  <Input
+                    id="objetivo"
+                    placeholder="Ex: Aprender a tocar piano"
+                    value={newAluno.objetivo}
+                    onChange={(e) => setNewAluno(prev => ({ ...prev, objetivo: e.target.value }))}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="observacoes">Observações</Label>
+                  <Textarea
+                    id="observacoes"
+                    placeholder="Observações adicionais..."
+                    value={newAluno.observacoes}
+                    onChange={(e) => setNewAluno(prev => ({ ...prev, observacoes: e.target.value }))}
+                  />
+                </div>
               </div>
               <Button 
                 className="w-full mt-2" 
