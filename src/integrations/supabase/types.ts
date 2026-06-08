@@ -285,6 +285,7 @@ export type Database = {
           telefone: string | null
           updated_at: string | null
           usar_apelido_whatsapp: boolean
+          usar_responsavel_whatsapp: boolean
           user_id: string | null
         }
         Insert: {
@@ -307,6 +308,7 @@ export type Database = {
           telefone?: string | null
           updated_at?: string | null
           usar_apelido_whatsapp?: boolean
+          usar_responsavel_whatsapp?: boolean
           user_id?: string | null
         }
         Update: {
@@ -329,6 +331,7 @@ export type Database = {
           telefone?: string | null
           updated_at?: string | null
           usar_apelido_whatsapp?: boolean
+          usar_responsavel_whatsapp?: boolean
           user_id?: string | null
         }
         Relationships: []
