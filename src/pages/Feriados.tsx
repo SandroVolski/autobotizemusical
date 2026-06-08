@@ -25,6 +25,7 @@ import {
 import { useFeriados, useCreateFeriado, useDeleteFeriado, useUpdateFeriado, type NovoFeriado } from "@/hooks/useFeriados";
 import { useAlunos } from "@/hooks/useAlunos";
 import { useAulas } from "@/hooks/useAulas";
+import { useConfiguracoes } from "@/hooks/useConfiguracoes";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -32,6 +33,8 @@ export default function Feriados() {
   const { data: feriados, isLoading } = useFeriados();
   const { data: alunos } = useAlunos();
   const { data: aulas } = useAulas();
+  const { data: configuracoes } = useConfiguracoes();
+  const usarResponsavel = (configuracoes as any)?.usar_responsavel_whatsapp !== false;
   const createFeriado = useCreateFeriado();
   const deleteFeriado = useDeleteFeriado();
   const updateFeriado = useUpdateFeriado();
@@ -89,7 +92,9 @@ export default function Feriados() {
       const aluno = alunos?.find(a => a.id === id);
       if (!aluno || aluno.status !== "ativo") return null;
       const studentAulas = allAulas.filter(a => a.aluno_id === id);
-      const phone = aluno.responsavel_telefone || aluno.telefone;
+      const phone = (usarResponsavel && aluno.responsavel_telefone)
+        ? aluno.responsavel_telefone
+        : (aluno.telefone || aluno.responsavel_telefone);
       return {
         id: aluno.id,
         nome: aluno.nome,
@@ -179,7 +184,9 @@ export default function Feriados() {
         const message = buildMessage(feriado);
         let sent = 0;
         for (const aluno of activeStudents) {
-          const phone = aluno.responsavel_telefone || aluno.telefone;
+          const phone = (usarResponsavel && aluno.responsavel_telefone)
+            ? aluno.responsavel_telefone
+            : (aluno.telefone || aluno.responsavel_telefone);
           if (!phone) continue;
           try {
             await sendToStudent(phone, message);
