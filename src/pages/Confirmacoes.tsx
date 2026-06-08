@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { useAlunos } from "@/hooks/useAlunos";
 import { useConfirmacaoConfigs, useConfirmacaoMensagens, useConfirmacaoMensagensRealtime, useToggleConfirmacao, useBulkEnableConfirmacao, useUpdateMensagemStatus } from "@/hooks/useConfirmacoes";
 import { useConfiguracoes, useUpdateConfiguracoes } from "@/hooks/useConfiguracoes";
+import { ResponsavelToggleBanner } from "@/components/ResponsavelToggleBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
