@@ -42,6 +42,7 @@ export default function Cobrancas() {
   const pixChave = (configuracoes as any)?.pix_chave || "";
   const pixTipoChave = (configuracoes as any)?.pix_tipo_chave || "";
   const usarApelido = !!(configuracoes as any)?.usar_apelido_whatsapp;
+  const usarResponsavel = (configuracoes as any)?.usar_responsavel_whatsapp !== false;
 
   // Load prefs
   useEffect(() => {
@@ -125,7 +126,7 @@ export default function Cobrancas() {
   }, [alunos, pagamentos, currentMonth, currentYear]);
 
   const buildMessage = (aluno: any, tipo: "atrasado" | "lembrete") => {
-    const nome = aluno.responsavel_nome || aluno.nome;
+    const nome = (usarResponsavel && aluno.responsavel_nome) ? aluno.responsavel_nome : aluno.nome;
     const nomeAluno = usarApelido && aluno.apelido ? aluno.apelido : aluno.nome;
     let message = tipo === "atrasado"
       ? `Olá ${nome}! 🎵\n\nGostaríamos de lembrar que o pagamento da mensalidade do(a) aluno(a) *${nomeAluno}* está pendente (vencimento dia ${aluno.dia_vencimento}).\n\nPor favor, entre em contato para regularizar. Obrigado! 😊`
@@ -140,7 +141,7 @@ export default function Cobrancas() {
   };
 
   const getWhatsAppLink = (aluno: any, tipo: "atrasado" | "lembrete") => {
-    const phone = aluno.responsavel_telefone || aluno.telefone;
+    const phone = (usarResponsavel && aluno.responsavel_telefone) ? aluno.responsavel_telefone : (aluno.telefone || aluno.responsavel_telefone);
     if (!phone) return null;
     const cleanPhone = phone.replace(/\D/g, "");
     const fullPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
@@ -149,7 +150,7 @@ export default function Cobrancas() {
   };
 
   const handleAutoSend = async (aluno: any, tipo: "atrasado" | "lembrete") => {
-    const phone = aluno.responsavel_telefone || aluno.telefone;
+    const phone = (usarResponsavel && aluno.responsavel_telefone) ? aluno.responsavel_telefone : (aluno.telefone || aluno.responsavel_telefone);
     if (!phone) return;
     setSendingFor(aluno.id);
     try {
@@ -161,7 +162,7 @@ export default function Cobrancas() {
         body: { action: "send", phone: fullPhone, message },
       });
       if (error) throw error;
-      const nome = aluno.responsavel_nome || aluno.nome;
+      const nome = (usarResponsavel && aluno.responsavel_nome) ? aluno.responsavel_nome : aluno.nome;
       toast({ title: "Mensagem enviada!", description: `Cobrança enviada para ${nome}` });
     } catch (err: any) {
       toast({ title: "Erro ao enviar", description: err.message, variant: "destructive" });
@@ -181,8 +182,8 @@ export default function Cobrancas() {
   const renderStudentCard = (aluno: any, tipo: "atrasado" | "lembrete") => {
     const status = paymentStatuses.get(aluno.id);
     const waLink = getWhatsAppLink(aluno, tipo);
-    const contactName = aluno.responsavel_nome || aluno.nome;
-    const contactPhone = aluno.responsavel_telefone || aluno.telefone;
+    const contactName = (usarResponsavel && aluno.responsavel_nome) ? aluno.responsavel_nome : aluno.nome;
+    const contactPhone = (usarResponsavel && aluno.responsavel_telefone) ? aluno.responsavel_telefone : (aluno.telefone || aluno.responsavel_telefone);
     const isDisabled = cobrancaDesabilitados.has(aluno.id);
 
     return (
