@@ -408,6 +408,7 @@ export default function Alunos() {
     });
     setPhotoFile(null);
     setPhotoPreview(aluno.foto_url || null);
+    setTemResponsavel(!!(aluno.responsavel_nome || aluno.responsavel_telefone));
     // Load existing aula data for this student
     setTipoAula("");
     setAulaDiaSemana("");
