@@ -27,6 +27,7 @@ import { usePaymentStatuses } from "@/hooks/usePaymentStatus";
 import { PaymentStatusDot } from "@/components/ui/payment-status-dot";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { ResponsavelToggleBanner } from "@/components/ResponsavelToggleBanner";
 
 export default function Cobrancas() {
   const { data: alunos, isLoading: loadingAlunos } = useAlunos();
@@ -269,6 +270,8 @@ export default function Cobrancas() {
           </div>
         </div>
       </div>
+
+      <ResponsavelToggleBanner />
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
