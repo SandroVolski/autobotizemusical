@@ -28,6 +28,7 @@ import { useAulas } from "@/hooks/useAulas";
 import { useConfiguracoes } from "@/hooks/useConfiguracoes";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { ResponsavelToggleBanner } from "@/components/ResponsavelToggleBanner";
 
 export default function Feriados() {
   const { data: feriados, isLoading } = useFeriados();
@@ -537,6 +538,8 @@ export default function Feriados() {
           </Card>
         ))}
       </motion.div>
+
+      <ResponsavelToggleBanner />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Calendar */}

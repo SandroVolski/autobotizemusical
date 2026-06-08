@@ -67,6 +67,7 @@ import { toast } from "@/hooks/use-toast";
 import { EnrollmentDialog } from "@/components/alunos/EnrollmentDialog";
 import { StudentEnrollments } from "@/components/alunos/StudentEnrollments";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
 import { exportAlunos } from "@/lib/csv-export";
 import { CameraCapture } from "@/components/ui/camera-capture";
@@ -139,6 +140,7 @@ export default function Alunos() {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [statusToggleAluno, setStatusToggleAluno] = useState<{ id: string; nome: string; currentStatus: string } | null>(null);
   const [selectedCursoIds, setSelectedCursoIds] = useState<string[]>([]);
+  const [temResponsavel, setTemResponsavel] = useState(false);
   const handleToggleStatus = async () => {
     if (!statusToggleAluno) return;
     const newStatus = statusToggleAluno.currentStatus === "ativo" ? "inativo" : "ativo";
@@ -239,6 +241,11 @@ export default function Alunos() {
         variant: "destructive",
       });
       return;
+    }
+
+    if (!temResponsavel) {
+      newAluno.responsavel_nome = "";
+      newAluno.responsavel_telefone = "";
     }
 
     if (editingAluno) {
@@ -385,6 +392,7 @@ export default function Alunos() {
     setAulaDataEspecifica("");
     setSelectedTurmaId("");
     setSelectedCursoIds([]);
+    setTemResponsavel(false);
   };
 
   const handleEdit = async (aluno: typeof alunos extends (infer T)[] | undefined ? T : never) => {
@@ -405,6 +413,7 @@ export default function Alunos() {
     });
     setPhotoFile(null);
     setPhotoPreview(aluno.foto_url || null);
+    setTemResponsavel(!!(aluno.responsavel_nome || aluno.responsavel_telefone));
     // Load existing aula data for this student
     setTipoAula("");
     setAulaDiaSemana("");
@@ -519,7 +528,13 @@ export default function Alunos() {
             <DialogHeader>
               <DialogTitle>{editingAluno ? "Editar Aluno" : "Cadastrar Novo Aluno"}</DialogTitle>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-6 py-4">
+              {/* Section: Identificação */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-1 border-b">
+                  <User className="w-4 h-4 text-primary" />
+                  <h3 className="text-sm font-semibold">Identificação</h3>
+                </div>
               {/* Photo Upload */}
               <div className="flex flex-col items-center gap-3">
                 <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-dashed border-primary/40 hover:border-primary/70 cursor-pointer transition-colors group">
@@ -656,25 +671,56 @@ export default function Alunos() {
                   </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="responsavel_nome">Nome do Responsável</Label>
-                  <Input 
-                    id="responsavel_nome" 
-                    placeholder="Nome do responsável (se menor)"
-                    value={newAluno.responsavel_nome}
-                    onChange={(e) => setNewAluno(prev => ({ ...prev, responsavel_nome: e.target.value }))}
-                  />
+              </div>
+              {/* Section: Responsável */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-3 pb-1 border-b">
+                  <div className="flex items-center gap-2">
+                    <UserCheck className="w-4 h-4 text-primary" />
+                    <h3 className="text-sm font-semibold">Responsável</h3>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="tem-responsavel" className="text-xs text-muted-foreground cursor-pointer">
+                      Este aluno tem responsável
+                    </Label>
+                    <Switch
+                      id="tem-responsavel"
+                      checked={temResponsavel}
+                      onCheckedChange={setTemResponsavel}
+                    />
+                  </div>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="responsavel_telefone">Telefone do Responsável</Label>
-                  <Input 
-                    id="responsavel_telefone" 
-                    placeholder="(11) 99999-9999"
-                    value={newAluno.responsavel_telefone}
-                    onChange={(e) => setNewAluno(prev => ({ ...prev, responsavel_telefone: e.target.value }))}
-                  />
-                </div>
+                {temResponsavel ? (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="responsavel_nome">Nome do Responsável</Label>
+                        <Input
+                          id="responsavel_nome"
+                          placeholder="Ex: Maria Silva"
+                          value={newAluno.responsavel_nome}
+                          onChange={(e) => setNewAluno(prev => ({ ...prev, responsavel_nome: e.target.value }))}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="responsavel_telefone">Telefone do Responsável</Label>
+                        <Input
+                          id="responsavel_telefone"
+                          placeholder="(11) 99999-9999"
+                          value={newAluno.responsavel_telefone}
+                          onChange={(e) => setNewAluno(prev => ({ ...prev, responsavel_telefone: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      As mensagens automáticas (Confirmações, Cobranças e Feriados) podem ser enviadas para o responsável — configurável na aba Confirmações.
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Ative o botão acima caso este aluno tenha um responsável (ex.: menor de idade).
+                  </p>
+                )}
               </div>
               {/* Tipo de Aula */}
               <div className="space-y-4 p-4 rounded-lg border border-primary/20 bg-primary/5">
@@ -832,32 +878,39 @@ export default function Alunos() {
                   </div>
                 )}
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="endereco">Endereço</Label>
-                <Input 
-                  id="endereco" 
-                  placeholder="Endereço completo"
-                  value={newAluno.endereco}
-                  onChange={(e) => setNewAluno(prev => ({ ...prev, endereco: e.target.value }))}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="objetivo">Objetivo</Label>
-                <Input 
-                  id="objetivo" 
-                  placeholder="Ex: Aprender a tocar piano"
-                  value={newAluno.objetivo}
-                  onChange={(e) => setNewAluno(prev => ({ ...prev, objetivo: e.target.value }))}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="observacoes">Observações</Label>
-                <Textarea 
-                  id="observacoes" 
-                  placeholder="Observações adicionais..."
-                  value={newAluno.observacoes}
-                  onChange={(e) => setNewAluno(prev => ({ ...prev, observacoes: e.target.value }))}
-                />
+              {/* Section: Outras Informações */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-1 border-b">
+                  <Edit className="w-4 h-4 text-primary" />
+                  <h3 className="text-sm font-semibold">Outras Informações</h3>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="endereco">Endereço</Label>
+                  <Input
+                    id="endereco"
+                    placeholder="Endereço completo"
+                    value={newAluno.endereco}
+                    onChange={(e) => setNewAluno(prev => ({ ...prev, endereco: e.target.value }))}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="objetivo">Objetivo</Label>
+                  <Input
+                    id="objetivo"
+                    placeholder="Ex: Aprender a tocar piano"
+                    value={newAluno.objetivo}
+                    onChange={(e) => setNewAluno(prev => ({ ...prev, objetivo: e.target.value }))}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="observacoes">Observações</Label>
+                  <Textarea
+                    id="observacoes"
+                    placeholder="Observações adicionais..."
+                    value={newAluno.observacoes}
+                    onChange={(e) => setNewAluno(prev => ({ ...prev, observacoes: e.target.value }))}
+                  />
+                </div>
               </div>
               <Button 
                 className="w-full mt-2" 
