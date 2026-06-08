@@ -158,15 +158,17 @@ function MessageTemplateSettings() {
   const defaultMsg = `Olá {nome}! 🎵\n\nLembramos que você tem aula amanhã ({dia}) às {horario}.\n\nVocê confirma presença?\n\n✅ Responda *SIM* para confirmar\n❌ Responda *NÃO* para cancelar`;
   const [mensagem, setMensagem] = useState(defaultMsg);
   const [usarApelido, setUsarApelido] = useState(false);
+  const [usarResponsavel, setUsarResponsavel] = useState(true);
   const [dirty, setDirty] = useState(false);
 
   useEffect(() => {
     if (config && (config as any).mensagem_confirmacao) setMensagem((config as any).mensagem_confirmacao);
     if (config) setUsarApelido(!!(config as any).usar_apelido_whatsapp);
+    if (config) setUsarResponsavel((config as any).usar_responsavel_whatsapp !== false);
   }, [config]);
 
   const handleSave = () => {
-    updateConfig.mutate({ mensagem_confirmacao: mensagem, usar_apelido_whatsapp: usarApelido } as any, {
+    updateConfig.mutate({ mensagem_confirmacao: mensagem, usar_apelido_whatsapp: usarApelido, usar_responsavel_whatsapp: usarResponsavel } as any, {
       onSuccess: () => { setDirty(false); toast({ title: "Mensagem salva!", description: "O template de confirmação foi atualizado." }); }
     });
   };
@@ -178,7 +180,7 @@ function MessageTemplateSettings() {
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2"><MessageSquare className="w-5 h-5 text-primary" />Mensagem de Confirmação</CardTitle>
         <CardDescription>
-          Personalize a mensagem enviada aos alunos. Use as variáveis: <code className="text-xs bg-muted px-1 py-0.5 rounded">{"{nome}"}</code>, <code className="text-xs bg-muted px-1 py-0.5 rounded">{"{apelido}"}</code>, <code className="text-xs bg-muted px-1 py-0.5 rounded">{"{dia}"}</code>, <code className="text-xs bg-muted px-1 py-0.5 rounded">{"{horario}"}</code>
+          Personalize a mensagem enviada aos alunos. Use as variáveis: <code className="text-xs bg-muted px-1 py-0.5 rounded">{"{nome}"}</code>, <code className="text-xs bg-muted px-1 py-0.5 rounded">{"{apelido}"}</code>, <code className="text-xs bg-muted px-1 py-0.5 rounded">{"{responsavel}"}</code>, <code className="text-xs bg-muted px-1 py-0.5 rounded">{"{dia}"}</code>, <code className="text-xs bg-muted px-1 py-0.5 rounded">{"{horario}"}</code>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -192,6 +194,15 @@ function MessageTemplateSettings() {
           </div>
           <Switch checked={usarApelido} onCheckedChange={(v) => { setUsarApelido(v); setDirty(true); }} />
         </div>
+        <div className="flex items-start justify-between gap-4 p-3 rounded-lg border bg-muted/30">
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium">Enviar para o responsável quando houver</p>
+            <p className="text-xs text-muted-foreground">
+              Quando ativado, alunos com responsável cadastrado receberão as mensagens automáticas (Confirmações, Cobranças e Feriados) no telefone do responsável, e a variável <code className="text-xs">{"{responsavel}"}</code> usará o nome dele. Caso contrário, o contato será feito direto com o aluno.
+            </p>
+          </div>
+          <Switch checked={usarResponsavel} onCheckedChange={(v) => { setUsarResponsavel(v); setDirty(true); }} />
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button onClick={handleSave} disabled={!dirty || updateConfig.isPending} className="gap-2 text-xs sm:text-sm">
             {updateConfig.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
@@ -203,7 +214,7 @@ function MessageTemplateSettings() {
         </div>
         <div className="p-4 rounded-lg bg-muted/50 border">
           <p className="text-xs font-medium text-muted-foreground mb-2">Pré-visualização:</p>
-          <p className="text-sm whitespace-pre-line">{mensagem.replace(/\{nome\}/g, usarApelido ? "Joãozinho" : "João Silva").replace(/\{apelido\}/g, "Joãozinho").replace(/\{dia\}/g, "Segunda").replace(/\{horario\}/g, "14:00")}</p>
+          <p className="text-sm whitespace-pre-line">{mensagem.replace(/\{nome\}/g, usarApelido ? "Joãozinho" : "João Silva").replace(/\{apelido\}/g, "Joãozinho").replace(/\{responsavel\}/g, usarResponsavel ? "Maria Silva" : "João Silva").replace(/\{dia\}/g, "Segunda").replace(/\{horario\}/g, "14:00")}</p>
         </div>
       </CardContent>
     </Card>

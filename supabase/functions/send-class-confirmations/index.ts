@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
     // 1) Get RECURRING classes (scoped to this tenant)
     let recurringQuery = supabase
       .from("aulas")
-      .select("id, aluno_id, horario, dia_semana, alunos(nome, apelido, telefone, responsavel_telefone)")
+      .select("id, aluno_id, horario, dia_semana, alunos(nome, apelido, telefone, responsavel_nome, responsavel_telefone)")
       .eq("owner_user_id", ownerId)
       .eq("status", "agendada")
       .eq("recorrente", true);
@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
     const in24hISO = in24h.toISOString().split("T")[0];
     let oneOffQuery = supabase
       .from("aulas")
-      .select("id, aluno_id, horario, dia_semana, data_especifica, alunos(nome, apelido, telefone, responsavel_telefone)")
+      .select("id, aluno_id, horario, dia_semana, data_especifica, alunos(nome, apelido, telefone, responsavel_nome, responsavel_telefone)")
       .eq("owner_user_id", ownerId)
       .eq("status", "agendada")
       .or(`recorrente.eq.false,recorrente.is.null`);
@@ -174,13 +174,14 @@ Deno.serve(async (req) => {
     // Get custom message template (scoped to this tenant)
     const { data: escolaConfig } = await supabase
       .from("configuracoes_escola")
-      .select("mensagem_confirmacao, usar_apelido_whatsapp")
+      .select("mensagem_confirmacao, usar_apelido_whatsapp, usar_responsavel_whatsapp")
       .eq("user_id", ownerId)
       .limit(1)
       .maybeSingle();
 
     const msgTemplate = (escolaConfig as any)?.mensagem_confirmacao || defaultMsg;
     const usarApelido = !!(escolaConfig as any)?.usar_apelido_whatsapp;
+    const usarResponsavel = (escolaConfig as any)?.usar_responsavel_whatsapp !== false;
 
     const enabledSet = new Map(configs.map((c: any) => [c.aluno_id, c]));
     totalAulas += aulas.length;
@@ -190,12 +191,14 @@ Deno.serve(async (req) => {
     if (forceManual && manualAlunoId && aulas.length === 0) {
       const { data: aluno } = await supabase
         .from("alunos")
-        .select("id, nome, apelido, telefone, responsavel_telefone")
+        .select("id, nome, apelido, telefone, responsavel_nome, responsavel_telefone")
         .eq("owner_user_id", ownerId)
         .eq("id", manualAlunoId)
         .maybeSingle();
       if (aluno) {
-        const telefone = aluno.telefone || aluno.responsavel_telefone || "";
+        const telefone = (usarResponsavel && aluno.responsavel_telefone)
+          ? aluno.responsavel_telefone
+          : (aluno.telefone || aluno.responsavel_telefone || "");
         if (telefone) {
           aulas.push({
             id: null as any,
@@ -219,11 +222,16 @@ Deno.serve(async (req) => {
       // For manual sends, use aluno's phone directly; for auto, check config
       let telefone: string;
       if (forceManual) {
-        telefone = aluno.telefone || aluno.responsavel_telefone || "";
+        telefone = (usarResponsavel && aluno.responsavel_telefone)
+          ? aluno.responsavel_telefone
+          : (aluno.telefone || aluno.responsavel_telefone || "");
       } else {
         const config = enabledSet.get(aula.aluno_id);
         if (!config) continue;
-        telefone = config.telefone_override || aluno.telefone || aluno.responsavel_telefone || "";
+        telefone = config.telefone_override
+          || ((usarResponsavel && aluno.responsavel_telefone)
+            ? aluno.responsavel_telefone
+            : (aluno.telefone || aluno.responsavel_telefone || ""));
       }
 
       if (!telefone) continue;
@@ -251,9 +259,11 @@ Deno.serve(async (req) => {
       // Build message from template
       const displayName = usarApelido && aluno.apelido ? aluno.apelido : aluno.nome;
       const apelidoOrNome = aluno.apelido || aluno.nome;
+      const responsavelOrAluno = (usarResponsavel && aluno.responsavel_nome) ? aluno.responsavel_nome : aluno.nome;
       const mensagem = msgTemplate
         .replace(/\{nome\}/g, displayName)
         .replace(/\{apelido\}/g, apelidoOrNome)
+        .replace(/\{responsavel\}/g, responsavelOrAluno)
         .replace(/\{dia\}/g, diaNome)
         .replace(/\{horario\}/g, horarioFormatado);
 
