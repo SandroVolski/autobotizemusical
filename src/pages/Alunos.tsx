@@ -722,9 +722,12 @@ export default function Alunos() {
                   </p>
                 )}
               </div>
-              {/* Tipo de Aula */}
-              <div className="space-y-4 p-4 rounded-lg border border-primary/20 bg-primary/5">
-                <Label className="text-sm font-semibold">Tipo de Aula</Label>
+              {/* Section: Tipo de Aula */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-1 border-b">
+                  <Calendar className="w-4 h-4 text-primary" />
+                  <h3 className="text-sm font-semibold">Tipo de Aula</h3>
+                </div>
                 <Select value={tipoAula || "__none__"} onValueChange={(v) => setTipoAula(v === "__none__" ? "" : v as any)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o tipo (opcional)" />
@@ -820,12 +823,12 @@ export default function Alunos() {
                   </div>
                 )}
               </div>
-              {/* Cursos / Matrículas */}
-              <div className="space-y-3 p-4 rounded-lg border border-secondary/20 bg-secondary/5">
-                <Label className="text-sm font-semibold flex items-center gap-2">
-                  <GraduationCap className="w-4 h-4" />
-                  Cursos do Aluno
-                </Label>
+              {/* Section: Cursos / Matrículas */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 pb-1 border-b">
+                  <GraduationCap className="w-4 h-4 text-primary" />
+                  <h3 className="text-sm font-semibold">Cursos do Aluno</h3>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   Selecione um ou mais cursos para vincular ao aluno. O valor mensal será usado para cálculos financeiros.
                 </p>
