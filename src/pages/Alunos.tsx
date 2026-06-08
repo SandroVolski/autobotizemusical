@@ -528,7 +528,13 @@ export default function Alunos() {
             <DialogHeader>
               <DialogTitle>{editingAluno ? "Editar Aluno" : "Cadastrar Novo Aluno"}</DialogTitle>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-6 py-4">
+              {/* Section: Identificação */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-1 border-b">
+                  <User className="w-4 h-4 text-primary" />
+                  <h3 className="text-sm font-semibold">Identificação</h3>
+                </div>
               {/* Photo Upload */}
               <div className="flex flex-col items-center gap-3">
                 <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-dashed border-primary/40 hover:border-primary/70 cursor-pointer transition-colors group">
