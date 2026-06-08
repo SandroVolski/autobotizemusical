@@ -671,25 +671,56 @@ export default function Alunos() {
                   </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="responsavel_nome">Nome do Responsável</Label>
-                  <Input 
-                    id="responsavel_nome" 
-                    placeholder="Nome do responsável (se menor)"
-                    value={newAluno.responsavel_nome}
-                    onChange={(e) => setNewAluno(prev => ({ ...prev, responsavel_nome: e.target.value }))}
-                  />
+              </div>
+              {/* Section: Responsável */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-3 pb-1 border-b">
+                  <div className="flex items-center gap-2">
+                    <UserCheck className="w-4 h-4 text-primary" />
+                    <h3 className="text-sm font-semibold">Responsável</h3>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="tem-responsavel" className="text-xs text-muted-foreground cursor-pointer">
+                      Este aluno tem responsável
+                    </Label>
+                    <Switch
+                      id="tem-responsavel"
+                      checked={temResponsavel}
+                      onCheckedChange={setTemResponsavel}
+                    />
+                  </div>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="responsavel_telefone">Telefone do Responsável</Label>
-                  <Input 
-                    id="responsavel_telefone" 
-                    placeholder="(11) 99999-9999"
-                    value={newAluno.responsavel_telefone}
-                    onChange={(e) => setNewAluno(prev => ({ ...prev, responsavel_telefone: e.target.value }))}
-                  />
-                </div>
+                {temResponsavel ? (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="responsavel_nome">Nome do Responsável</Label>
+                        <Input
+                          id="responsavel_nome"
+                          placeholder="Ex: Maria Silva"
+                          value={newAluno.responsavel_nome}
+                          onChange={(e) => setNewAluno(prev => ({ ...prev, responsavel_nome: e.target.value }))}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="responsavel_telefone">Telefone do Responsável</Label>
+                        <Input
+                          id="responsavel_telefone"
+                          placeholder="(11) 99999-9999"
+                          value={newAluno.responsavel_telefone}
+                          onChange={(e) => setNewAluno(prev => ({ ...prev, responsavel_telefone: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      As mensagens automáticas (Confirmações, Cobranças e Feriados) podem ser enviadas para o responsável — configurável na aba Confirmações.
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Ative o botão acima caso este aluno tenha um responsável (ex.: menor de idade).
+                  </p>
+                )}
               </div>
               {/* Tipo de Aula */}
               <div className="space-y-4 p-4 rounded-lg border border-primary/20 bg-primary/5">
