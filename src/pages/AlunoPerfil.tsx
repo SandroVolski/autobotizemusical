@@ -25,6 +25,7 @@ import {
   X,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatDateBR } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -390,7 +391,7 @@ export default function AlunoPerfil() {
                       <InfoRow label="Nome" value={aluno.nome} />
                       <InfoRow label="E-mail" value={aluno.email} />
                       <InfoRow label="Telefone" value={aluno.telefone} />
-                      <InfoRow label="Data de Nascimento" value={aluno.data_nascimento ? new Date(aluno.data_nascimento).toLocaleDateString("pt-BR") : null} />
+                      <InfoRow label="Data de Nascimento" value={aluno.data_nascimento ? formatDateBR(aluno.data_nascimento) : null} />
                       <InfoRow label="Responsável" value={aluno.responsavel_nome} />
                       <InfoRow label="Tel. Responsável" value={aluno.responsavel_telefone} />
                       <InfoRow label="Endereço" value={aluno.endereco} />
