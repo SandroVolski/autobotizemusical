@@ -933,6 +933,8 @@ export type Database = {
           curso_id: string
           data_fim: string | null
           data_inicio: string
+          desconto_tipo: string | null
+          desconto_valor: number | null
           id: string
           observacoes: string | null
           owner_user_id: string
@@ -945,6 +947,8 @@ export type Database = {
           curso_id: string
           data_fim?: string | null
           data_inicio?: string
+          desconto_tipo?: string | null
+          desconto_valor?: number | null
           id?: string
           observacoes?: string | null
           owner_user_id?: string
@@ -957,6 +961,8 @@ export type Database = {
           curso_id?: string
           data_fim?: string | null
           data_inicio?: string
+          desconto_tipo?: string | null
+          desconto_valor?: number | null
           id?: string
           observacoes?: string | null
           owner_user_id?: string
@@ -1597,6 +1603,7 @@ export type Database = {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
       }
+      email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number

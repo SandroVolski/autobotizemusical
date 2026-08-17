@@ -140,7 +140,17 @@ export default function Alunos() {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [statusToggleAluno, setStatusToggleAluno] = useState<{ id: string; nome: string; currentStatus: string } | null>(null);
   const [selectedCursoIds, setSelectedCursoIds] = useState<string[]>([]);
+  const [descontos, setDescontos] = useState<Record<string, { tipo: "percentual" | "fixo"; valor: string }>>({});
   const [temResponsavel, setTemResponsavel] = useState(false);
+  const valorFinalCurso = (cursoId: string) => {
+    const curso = cursosList?.find(c => c.id === cursoId);
+    const base = Number(curso?.valor_mensal) || 0;
+    const d = descontos[cursoId];
+    const v = Number(d?.valor);
+    if (!d?.valor || isNaN(v)) return base;
+    if (d.tipo === "fixo") return Math.max(v, 0);
+    return Math.max(base * (1 - v / 100), 0);
+  };
   const handleToggleStatus = async () => {
     if (!statusToggleAluno) return;
     const newStatus = statusToggleAluno.currentStatus === "ativo" ? "inativo" : "ativo";
@@ -309,7 +319,17 @@ export default function Alunos() {
               curso_id: cursoId,
               data_inicio: new Date().toISOString().split("T")[0],
               status: "ativo",
+              desconto_tipo: descontos[cursoId]?.valor ? descontos[cursoId].tipo : null,
+              desconto_valor: descontos[cursoId]?.valor ? Number(descontos[cursoId].valor) : null,
             });
+          }
+          // Update discounts on kept enrollments
+          const toKeep = existingMatriculas?.filter(m => selectedCursoIds.includes(m.curso_id)) || [];
+          for (const m of toKeep) {
+            await supabase.from("matriculas").update({
+              desconto_tipo: descontos[m.curso_id]?.valor ? descontos[m.curso_id].tipo : null,
+              desconto_valor: descontos[m.curso_id]?.valor ? Number(descontos[m.curso_id].valor) : null,
+            }).eq("id", m.id);
           }
           
           setIsDialogOpen(false);
@@ -358,6 +378,8 @@ export default function Alunos() {
                 aluno_id: data.id,
                 curso_id: cursoId,
                 data_inicio: new Date().toISOString().split("T")[0],
+                desconto_tipo: descontos[cursoId]?.valor ? descontos[cursoId].tipo : null,
+                desconto_valor: descontos[cursoId]?.valor ? Number(descontos[cursoId].valor) : null,
               });
             }
           }
@@ -392,6 +414,7 @@ export default function Alunos() {
     setAulaDataEspecifica("");
     setSelectedTurmaId("");
     setSelectedCursoIds([]);
+    setDescontos({});
     setTemResponsavel(false);
   };
 
@@ -456,14 +479,22 @@ export default function Alunos() {
     // Load existing matriculas for this student
     const { data: existingMatriculas } = await supabase
       .from("matriculas")
-      .select("curso_id")
+      .select("curso_id, desconto_tipo, desconto_valor")
       .eq("aluno_id", aluno.id)
       .eq("status", "ativo");
     
     if (existingMatriculas && existingMatriculas.length > 0) {
       setSelectedCursoIds(existingMatriculas.map(m => m.curso_id));
+      const descMap: Record<string, { tipo: "percentual" | "fixo"; valor: string }> = {};
+      existingMatriculas.forEach(m => {
+        if (m.desconto_tipo && m.desconto_valor != null) {
+          descMap[m.curso_id] = { tipo: m.desconto_tipo as "percentual" | "fixo", valor: String(m.desconto_valor) };
+        }
+      });
+      setDescontos(descMap);
     } else {
       setSelectedCursoIds([]);
+      setDescontos({});
     }
     
     setIsDialogOpen(true);
@@ -833,36 +864,103 @@ export default function Alunos() {
                   Selecione um ou mais cursos para vincular ao aluno. O valor mensal será usado para cálculos financeiros.
                 </p>
                 <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                  {cursosList?.filter(c => c.status === "ativo").map(curso => (
-                    <label
-                      key={curso.id}
-                      className={`flex items-center gap-3 p-2.5 rounded-lg border cursor-pointer transition-colors ${
-                        selectedCursoIds.includes(curso.id)
-                          ? "border-primary/40 bg-primary/10"
-                          : "border-border/50 hover:bg-muted/50"
-                      }`}
-                    >
-                      <Checkbox
-                        checked={selectedCursoIds.includes(curso.id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedCursoIds(prev => [...prev, curso.id]);
-                          } else {
-                            setSelectedCursoIds(prev => prev.filter(id => id !== curso.id));
+                  {cursosList?.filter(c => c.status === "ativo").map(curso => {
+                    const selecionado = selectedCursoIds.includes(curso.id);
+                    const desc = descontos[curso.id];
+                    return (
+                      <div
+                        key={curso.id}
+                        className={`p-2.5 rounded-lg border transition-colors ${
+                          selecionado ? "border-primary/40 bg-primary/10" : "border-border/50 hover:bg-muted/50"
+                        }`}
+                      >
+                        <div
+                          className="flex items-center gap-3 cursor-pointer"
+                          onClick={() =>
+                            setSelectedCursoIds(prev =>
+                              selecionado ? prev.filter(id => id !== curso.id) : [...prev, curso.id]
+                            )
                           }
-                        }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium">{curso.nome}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {curso.instrumento && `${curso.instrumento} • `}
-                          {curso.valor_mensal
-                            ? Number(curso.valor_mensal).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) + "/mês"
-                            : "Sem valor definido"}
-                        </p>
+                        >
+                          <Checkbox checked={selecionado} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium">{curso.nome}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {curso.instrumento && `${curso.instrumento} • `}
+                              {curso.valor_mensal
+                                ? Number(curso.valor_mensal).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) + "/mês"
+                                : "Sem valor definido"}
+                            </p>
+                          </div>
+                          {selecionado && desc?.valor && (
+                            <span className="text-xs font-semibold text-primary whitespace-nowrap">
+                              {valorFinalCurso(curso.id).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}/mês
+                            </span>
+                          )}
+                        </div>
+                        {selecionado && (
+                          <div className="mt-2.5 pt-2.5 border-t border-border/50 space-y-2">
+                            <Label className="text-xs text-muted-foreground">Valor personalizado (opcional)</Label>
+                            <div className="flex gap-2">
+                              <Select
+                                value={desc?.tipo || "percentual"}
+                                onValueChange={(v) =>
+                                  setDescontos(prev => ({
+                                    ...prev,
+                                    [curso.id]: { tipo: v as "percentual" | "fixo", valor: prev[curso.id]?.valor || "" },
+                                  }))
+                                }
+                              >
+                                <SelectTrigger className="h-8 w-[150px] text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="percentual">Desconto (%)</SelectItem>
+                                  <SelectItem value="fixo">Valor fixo (R$)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                className="h-8 text-xs"
+                                placeholder={desc?.tipo === "fixo" ? "Ex: 150.00" : "Ex: 10"}
+                                value={desc?.valor ?? ""}
+                                onChange={(e) =>
+                                  setDescontos(prev => ({
+                                    ...prev,
+                                    [curso.id]: { tipo: prev[curso.id]?.tipo || "percentual", valor: e.target.value },
+                                  }))
+                                }
+                              />
+                              {desc?.valor && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 text-xs"
+                                  onClick={() =>
+                                    setDescontos(prev => {
+                                      const next = { ...prev };
+                                      delete next[curso.id];
+                                      return next;
+                                    })
+                                  }
+                                >
+                                  Limpar
+                                </Button>
+                              )}
+                            </div>
+                            {desc?.tipo === "fixo" && desc?.valor && (
+                              <p className="text-[11px] text-amber-500">
+                                Atenção: com valor fixo, alterações futuras no preço do curso não afetarão este aluno.
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    </label>
-                  ))}
+                    );
+                  })}
                   {(!cursosList || cursosList.filter(c => c.status === "ativo").length === 0) && (
                     <p className="text-xs text-muted-foreground text-center py-2">
                       Nenhum curso cadastrado. Cadastre cursos primeiro.
@@ -873,9 +971,8 @@ export default function Alunos() {
                   <div className="flex items-center justify-between pt-1 text-xs">
                     <span className="text-muted-foreground">{selectedCursoIds.length} curso(s) selecionado(s)</span>
                     <span className="font-medium text-primary">
-                      Total: {cursosList
-                        ?.filter(c => selectedCursoIds.includes(c.id))
-                        .reduce((acc, c) => acc + (Number(c.valor_mensal) || 0), 0)
+                      Total: {selectedCursoIds
+                        .reduce((acc, id) => acc + valorFinalCurso(id), 0)
                         .toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}/mês
                     </span>
                   </div>

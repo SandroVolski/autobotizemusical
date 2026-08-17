@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Calendar, Trash2, Loader2 } from "lucide-react";
-import { useMatriculas, useDeleteMatricula } from "@/hooks/useMatriculas";
+import { useMatriculas, useDeleteMatricula, getValorMatricula } from "@/hooks/useMatriculas";
 
 interface StudentEnrollmentsProps {
   alunoId: string;
@@ -28,10 +28,8 @@ export function StudentEnrollments({ alunoId }: StudentEnrollmentsProps) {
   }
 
   const ativas = matriculas.filter(m => m.status === "ativo");
-  const totalMensal = ativas.reduce(
-    (acc, m) => acc + (Number(m.cursos?.valor_mensal) || 0),
-    0
-  );
+  const totalMensal = ativas.reduce((acc, m) => acc + getValorMatricula(m), 0);
+  const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   return (
     <div className="space-y-2">
@@ -46,9 +44,21 @@ export function StudentEnrollments({ alunoId }: StudentEnrollmentsProps) {
                 {new Date(matricula.data_inicio).toLocaleDateString("pt-BR")}
                 {matricula.data_fim && ` - ${new Date(matricula.data_fim).toLocaleDateString("pt-BR")}`}
               </p>
-              {matricula.cursos?.valor_mensal != null && (
-                <p className="text-xs font-medium text-primary">
-                  {Number(matricula.cursos.valor_mensal).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}/mês
+              {(matricula.cursos?.valor_mensal != null || matricula.desconto_tipo) && (
+                <p className="text-xs font-medium text-primary flex items-center gap-1.5">
+                  {fmt(getValorMatricula(matricula))}/mês
+                  {matricula.desconto_tipo && (
+                    <>
+                      <span className="line-through text-muted-foreground font-normal">
+                        {fmt(Number(matricula.cursos?.valor_mensal) || 0)}
+                      </span>
+                      <Badge variant="outline" className="text-[10px] py-0 px-1">
+                        {matricula.desconto_tipo === "percentual"
+                          ? `-${Number(matricula.desconto_valor)}%`
+                          : "valor fixo"}
+                      </Badge>
+                    </>
+                  )}
                 </p>
               )}
             </div>
