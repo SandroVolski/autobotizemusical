@@ -1539,9 +1539,9 @@ export const NotebookFeaturesSection = () => {
     if (!notebookContainerRef.current || !horizontalRef.current || !lidRef.current) return;
 
     const totalFeatures = features.length;
-    const openDur = 1;
-    const scrollDur = totalFeatures * 2.5;
-    const closeDur = 1;
+    const openDur = 0.6;
+    const scrollDur = totalFeatures * 1.0;
+    const closeDur = 0.6;
     const totalDur = openDur + scrollDur + closeDur;
 
     const snapPoints = [0];
@@ -1558,8 +1558,8 @@ export const NotebookFeaturesSection = () => {
           trigger: notebookContainerRef.current,
           pin: true,
           start: "top top",
-          end: () => `+=${window.innerHeight * totalFeatures * 1.5}`,
-          scrub: 0.8,
+          end: () => `+=${window.innerHeight * totalFeatures * 0.7}`,
+          scrub: 0.5,
           anticipatePin: 1,
           invalidateOnRefresh: true,
           snap: {
@@ -1569,9 +1569,9 @@ export const NotebookFeaturesSection = () => {
               );
               return closest;
             },
-            duration: { min: 0.2, max: 0.6 },
-            delay: 0.05,
-            ease: "power2.inOut",
+            duration: { min: 0.15, max: 0.35 },
+            delay: 0,
+            ease: "power2.out",
           },
           onUpdate: (self) => {
             const p = self.progress;
@@ -1638,7 +1638,7 @@ export const NotebookFeaturesSection = () => {
             key={index}
             className="flex-shrink-0 w-[85vw] snap-center"
           >
-            <div className="relative bg-zinc-900/50 rounded-2xl border border-white/10 overflow-hidden h-[400px]">
+            <div className="relative bg-zinc-900/50 rounded-2xl border border-white/10 overflow-hidden h-[320px]">
               {/* Imagem de fundo */}
               <div className="absolute inset-0">
                 <img
