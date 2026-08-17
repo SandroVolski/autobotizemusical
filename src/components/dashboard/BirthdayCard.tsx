@@ -123,13 +123,16 @@ export function BirthdayCard() {
                   className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
                   onClick={() => navigate(`/alunos/${aluno.id}`)}
                 >
-                  {aluno.foto_url ? (
-                    <img src={aluno.foto_url} alt={aluno.nome} className="w-8 h-8 rounded-full object-cover" />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-xs font-bold">
-                      {getInitials(aluno.nome)}
-                    </div>
-                  )}
+                  <StudentPhoto
+                    fotoUrl={aluno.foto_url}
+                    alt={aluno.nome}
+                    className="w-8 h-8 rounded-full object-cover"
+                    fallback={
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-xs font-bold">
+                        {getInitials(aluno.nome)}
+                      </div>
+                    }
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm truncate">{aluno.nome}</p>
                     <p className="text-xs text-muted-foreground">
