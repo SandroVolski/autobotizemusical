@@ -142,6 +142,15 @@ export default function Alunos() {
   const [selectedCursoIds, setSelectedCursoIds] = useState<string[]>([]);
   const [descontos, setDescontos] = useState<Record<string, { tipo: "percentual" | "fixo"; valor: string }>>({});
   const [temResponsavel, setTemResponsavel] = useState(false);
+  const valorFinalCurso = (cursoId: string) => {
+    const curso = cursosList?.find(c => c.id === cursoId);
+    const base = Number(curso?.valor_mensal) || 0;
+    const d = descontos[cursoId];
+    const v = Number(d?.valor);
+    if (!d?.valor || isNaN(v)) return base;
+    if (d.tipo === "fixo") return Math.max(v, 0);
+    return Math.max(base * (1 - v / 100), 0);
+  };
   const handleToggleStatus = async () => {
     if (!statusToggleAluno) return;
     const newStatus = statusToggleAluno.currentStatus === "ativo" ? "inativo" : "ativo";
