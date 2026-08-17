@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { StudentPhoto } from "@/components/StudentPhoto";
+import { createPhotoSignedUrl } from "@/lib/student-photo";
 import { motion } from "framer-motion";
 import { 
   Search, 
@@ -436,7 +437,8 @@ export default function Alunos() {
       dia_vencimento: aluno.dia_vencimento || undefined,
     });
     setPhotoFile(null);
-    setPhotoPreview(aluno.foto_url || null);
+    setPhotoPreview(null);
+    createPhotoSignedUrl(aluno.foto_url).then((url) => setPhotoPreview(url));
     setTemResponsavel(!!(aluno.responsavel_nome || aluno.responsavel_telefone));
     // Load existing aula data for this student
     setTipoAula("");
