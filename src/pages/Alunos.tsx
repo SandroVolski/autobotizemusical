@@ -310,7 +310,17 @@ export default function Alunos() {
               curso_id: cursoId,
               data_inicio: new Date().toISOString().split("T")[0],
               status: "ativo",
+              desconto_tipo: descontos[cursoId]?.valor ? descontos[cursoId].tipo : null,
+              desconto_valor: descontos[cursoId]?.valor ? Number(descontos[cursoId].valor) : null,
             });
+          }
+          // Update discounts on kept enrollments
+          const toKeep = existingMatriculas?.filter(m => selectedCursoIds.includes(m.curso_id)) || [];
+          for (const m of toKeep) {
+            await supabase.from("matriculas").update({
+              desconto_tipo: descontos[m.curso_id]?.valor ? descontos[m.curso_id].tipo : null,
+              desconto_valor: descontos[m.curso_id]?.valor ? Number(descontos[m.curso_id].valor) : null,
+            }).eq("id", m.id);
           }
           
           setIsDialogOpen(false);
@@ -359,6 +369,8 @@ export default function Alunos() {
                 aluno_id: data.id,
                 curso_id: cursoId,
                 data_inicio: new Date().toISOString().split("T")[0],
+                desconto_tipo: descontos[cursoId]?.valor ? descontos[cursoId].tipo : null,
+                desconto_valor: descontos[cursoId]?.valor ? Number(descontos[cursoId].valor) : null,
               });
             }
           }
@@ -457,14 +469,22 @@ export default function Alunos() {
     // Load existing matriculas for this student
     const { data: existingMatriculas } = await supabase
       .from("matriculas")
-      .select("curso_id")
+      .select("curso_id, desconto_tipo, desconto_valor")
       .eq("aluno_id", aluno.id)
       .eq("status", "ativo");
     
     if (existingMatriculas && existingMatriculas.length > 0) {
       setSelectedCursoIds(existingMatriculas.map(m => m.curso_id));
+      const descMap: Record<string, { tipo: "percentual" | "fixo"; valor: string }> = {};
+      existingMatriculas.forEach(m => {
+        if (m.desconto_tipo && m.desconto_valor != null) {
+          descMap[m.curso_id] = { tipo: m.desconto_tipo as "percentual" | "fixo", valor: String(m.desconto_valor) };
+        }
+      });
+      setDescontos(descMap);
     } else {
       setSelectedCursoIds([]);
+      setDescontos({});
     }
     
     setIsDialogOpen(true);
