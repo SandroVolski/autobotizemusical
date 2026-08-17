@@ -1,5 +1,7 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { StudentPhoto } from "@/components/StudentPhoto";
+import { createPhotoSignedUrl } from "@/lib/student-photo";
 import { motion } from "framer-motion";
 import { 
   Search, 
@@ -112,7 +114,7 @@ export default function Alunos() {
   const [enrollmentAluno, setEnrollmentAluno] = useState<{ id: string; nome: string } | null>(null);
   const [filterValues, setFilterValues] = useState<FilterValues>({});
   const [expandedAluno, setExpandedAluno] = useState<string | null>(null);
-  const [previewPhoto, setPreviewPhoto] = useState<{ url: string; nome: string } | null>(null);
+  const [previewPhoto, setPreviewPhoto] = useState<{ fotoUrl: string; nome: string } | null>(null);
   const [newAluno, setNewAluno] = useState<NovoAluno>({
     nome: "",
     apelido: "",
@@ -205,8 +207,8 @@ export default function Alunos() {
       toast({ title: "Erro no upload da foto", description: error.message, variant: "destructive" });
       return null;
     }
-    const { data: signedData } = await supabase.storage.from("alunos-fotos").createSignedUrl(filePath, 60 * 60 * 24 * 365);
-    return signedData?.signedUrl || null;
+    // Store only the storage path; short-lived signed URLs are created at render time.
+    return filePath;
   };
 
   const { data: alunos, isLoading } = useAlunos();
@@ -435,7 +437,8 @@ export default function Alunos() {
       dia_vencimento: aluno.dia_vencimento || undefined,
     });
     setPhotoFile(null);
-    setPhotoPreview(aluno.foto_url || null);
+    setPhotoPreview(null);
+    createPhotoSignedUrl(aluno.foto_url).then((url) => setPhotoPreview(url));
     setTemResponsavel(!!(aluno.responsavel_nome || aluno.responsavel_telefone));
     // Load existing aula data for this student
     setTipoAula("");
@@ -1134,21 +1137,20 @@ export default function Alunos() {
                     <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigate(`/alunos/${aluno.id}`)}>
                       {/* Avatar with Payment Status */}
                       <div className="relative flex-shrink-0">
-                        {aluno.foto_url ? (
-                          <img
-                            src={aluno.foto_url}
-                            alt={aluno.nome}
-                            className="w-12 h-12 rounded-full object-cover border border-primary/30 hover:ring-2 hover:ring-primary/50 transition-all"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setPreviewPhoto({ url: aluno.foto_url!, nome: aluno.nome });
-                            }}
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-semibold">
-                            {getInitials(aluno.nome)}
-                          </div>
-                        )}
+                        <StudentPhoto
+                          fotoUrl={aluno.foto_url}
+                          alt={aluno.nome}
+                          className="w-12 h-12 rounded-full object-cover border border-primary/30 hover:ring-2 hover:ring-primary/50 transition-all"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPreviewPhoto({ fotoUrl: aluno.foto_url!, nome: aluno.nome });
+                          }}
+                          fallback={
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-semibold">
+                              {getInitials(aluno.nome)}
+                            </div>
+                          }
+                        />
                         {(() => {
                           const status = paymentStatuses.get(aluno.id);
                           return status ? (
@@ -1330,10 +1332,11 @@ export default function Alunos() {
           </DialogHeader>
           {previewPhoto && (
             <div className="flex items-center justify-center p-2">
-              <img
-                src={previewPhoto.url}
+              <StudentPhoto
+                fotoUrl={previewPhoto.fotoUrl}
                 alt={previewPhoto.nome}
                 className="max-w-full max-h-[70vh] rounded-lg object-contain"
+                fallback={<div className="h-40 flex items-center justify-center text-muted-foreground text-sm">Carregando foto...</div>}
               />
             </div>
           )}

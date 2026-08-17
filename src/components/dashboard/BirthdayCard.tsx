@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Cake, PartyPopper, Calendar } from "lucide-react";
 import { useAlunos } from "@/hooks/useAlunos";
 import { useNavigate } from "react-router-dom";
+import { StudentPhoto } from "@/components/StudentPhoto";
 
 export function BirthdayCard() {
   const navigate = useNavigate();
@@ -89,13 +90,16 @@ export function BirthdayCard() {
                   className="flex items-center gap-3 p-3 rounded-lg bg-primary/10 border border-primary/20 cursor-pointer hover:bg-primary/15 transition-colors"
                   onClick={() => navigate(`/alunos/${aluno.id}`)}
                 >
-                  {aluno.foto_url ? (
-                    <img src={aluno.foto_url} alt={aluno.nome} className="w-10 h-10 rounded-full object-cover border-2 border-primary/40" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground text-sm font-bold">
-                      {getInitials(aluno.nome)}
-                    </div>
-                  )}
+                  <StudentPhoto
+                    fotoUrl={aluno.foto_url}
+                    alt={aluno.nome}
+                    className="w-10 h-10 rounded-full object-cover border-2 border-primary/40"
+                    fallback={
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground text-sm font-bold">
+                        {getInitials(aluno.nome)}
+                      </div>
+                    }
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm truncate">{aluno.nome}</p>
                     <p className="text-xs text-muted-foreground">
@@ -119,13 +123,16 @@ export function BirthdayCard() {
                   className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
                   onClick={() => navigate(`/alunos/${aluno.id}`)}
                 >
-                  {aluno.foto_url ? (
-                    <img src={aluno.foto_url} alt={aluno.nome} className="w-8 h-8 rounded-full object-cover" />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-xs font-bold">
-                      {getInitials(aluno.nome)}
-                    </div>
-                  )}
+                  <StudentPhoto
+                    fotoUrl={aluno.foto_url}
+                    alt={aluno.nome}
+                    className="w-8 h-8 rounded-full object-cover"
+                    fallback={
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-xs font-bold">
+                        {getInitials(aluno.nome)}
+                      </div>
+                    }
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm truncate">{aluno.nome}</p>
                     <p className="text-xs text-muted-foreground">
