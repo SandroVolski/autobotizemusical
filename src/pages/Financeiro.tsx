@@ -185,10 +185,13 @@ export default function Financeiro() {
   // Get course value for selected student
   const selectedStudentCourseValue = useMemo(() => {
     if (!newPagamento.aluno_id || !matriculas || !cursos) return null;
-    const mat = matriculas.find(m => m.aluno_id === newPagamento.aluno_id && m.status === "ativo");
-    if (!mat) return null;
-    const curso = cursos.find(c => c.id === mat.curso_id);
-    return curso?.valor_mensal ?? null;
+    const mats = matriculas.filter(m => m.aluno_id === newPagamento.aluno_id && m.status === "ativo");
+    if (mats.length === 0) return null;
+    const total = mats.reduce((acc, mat) => {
+      const curso = cursos.find(c => c.id === mat.curso_id);
+      return acc + getValorMatricula(mat, curso?.valor_mensal);
+    }, 0);
+    return total || null;
   }, [newPagamento.aluno_id, matriculas, cursos]);
 
   const handleCreatePagamento = async () => {
