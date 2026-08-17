@@ -47,7 +47,7 @@ const THEMES: Record<ColorTheme, ThemeConfig> = {
   aurora: { hueStart: 120, hueRange: 200, saturation: 90, lightness: 62, bg: "5, 5, 8", trailAlpha: 0.06 },
   ember: { hueStart: 0, hueRange: 55, saturation: 95, lightness: 58, bg: "8, 4, 2", trailAlpha: 0.07 },
   ocean: { hueStart: 180, hueRange: 90, saturation: 88, lightness: 60, bg: "2, 6, 10", trailAlpha: 0.06 },
-  violet: { hueStart: 258, hueRange: 110, saturation: 95, lightness: 60, bg: "8, 5, 13", trailAlpha: 0.06 },
+  violet: { hueStart: 262, hueRange: 30, saturation: 95, lightness: 60, bg: "8, 5, 13", trailAlpha: 0.06 },
 };
 
 function fieldAngle(x: number, y: number, t: number): number {
@@ -91,7 +91,11 @@ export default function FlowField({
         x: Math.random() * width,
         y: Math.random() * height,
         speed: 1.1 + Math.random() * 1.8,
-        hue: cfg.hueStart + Math.random() * cfg.hueRange,
+        // Brand palette: mostly primary purple (270) with occasional secondary green (158) accents
+        hue:
+          theme === "violet" && Math.random() < 0.18
+            ? 152 + Math.random() * 12
+            : cfg.hueStart + Math.random() * cfg.hueRange,
         life: Math.floor(Math.random() * maxLife),
         maxLife,
       };

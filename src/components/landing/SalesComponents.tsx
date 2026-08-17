@@ -1496,52 +1496,22 @@ export const NotebookFeaturesSection = () => {
 
   const features = [
     {
-      title: "Gestão de Alunos",
-      desc: "Registo completo, histórico de matrículas, progresso individual e comunicação direta.",
-      img: ScreenAlunos,
-      bgText: "GESTÃO",
-    },
-    {
-      title: "Agenda Inteligente",
-      desc: "Agendamento automático, controlo de presença e sincronização com calendários externos.",
-      img: ScreenAgenda,
-      bgText: "ESCOLA",
-    },
-    {
-      title: "Controle Financeiro",
-      desc: "Mensalidades, cobranças automáticas, relatórios de incumprimento e projeções.",
-      img: ScreenFinanceiro,
-      bgText: "FINANÇAS",
-    },
-    {
       title: "IA Pedagógica",
-      desc: "Sugestões de repertório, planos de aula personalizados e análise de evolução.",
+      desc: "Planos de aula, sugestões de repertório e análise de evolução gerados por inteligência artificial — exclusivo da Autobotize.",
       img: ScreenIA,
       bgText: "INTELIGÊNCIA",
     },
     {
-      title: "Material Didático",
-      desc: "Biblioteca digital, pautas, vídeo-aulas e recursos partilhados.",
-      img: ScreenMateriais,
-      bgText: "MÚSICA",
-    },
-    {
-      title: "Comunicação",
-      desc: "Avisos automáticos, lembretes de aulas e notificações personalizadas.",
+      title: "WhatsApp Automático",
+      desc: "Confirmação de aulas, cobranças e avisos enviados sozinhos no WhatsApp — com resposta do aluno ou responsável registada automaticamente.",
       img: ScreenComunicacao,
       bgText: "CONEXÃO",
     },
     {
-      title: "Relatórios Avançados",
-      desc: "Dashboards em tempo real, métricas de desempenho e insights acionáveis.",
-      img: ScreenRelatorios,
-      bgText: "DADOS",
-    },
-    {
-      title: "Multi-instrumentos",
-      desc: "Suporte para todos os instrumentos com configurações específicas para cada um.",
-      img: ScreenInstrumentos,
-      bgText: "SISTEMA",
+      title: "Controle Financeiro",
+      desc: "Mensalidades, descontos por aluno, inadimplência e fluxo de caixa num só painel, sempre atualizado em tempo real.",
+      img: ScreenFinanceiro,
+      bgText: "FINANÇAS",
     },
   ];
 
