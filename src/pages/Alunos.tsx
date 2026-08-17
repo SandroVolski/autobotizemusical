@@ -140,6 +140,7 @@ export default function Alunos() {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [statusToggleAluno, setStatusToggleAluno] = useState<{ id: string; nome: string; currentStatus: string } | null>(null);
   const [selectedCursoIds, setSelectedCursoIds] = useState<string[]>([]);
+  const [descontos, setDescontos] = useState<Record<string, { tipo: "percentual" | "fixo"; valor: string }>>({});
   const [temResponsavel, setTemResponsavel] = useState(false);
   const handleToggleStatus = async () => {
     if (!statusToggleAluno) return;
