@@ -1638,7 +1638,7 @@ export const NotebookFeaturesSection = () => {
             key={index}
             className="flex-shrink-0 w-[85vw] snap-center"
           >
-            <div className="relative bg-zinc-900/50 rounded-2xl border border-white/10 overflow-hidden h-[400px]">
+            <div className="relative bg-zinc-900/50 rounded-2xl border border-white/10 overflow-hidden h-[320px]">
               {/* Imagem de fundo */}
               <div className="absolute inset-0">
                 <img
