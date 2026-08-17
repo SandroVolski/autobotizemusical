@@ -1569,9 +1569,9 @@ export const NotebookFeaturesSection = () => {
               );
               return closest;
             },
-            duration: { min: 0.2, max: 0.6 },
-            delay: 0.05,
-            ease: "power2.inOut",
+            duration: { min: 0.15, max: 0.35 },
+            delay: 0,
+            ease: "power2.out",
           },
           onUpdate: (self) => {
             const p = self.progress;
