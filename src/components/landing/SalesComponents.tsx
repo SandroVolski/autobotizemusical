@@ -2191,10 +2191,10 @@ export const NewFooter = () => {
                     Seções
                   </h4>
                   <nav className="flex flex-col gap-2">
-                    <FooterLink>Início</FooterLink>
-                    <FooterLink>Funcionalidades</FooterLink>
-                    <FooterLink>Avaliações</FooterLink>
-                    <FooterLink>Investimento</FooterLink>
+                    <FooterLink href="#top">Início</FooterLink>
+                    <FooterLink href="#recursos-premium">Funcionalidades</FooterLink>
+                    <FooterLink href="#depoimentos">Avaliações</FooterLink>
+                    <FooterLink href="#pricing-section">Investimento</FooterLink>
                   </nav>
                 </div>
                 <div className="space-y-8 text-white">
