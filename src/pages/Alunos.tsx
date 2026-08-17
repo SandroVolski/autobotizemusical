@@ -405,6 +405,7 @@ export default function Alunos() {
     setAulaDataEspecifica("");
     setSelectedTurmaId("");
     setSelectedCursoIds([]);
+    setDescontos({});
     setTemResponsavel(false);
   };
 
