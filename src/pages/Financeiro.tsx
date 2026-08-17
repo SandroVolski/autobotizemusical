@@ -19,7 +19,7 @@ import {
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { usePagamentos, useCreatePagamento, useDeletePagamento, type NovoPagamento } from "@/hooks/usePagamentos";
 import { useAlunos } from "@/hooks/useAlunos";
-import { useMatriculas } from "@/hooks/useMatriculas";
+import { useMatriculas, getValorMatricula } from "@/hooks/useMatriculas";
 import { useCursos } from "@/hooks/useCursos";
 import { useConfiguracoes } from "@/hooks/useConfiguracoes";
 import { useProfessores } from "@/hooks/useProfessores";
