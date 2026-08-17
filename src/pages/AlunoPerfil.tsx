@@ -168,12 +168,8 @@ export default function AlunoPerfil() {
       setUploading(false);
       return;
     }
-    const { data: signedData } = await supabase.storage.from("alunos-fotos").createSignedUrl(path, 60 * 60 * 24 * 365);
-    if (signedData?.signedUrl) {
-      updateAluno.mutate({ id, foto_url: signedData.signedUrl }, { onSettled: () => setUploading(false) });
-    } else {
-      setUploading(false);
-    }
+    // Store only the storage path; signed URLs are generated short-lived at render time.
+    updateAluno.mutate({ id, foto_url: path }, { onSettled: () => setUploading(false) });
   };
 
   const getInitials = (name: string) => name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
@@ -214,13 +210,16 @@ export default function AlunoPerfil() {
           <CardContent className="p-6">
             <div className="flex flex-col sm:flex-row items-center gap-6">
               <div className="relative group">
-                {aluno.foto_url ? (
-                  <img src={aluno.foto_url} alt={aluno.nome} className="w-24 h-24 rounded-full object-cover border-2 border-primary/30" />
-                ) : (
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground text-2xl font-bold">
-                    {getInitials(aluno.nome)}
-                  </div>
-                )}
+                <StudentPhoto
+                  fotoUrl={aluno.foto_url}
+                  alt={aluno.nome}
+                  className="w-24 h-24 rounded-full object-cover border-2 border-primary/30"
+                  fallback={
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground text-2xl font-bold">
+                      {getInitials(aluno.nome)}
+                    </div>
+                  }
+                />
                 {/* Payment status dot */}
                 {(() => {
                   const payStatus = getStudentPaymentStatus(aluno, pagamentos || []);
