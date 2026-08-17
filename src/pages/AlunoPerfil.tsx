@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { StudentPhoto } from "@/components/StudentPhoto";
 import {
   ArrowLeft,
   Phone,
