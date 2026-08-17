@@ -10,6 +10,8 @@ export interface Matricula {
   data_fim: string | null;
   status: string;
   observacoes: string | null;
+  desconto_tipo: string | null;
+  desconto_valor: number | null;
   created_at: string;
   updated_at: string;
   alunos?: { nome: string } | null;
@@ -23,6 +25,27 @@ export interface NovaMatricula {
   data_fim?: string;
   status?: string;
   observacoes?: string;
+  desconto_tipo?: string | null;
+  desconto_valor?: number | null;
+}
+
+/**
+ * Valor mensal efetivo da matrícula:
+ * - "fixo": valor fixo definido para o aluno (não muda se o curso mudar de preço)
+ * - "percentual": desconto % aplicado sobre o valor atual do curso
+ * - sem desconto: valor do curso
+ */
+export function getValorMatricula(
+  matricula: { desconto_tipo?: string | null; desconto_valor?: number | null; cursos?: { valor_mensal?: number | null } | null },
+  valorCursoFallback?: number | null
+): number {
+  const base = Number(matricula.cursos?.valor_mensal ?? valorCursoFallback ?? 0) || 0;
+  const desc = Number(matricula.desconto_valor);
+  if (matricula.desconto_tipo === "fixo" && !isNaN(desc)) return Math.max(desc, 0);
+  if (matricula.desconto_tipo === "percentual" && !isNaN(desc)) {
+    return Math.max(base * (1 - desc / 100), 0);
+  }
+  return base;
 }
 
 export function useMatriculas(alunoId?: string) {
