@@ -1539,9 +1539,9 @@ export const NotebookFeaturesSection = () => {
     if (!notebookContainerRef.current || !horizontalRef.current || !lidRef.current) return;
 
     const totalFeatures = features.length;
-    const openDur = 1;
-    const scrollDur = totalFeatures * 2.5;
-    const closeDur = 1;
+    const openDur = 0.6;
+    const scrollDur = totalFeatures * 1.0;
+    const closeDur = 0.6;
     const totalDur = openDur + scrollDur + closeDur;
 
     const snapPoints = [0];
@@ -1558,8 +1558,8 @@ export const NotebookFeaturesSection = () => {
           trigger: notebookContainerRef.current,
           pin: true,
           start: "top top",
-          end: () => `+=${window.innerHeight * totalFeatures * 1.5}`,
-          scrub: 0.8,
+          end: () => `+=${window.innerHeight * totalFeatures * 0.7}`,
+          scrub: 0.5,
           anticipatePin: 1,
           invalidateOnRefresh: true,
           snap: {
