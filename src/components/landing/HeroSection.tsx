@@ -4,11 +4,11 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, Zap, Sparkles, Music } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import FlowField from "@/components/ui/flow-field";
 gsap.registerPlugin(ScrollTrigger);
 export const HeroSection = () => {
   const navigate = useNavigate();
   const sectionRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -63,17 +63,17 @@ export const HeroSection = () => {
     }, "-=0.3");
   }, []);
   return <section ref={sectionRef} className="relative h-screen w-full overflow-hidden">
-      {/* Video Background */}
-      <video ref={videoRef} autoPlay muted loop playsInline preload="auto" {...({ fetchpriority: "high" } as any)} className="absolute inset-0 w-full h-full object-cover scale-100">
-        <source src="/videos/hero-background.mp4" type="video/mp4" />
-      </video>
+      {/* Animated Flow Field Background */}
+      <div className="absolute inset-0">
+        <FlowField theme="violet" density="medium" />
+      </div>
 
       {/* Dark Overlay with Gradient */}
-      <div ref={overlayRef} className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/60 to-background/90" />
+      <div ref={overlayRef} className="absolute inset-0 pointer-events-none bg-gradient-to-b from-background/40 via-background/30 to-background/80" />
 
       {/* Additional Gradient Effects */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,hsl(var(--background))_80%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.15),transparent_60%)]" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,transparent_25%,hsl(var(--background))_85%)]" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.15),transparent_60%)]" />
 
       {/* Content */}
       <div ref={contentRef} className="relative z-10 h-full flex items-center justify-center px-4">
