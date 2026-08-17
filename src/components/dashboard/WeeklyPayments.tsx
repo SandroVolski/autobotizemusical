@@ -6,7 +6,7 @@ import { DollarSign, ChevronRight, AlertCircle, CheckCircle, Clock, UserRound } 
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useAlunos } from "@/hooks/useAlunos";
 import { usePaymentStatuses } from "@/hooks/usePaymentStatus";
-import { useMatriculas } from "@/hooks/useMatriculas";
+import { useMatriculas, getValorMatricula } from "@/hooks/useMatriculas";
 import { useCursos } from "@/hooks/useCursos";
 import { PaymentStatusDot } from "@/components/ui/payment-status-dot";
 import { useNavigate } from "react-router-dom";
@@ -28,8 +28,9 @@ export function WeeklyPayments() {
       .filter(m => m.status === "ativo")
       .forEach(m => {
         const curso = cursoMap.get(m.curso_id);
-        if (curso?.valor_mensal) {
-          alunoValorMensal.set(m.aluno_id, (alunoValorMensal.get(m.aluno_id) || 0) + Number(curso.valor_mensal));
+        const valor = getValorMatricula(m, curso?.valor_mensal);
+        if (valor > 0) {
+          alunoValorMensal.set(m.aluno_id, (alunoValorMensal.get(m.aluno_id) || 0) + valor);
         }
       });
   }
