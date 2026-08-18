@@ -1163,19 +1163,30 @@ export default function Alunos() {
           </Card>
         ) : viewMode === "grade" ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredAlunos.map((aluno, index) => (
+            {filteredAlunos.map((aluno, index) => {
+              const inativo = aluno.status !== "ativo";
+              const isFlipped = flippedCard === aluno.id;
+              const info = cardInfo?.get(aluno.id);
+              return (
               <motion.div
                 key={aluno.id}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: Math.min(0.03 * index, 0.3) }}
+                className="[perspective:1400px]"
               >
-                <SpotlightCard className={`h-full ${aluno.status !== "ativo" ? "opacity-60" : ""}`}>
-                  <div className="p-5 flex flex-col h-full">
+                <div
+                  className="relative h-[430px] w-full transition-transform duration-[600ms] [transform-style:preserve-3d]"
+                  style={{ transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
+                >
+                <div className="absolute inset-0 [backface-visibility:hidden]">
+                <SpotlightCard className={`h-full ${inativo ? "opacity-45 grayscale saturate-50 hover:opacity-80" : ""}`}>
+                  <div className="p-5 flex flex-col h-[430px] cursor-pointer" onClick={() => setFlippedCard(aluno.id)}>
                     <div className="flex items-start justify-between gap-2">
                       <Badge variant={aluno.status === "ativo" ? "success" : "outline"} className="capitalize">
                         {aluno.status}
                       </Badge>
+                      <div onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
@@ -1214,9 +1225,10 @@ export default function Alunos() {
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
+                      </div>
                     </div>
 
-                    <div className="mt-1 flex flex-col items-center text-center cursor-pointer" onClick={() => navigate(`/alunos/${aluno.id}`)}>
+                    <div className="mt-1 flex flex-col items-center text-center">
                       <div className="relative">
                         <div className="absolute -inset-1.5 rounded-full bg-gradient-to-br from-primary/40 to-secondary/30 blur-md" aria-hidden />
                         <StudentPhoto
@@ -1281,11 +1293,11 @@ export default function Alunos() {
                     </div>
 
                     <div className="mt-auto pt-4 flex gap-2">
-                      <Button variant="outline" size="sm" className="flex-1" onClick={() => navigate(`/alunos/${aluno.id}`)}>
+                      <Button variant="outline" size="sm" className="flex-1" onClick={(e) => { e.stopPropagation(); navigate(`/alunos/${aluno.id}`); }}>
                         <Eye className="w-3 h-3 mr-1" /> Perfil
                       </Button>
                       {aluno.telefone && (
-                        <Button variant="ghost" size="icon" asChild>
+                        <Button variant="ghost" size="icon" asChild onClick={(e) => e.stopPropagation()}>
                           <a href={`https://wa.me/${aluno.telefone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
                             <Phone className="w-4 h-4" />
                           </a>
@@ -1294,8 +1306,105 @@ export default function Alunos() {
                     </div>
                   </div>
                 </SpotlightCard>
+                </div>
+
+                <div className="absolute inset-0 [transform:rotateY(180deg)] [backface-visibility:hidden]">
+                  <SpotlightCard className={`h-full ${inativo ? "opacity-60" : ""}`}>
+                    <div
+                      className="p-5 flex flex-col h-[430px] cursor-pointer"
+                      onClick={() => setFlippedCard(null)}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="font-semibold text-sm truncate">{aluno.nome}</h3>
+                        <Badge variant="outline" className="gap-1 border-primary/30 text-primary text-[10px]">
+                          <RotateCcw className="w-3 h-3" /> Voltar
+                        </Badge>
+                      </div>
+
+                      <div className="mt-4 space-y-3 overflow-y-auto pr-1">
+                        <div>
+                          <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1.5">Cursos</p>
+                          {info?.cursos.length ? (
+                            <div className="space-y-1.5">
+                              {info.cursos.map((c, i) => (
+                                <div key={i} className="flex items-center gap-2 rounded-lg bg-muted/40 px-2.5 py-1.5 text-sm">
+                                  <GraduationCap className="w-3.5 h-3.5 flex-shrink-0 text-primary/70" />
+                                  <span className="truncate">{c.nome}</span>
+                                  {c.instrumento && (
+                                    <span className="ml-auto text-xs text-muted-foreground truncate">{c.instrumento}</span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">Sem matrícula ativa</p>
+                          )}
+                        </div>
+
+                        {!!info?.turmas.length && (
+                          <div>
+                            <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1.5">Turmas</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {info.turmas.map((t, i) => (
+                                <Badge key={i} variant="secondary" className="text-[11px]">{t}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {!!info?.pagamentos.length && (
+                          <div>
+                            <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1.5">
+                              Últimos pagamentos
+                            </p>
+                            <div className="space-y-1.5">
+                              {info.pagamentos.map((p) => {
+                                const hoje = new Date().toISOString().slice(0, 10);
+                                const pago = p.status === "pago" || !!p.data_pagamento;
+                                const atrasado = !pago && !!p.data_vencimento && p.data_vencimento < hoje;
+                                const cls = pago
+                                  ? "bg-success/10 text-success"
+                                  : atrasado
+                                    ? "bg-destructive/10 text-destructive"
+                                    : "bg-warning/10 text-warning";
+                                const label = pago ? "Pago" : atrasado ? "Atrasado" : "Pendente";
+                                return (
+                                  <div key={p.id} className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm ${cls}`}>
+                                    <span className="truncate">
+                                      {p.referencia ||
+                                        (p.data_vencimento
+                                          ? new Date(p.data_vencimento + "T00:00:00").toLocaleDateString("pt-BR")
+                                          : "—")}
+                                    </span>
+                                    <span className="ml-auto whitespace-nowrap font-medium">
+                                      {p.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                                    </span>
+                                    <Badge variant="outline" className="text-[10px] border-current">{label}</Badge>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-auto pt-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={(e) => { e.stopPropagation(); navigate(`/alunos/${aluno.id}`); }}
+                        >
+                          <Eye className="w-3 h-3 mr-1" /> Ver Perfil Completo
+                        </Button>
+                      </div>
+                    </div>
+                  </SpotlightCard>
+                </div>
+                </div>
               </motion.div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           filteredAlunos.map((aluno, index) => (
