@@ -25,6 +25,8 @@ import {
   UserX,
   LogOut,
   RotateCcw,
+  LayoutGrid,
+  List as ListIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
