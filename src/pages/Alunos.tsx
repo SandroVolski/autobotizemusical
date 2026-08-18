@@ -1077,7 +1077,48 @@ export default function Alunos() {
                   className="pl-10"
                 />
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                {/* Status view tabs (persisted) */}
+                <div className="flex items-center rounded-md border border-border p-0.5">
+                  {([
+                    { id: "ativo", label: "Ativos" },
+                    { id: "todos", label: "Todos" },
+                    { id: "inativo", label: "Inativos" },
+                  ] as const).map((opt) => (
+                    <Button
+                      key={opt.id}
+                      variant={statusView === opt.id ? "secondary" : "ghost"}
+                      size="sm"
+                      className="h-8 px-3"
+                      onClick={() => setStatusView(opt.id)}
+                    >
+                      {opt.label}
+                    </Button>
+                  ))}
+                </div>
+                {/* View mode toggle (persisted) */}
+                <div className="flex items-center rounded-md border border-border p-0.5">
+                  <Button
+                    variant={viewMode === "lista" ? "secondary" : "ghost"}
+                    size="icon"
+                    className="h-8 w-8"
+                    title="Modo lista"
+                    aria-label="Modo lista"
+                    onClick={() => setViewMode("lista")}
+                  >
+                    <ListIcon className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "grade" ? "secondary" : "ghost"}
+                    size="icon"
+                    className="h-8 w-8"
+                    title="Modo grade"
+                    aria-label="Modo grade"
+                    onClick={() => setViewMode("grade")}
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                  </Button>
+                </div>
                 <FilterPopover 
                   filters={filterOptions} 
                   values={filterValues} 
