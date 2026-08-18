@@ -13,6 +13,7 @@ export interface Curso {
   carga_horaria: string | null;
   valor_mensal: number | null;
   status: string;
+  modalidade: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -26,6 +27,7 @@ export interface NovoCurso {
   carga_horaria?: string;
   valor_mensal?: number;
   status?: string;
+  modalidade?: string;
 }
 
 export function useCursos() {

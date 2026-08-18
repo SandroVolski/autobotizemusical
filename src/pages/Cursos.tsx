@@ -54,6 +54,15 @@ const filterOptions: FilterOption[] = [
   },
 ];
 
+const MODALIDADES = [
+  { value: "individual", label: "Individual" },
+  { value: "turma", label: "Turma" },
+  { value: "avulso", label: "Avulso" },
+];
+
+const modalidadeLabel = (v?: string | null) =>
+  MODALIDADES.find((m) => m.value === (v || "individual"))?.label || "Individual";
+
 function formatCargaHoraria(duracao: string, frequencia: string): string {
   if (!duracao) return "";
   return `${duracao}/${frequencia === "semanal" ? "semana" : frequencia === "mensal" ? "mês" : "aula"}`;
@@ -78,7 +87,7 @@ export default function Cursos() {
   const [editForm, setEditForm] = useState({
     nome: "", instrumento: "", nivel: "", duracao: "",
     carga_horaria_tempo: "", carga_horaria_frequencia: "semanal",
-    valor_mensal: "", descricao: "", status: "ativo",
+    valor_mensal: "", descricao: "", status: "ativo", modalidade: "individual",
   });
 
   // View students state
@@ -93,7 +102,7 @@ export default function Cursos() {
   const [newCurso, setNewCurso] = useState({
     nome: "", instrumento: "", nivel: "", duracao: "",
     carga_horaria_tempo: "", carga_horaria_frequencia: "semanal",
-    valor_mensal: "", descricao: "",
+    valor_mensal: "", descricao: "", modalidade: "individual",
   });
 
   const { data: cursos, isLoading } = useCursos();
@@ -102,6 +111,12 @@ export default function Cursos() {
   const createCursoMutation = useCreateCurso();
   const updateCursoMutation = useUpdateCurso();
   const deleteCursoMutation = useDeleteCurso();
+
+  // Instrumentos já cadastrados, fixados no topo do select
+  const instrumentosUsados = useMemo(
+    () => (cursos || []).map((c) => c.instrumento).filter(Boolean) as string[],
+    [cursos]
+  );
 
   // Count students per course
   const alunosPorCurso = useMemo(() => {
@@ -158,10 +173,11 @@ export default function Cursos() {
       carga_horaria: cargaHoraria,
       valor_mensal: newCurso.valor_mensal ? parseFloat(newCurso.valor_mensal) : undefined,
       descricao: newCurso.descricao || undefined,
+      modalidade: newCurso.modalidade || "individual",
       status: "ativo",
     });
 
-    setNewCurso({ nome: "", instrumento: "", nivel: "", duracao: "", carga_horaria_tempo: "", carga_horaria_frequencia: "semanal", valor_mensal: "", descricao: "" });
+    setNewCurso({ nome: "", instrumento: "", nivel: "", duracao: "", carga_horaria_tempo: "", carga_horaria_frequencia: "semanal", valor_mensal: "", descricao: "", modalidade: "individual" });
     setIsDialogOpen(false);
   };
 
@@ -178,6 +194,7 @@ export default function Cursos() {
       valor_mensal: curso.valor_mensal ? String(curso.valor_mensal) : "",
       descricao: curso.descricao || "",
       status: curso.status || "ativo",
+      modalidade: curso.modalidade || "individual",
     });
     setEditDialogOpen(true);
   };
@@ -202,6 +219,7 @@ export default function Cursos() {
       carga_horaria: cargaHoraria,
       valor_mensal: editForm.valor_mensal ? parseFloat(editForm.valor_mensal) : null,
       descricao: editForm.descricao || null,
+      modalidade: editForm.modalidade || "individual",
       status: editForm.status,
     }, {
       onSuccess: () => {
@@ -220,6 +238,7 @@ export default function Cursos() {
       carga_horaria: curso.carga_horaria || undefined,
       valor_mensal: curso.valor_mensal ? Number(curso.valor_mensal) : undefined,
       descricao: curso.descricao || undefined,
+      modalidade: curso.modalidade || "individual",
       status: "ativo",
     });
   };
@@ -281,6 +300,7 @@ export default function Cursos() {
                     <InstrumentoSelect
                       value={newCurso.instrumento}
                       onChange={(v) => setNewCurso(prev => ({ ...prev, instrumento: v }))}
+                      recentes={instrumentosUsados}
                     />
                   </div>
                   <div className="grid gap-2">
@@ -299,6 +319,17 @@ export default function Cursos() {
                   <Label>Duração do Curso</Label>
                   <Input placeholder="Ex: 6 meses" value={newCurso.duracao}
                     onChange={(e) => setNewCurso(prev => ({ ...prev, duracao: e.target.value }))} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Modalidade</Label>
+                  <Select value={newCurso.modalidade} onValueChange={(v) => setNewCurso(prev => ({ ...prev, modalidade: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {MODALIDADES.map((m) => (
+                        <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid gap-2">
                   <Label>Carga Horária</Label>
@@ -456,6 +487,10 @@ export default function Cursos() {
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Modalidade</span>
+                    <Badge variant="outline">{modalidadeLabel(curso.modalidade)}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Alunos</span>
                     <div className="flex items-center gap-1">
                       <Users className="w-3 h-3 text-muted-foreground" />
@@ -511,6 +546,7 @@ export default function Cursos() {
                   key={editingCurso?.id}
                   value={editForm.instrumento}
                   onChange={(v) => setEditForm(prev => ({ ...prev, instrumento: v }))}
+                  recentes={instrumentosUsados}
                 />
               </div>
               <div className="grid gap-2">
@@ -539,6 +575,17 @@ export default function Cursos() {
               <Label>Duração do Curso</Label>
               <Input placeholder="Ex: 6 meses" value={editForm.duracao}
                 onChange={(e) => setEditForm(prev => ({ ...prev, duracao: e.target.value }))} />
+            </div>
+            <div className="grid gap-2">
+              <Label>Modalidade</Label>
+              <Select value={editForm.modalidade} onValueChange={(v) => setEditForm(prev => ({ ...prev, modalidade: v }))}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {MODALIDADES.map((m) => (
+                    <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid gap-2">
               <Label>Carga Horária</Label>
