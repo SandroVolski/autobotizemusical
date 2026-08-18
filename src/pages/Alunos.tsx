@@ -224,8 +224,8 @@ export default function Alunos() {
       ((aluno as any).apelido?.toLowerCase().includes(q)) ||
       (aluno.email?.toLowerCase().includes(q));
     
-    // Filters
-    if (filterValues.status && aluno.status !== filterValues.status) return false;
+    // Status view (persisted)
+    if (statusView !== "todos" && (aluno.status || "ativo") !== statusView) return false;
     if (filterValues.nivel && aluno.nivel !== filterValues.nivel) return false;
     
     return matchesSearch;
