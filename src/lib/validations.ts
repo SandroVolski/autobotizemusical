@@ -41,6 +41,7 @@ export const cursoSchema = z.object({
   carga_horaria: z.string().max(50, "Carga horária muito longa").nullable().optional(),
   valor_mensal: z.number().min(0, "Valor deve ser positivo").nullable().optional(),
   status: z.string().nullable().optional(),
+  modalidade: z.string().nullable().optional(),
 });
 
 export type CursoInput = z.infer<typeof cursoSchema>;
