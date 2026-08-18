@@ -212,6 +212,7 @@ export default function Alunos() {
 
   const { data: alunos, isLoading } = useAlunos();
   const paymentStatuses = usePaymentStatuses(alunos);
+  const { data: cardInfo } = useAlunosCardInfo(viewMode === "grade");
   const createAlunoMutation = useCreateAluno();
   const updateAlunoMutation = useUpdateAluno();
   const deleteAlunoMutation = useDeleteAluno();
