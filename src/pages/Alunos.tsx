@@ -88,15 +88,6 @@ import {
 
 const filterOptions: FilterOption[] = [
   {
-    id: "status",
-    label: "Status",
-    type: "select",
-    options: [
-      { value: "ativo", label: "Ativo" },
-      { value: "inativo", label: "Inativo" },
-    ],
-  },
-  {
     id: "nivel",
     label: "Nível",
     type: "select",
@@ -114,7 +105,9 @@ export default function Alunos() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAluno, setEditingAluno] = useState<string | null>(null);
   const [enrollmentAluno, setEnrollmentAluno] = useState<{ id: string; nome: string } | null>(null);
-  const [filterValues, setFilterValues] = useState<FilterValues>({});
+  const [filterValues, setFilterValues] = usePersistentState<FilterValues>("alunos:filters", {});
+  const [statusView, setStatusView] = usePersistentState<"ativo" | "inativo" | "todos">("alunos:statusView", "ativo");
+  const [viewMode, setViewMode] = usePersistentState<"lista" | "grade">("alunos:viewMode", "lista");
   const [expandedAluno, setExpandedAluno] = useState<string | null>(null);
   const [previewPhoto, setPreviewPhoto] = useState<{ fotoUrl: string; nome: string } | null>(null);
   const [newAluno, setNewAluno] = useState<NovoAluno>({
