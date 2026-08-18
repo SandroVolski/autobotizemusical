@@ -557,6 +557,7 @@ export type Database = {
           duracao: string | null
           id: string
           instrumento: string | null
+          modalidade: string
           nivel: string | null
           nome: string
           owner_user_id: string
@@ -571,6 +572,7 @@ export type Database = {
           duracao?: string | null
           id?: string
           instrumento?: string | null
+          modalidade?: string
           nivel?: string | null
           nome: string
           owner_user_id?: string
@@ -585,6 +587,7 @@ export type Database = {
           duracao?: string | null
           id?: string
           instrumento?: string | null
+          modalidade?: string
           nivel?: string | null
           nome?: string
           owner_user_id?: string
