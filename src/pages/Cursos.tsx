@@ -508,6 +508,7 @@ export default function Cursos() {
               <div className="grid gap-2">
                 <Label>Instrumento *</Label>
                 <InstrumentoSelect
+                  key={editingCurso?.id}
                   value={editForm.instrumento}
                   onChange={(v) => setEditForm(prev => ({ ...prev, instrumento: v }))}
                 />
