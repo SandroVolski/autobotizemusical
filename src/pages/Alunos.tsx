@@ -1176,11 +1176,16 @@ export default function Alunos() {
                 className="[perspective:1400px]"
               >
                 <div
-                  className="relative h-[430px] w-full transition-transform duration-[600ms] [transform-style:preserve-3d]"
-                  style={{ transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
+                  className="relative h-[430px] w-full [transform-style:preserve-3d]"
+                  style={{
+                    transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+                    transition: "transform 1000ms cubic-bezier(0.22, 1, 0.36, 1)",
+                  }}
                 >
-                <div className="absolute inset-0 [backface-visibility:hidden]">
-                <SpotlightCard className={`h-full ${inativo ? "opacity-45 grayscale saturate-50 hover:opacity-80" : ""}`}>
+                <div
+                  className={`absolute inset-0 [backface-visibility:hidden] [-webkit-backface-visibility:hidden] ${isFlipped ? "pointer-events-none" : ""}`}
+                >
+                <SpotlightCard tilt={false} className={`h-full ${inativo ? "opacity-45 grayscale saturate-50 hover:opacity-80" : ""}`}>
                   <div className="p-5 flex flex-col h-[430px] cursor-pointer" onClick={() => setFlippedCard(aluno.id)}>
                     <div className="flex items-start justify-between gap-2">
                       <Badge variant={aluno.status === "ativo" ? "success" : "outline"} className="capitalize">
