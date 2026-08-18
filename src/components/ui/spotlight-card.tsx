@@ -6,6 +6,8 @@ interface SpotlightCardProps {
   className?: string;
   /** HSL/color string for the spotlight glow */
   spotlightColor?: string;
+  /** Disable the 3D tilt (needed when the card lives inside another 3D transform, e.g. a flip container) */
+  tilt?: boolean;
 }
 
 /**
@@ -15,6 +17,7 @@ export function SpotlightCard({
   children,
   className,
   spotlightColor = "hsl(var(--primary) / 0.25)",
+  tilt: tiltEnabled = true,
 }: SpotlightCardProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [opacity, setOpacity] = useState(0);
@@ -28,6 +31,7 @@ export function SpotlightCard({
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     setPos({ x, y });
+    if (!tiltEnabled) return;
     const px = x / rect.width - 0.5;
     const py = y / rect.height - 0.5;
     setTilt({ rx: -py * 6, ry: px * 6 });
@@ -43,7 +47,9 @@ export function SpotlightCard({
         setTilt({ rx: 0, ry: 0 });
       }}
       style={{
-        transform: `perspective(900px) rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)`,
+        transform: tiltEnabled
+          ? `perspective(900px) rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)`
+          : undefined,
         transition: "transform 300ms cubic-bezier(0.22,1,0.36,1), box-shadow 300ms ease",
       }}
       className={cn(
