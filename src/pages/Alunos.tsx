@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { StudentPhoto } from "@/components/StudentPhoto";
+import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { createPhotoSignedUrl } from "@/lib/student-photo";
 import { motion } from "framer-motion";
 import { 
