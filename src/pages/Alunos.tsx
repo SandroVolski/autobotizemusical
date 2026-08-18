@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { StudentPhoto } from "@/components/StudentPhoto";
+import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { createPhotoSignedUrl } from "@/lib/student-photo";
 import { motion } from "framer-motion";
 import { 
@@ -1166,36 +1167,12 @@ export default function Alunos() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: Math.min(0.03 * index, 0.3) }}
               >
-                <Card variant="interactive" className={`h-full ${aluno.status !== "ativo" ? "opacity-60" : ""}`}>
-                  <CardContent className="p-4 flex flex-col h-full">
+                <SpotlightCard className={`h-full ${aluno.status !== "ativo" ? "opacity-60" : ""}`}>
+                  <div className="p-5 flex flex-col h-full">
                     <div className="flex items-start justify-between gap-2">
-                      <div className="relative">
-                        <StudentPhoto
-                          fotoUrl={aluno.foto_url}
-                          alt={aluno.nome}
-                          className="w-14 h-14 rounded-full object-cover border border-primary/30"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setPreviewPhoto({ fotoUrl: aluno.foto_url!, nome: aluno.nome });
-                          }}
-                          fallback={
-                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-semibold">
-                              {getInitials(aluno.nome)}
-                            </div>
-                          }
-                        />
-                        {(() => {
-                          const status = paymentStatuses.get(aluno.id);
-                          return status ? (
-                            <PaymentStatusDot
-                              color={status.color}
-                              label={status.label}
-                              size="md"
-                              className="absolute -bottom-0.5 -right-0.5 border-background"
-                            />
-                          ) : null;
-                        })()}
-                      </div>
+                      <Badge variant={aluno.status === "ativo" ? "success" : "outline"} className="capitalize">
+                        {aluno.status}
+                      </Badge>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
@@ -1236,46 +1213,71 @@ export default function Alunos() {
                       </DropdownMenu>
                     </div>
 
-                    <div className="mt-3 cursor-pointer" onClick={() => navigate(`/alunos/${aluno.id}`)}>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-semibold truncate">{aluno.nome}</h3>
-                        <Badge variant={aluno.status === "ativo" ? "success" : "outline"}>
-                          {aluno.status}
-                        </Badge>
+                    <div className="mt-1 flex flex-col items-center text-center cursor-pointer" onClick={() => navigate(`/alunos/${aluno.id}`)}>
+                      <div className="relative">
+                        <div className="absolute -inset-1.5 rounded-full bg-gradient-to-br from-primary/40 to-secondary/30 blur-md" aria-hidden />
+                        <StudentPhoto
+                          fotoUrl={aluno.foto_url}
+                          alt={aluno.nome}
+                          className="relative w-24 h-24 rounded-full object-cover border-2 border-primary/40 shadow-lg"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPreviewPhoto({ fotoUrl: aluno.foto_url!, nome: aluno.nome });
+                          }}
+                          fallback={
+                            <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground text-2xl font-bold border-2 border-primary/40 shadow-lg">
+                              {getInitials(aluno.nome)}
+                            </div>
+                          }
+                        />
+                        {(() => {
+                          const status = paymentStatuses.get(aluno.id);
+                          return status ? (
+                            <PaymentStatusDot
+                              color={status.color}
+                              label={status.label}
+                              size="md"
+                              className="absolute bottom-1 right-1 border-2 border-background"
+                            />
+                          ) : null;
+                        })()}
                       </div>
+
+                      <h3 className="mt-4 font-semibold text-base leading-tight truncate max-w-full">{aluno.nome}</h3>
                       {(aluno as any).apelido && (
-                        <p className="text-xs text-muted-foreground italic truncate">"{(aluno as any).apelido}"</p>
+                        <p className="text-xs text-muted-foreground italic truncate max-w-full">"{(aluno as any).apelido}"</p>
                       )}
-                      <div className="mt-2 space-y-1 text-sm text-muted-foreground">
-                        <p className="flex items-center gap-1">
-                          <Music className="w-3 h-3" />
-                          {aluno.nivel || "Iniciante"}
-                        </p>
-                        {aluno.email && (
-                          <p className="flex items-center gap-1 truncate">
-                            <Mail className="w-3 h-3 flex-shrink-0" />
-                            <span className="truncate">{aluno.email}</span>
-                          </p>
-                        )}
-                        {aluno.telefone && (
-                          <p className="flex items-center gap-1">
-                            <Phone className="w-3 h-3" />
-                            {aluno.telefone}
-                          </p>
-                        )}
-                        {aluno.data_matricula && (
-                          <p className="flex items-center gap-1">
-                            {aluno.status === "ativo" ? (
-                              <><Calendar className="w-3 h-3" /> Desde {new Date(aluno.data_matricula).toLocaleDateString("pt-BR")}</>
-                            ) : (
-                              <><LogOut className="w-3 h-3" /> Saiu em {new Date(aluno.updated_at).toLocaleDateString("pt-BR")}</>
-                            )}
-                          </p>
-                        )}
-                      </div>
+                      <Badge variant="outline" className="mt-2 gap-1 border-primary/30 text-primary">
+                        <Music className="w-3 h-3" />
+                        {aluno.nivel || "Iniciante"}
+                      </Badge>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-border flex gap-2">
+                    <div className="mt-4 space-y-2 text-sm text-muted-foreground">
+                      {aluno.email && (
+                        <div className="flex items-center gap-2 rounded-lg bg-muted/40 px-2.5 py-1.5">
+                          <Mail className="w-3.5 h-3.5 flex-shrink-0 text-primary/70" />
+                          <span className="truncate">{aluno.email}</span>
+                        </div>
+                      )}
+                      {aluno.telefone && (
+                        <div className="flex items-center gap-2 rounded-lg bg-muted/40 px-2.5 py-1.5">
+                          <Phone className="w-3.5 h-3.5 flex-shrink-0 text-primary/70" />
+                          <span className="truncate">{aluno.telefone}</span>
+                        </div>
+                      )}
+                      {aluno.data_matricula && (
+                        <div className="flex items-center gap-2 rounded-lg bg-muted/40 px-2.5 py-1.5">
+                          {aluno.status === "ativo" ? (
+                            <><Calendar className="w-3.5 h-3.5 flex-shrink-0 text-primary/70" /> <span className="truncate">Desde {new Date(aluno.data_matricula).toLocaleDateString("pt-BR")}</span></>
+                          ) : (
+                            <><LogOut className="w-3.5 h-3.5 flex-shrink-0 text-primary/70" /> <span className="truncate">Saiu em {new Date(aluno.updated_at).toLocaleDateString("pt-BR")}</span></>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-auto pt-4 flex gap-2">
                       <Button variant="outline" size="sm" className="flex-1" onClick={() => navigate(`/alunos/${aluno.id}`)}>
                         <Eye className="w-3 h-3 mr-1" /> Perfil
                       </Button>
@@ -1287,8 +1289,8 @@ export default function Alunos() {
                         </Button>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </SpotlightCard>
               </motion.div>
             ))}
           </div>
