@@ -487,14 +487,16 @@ export default function Cursos() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Nível</span>
-                    <Badge className={nivelConfig[curso.nivel as keyof typeof nivelConfig] || nivelConfig.iniciante}>
-                      {curso.nivel ? curso.nivel.charAt(0).toUpperCase() + curso.nivel.slice(1) : "Iniciante"}
+                    <span className="text-sm text-muted-foreground">Modalidade</span>
+                    <Badge className={modalidadeConfig[curso.modalidade || "individual"]}>
+                      {modalidadeLabel(curso.modalidade)}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Modalidade</span>
-                    <Badge variant="outline">{modalidadeLabel(curso.modalidade)}</Badge>
+                    <span className="text-sm text-muted-foreground">Nível</span>
+                    <Badge variant="outline">
+                      {curso.nivel ? curso.nivel.charAt(0).toUpperCase() + curso.nivel.slice(1) : "Iniciante"}
+                    </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Alunos</span>
