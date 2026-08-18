@@ -1139,7 +1139,7 @@ export default function Alunos() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="space-y-3"
+        className={viewMode === "grade" ? "" : "space-y-3"}
       >
         {filteredAlunos.length === 0 ? (
           <Card variant="glass">
@@ -1157,6 +1157,141 @@ export default function Alunos() {
               )}
             </CardContent>
           </Card>
+        ) : viewMode === "grade" ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredAlunos.map((aluno, index) => (
+              <motion.div
+                key={aluno.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: Math.min(0.03 * index, 0.3) }}
+              >
+                <Card variant="interactive" className={`h-full ${aluno.status !== "ativo" ? "opacity-60" : ""}`}>
+                  <CardContent className="p-4 flex flex-col h-full">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="relative">
+                        <StudentPhoto
+                          fotoUrl={aluno.foto_url}
+                          alt={aluno.nome}
+                          className="w-14 h-14 rounded-full object-cover border border-primary/30"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPreviewPhoto({ fotoUrl: aluno.foto_url!, nome: aluno.nome });
+                          }}
+                          fallback={
+                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-semibold">
+                              {getInitials(aluno.nome)}
+                            </div>
+                          }
+                        />
+                        {(() => {
+                          const status = paymentStatuses.get(aluno.id);
+                          return status ? (
+                            <PaymentStatusDot
+                              color={status.color}
+                              label={status.label}
+                              size="md"
+                              className="absolute -bottom-0.5 -right-0.5 border-background"
+                            />
+                          ) : null;
+                        })()}
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => navigate(`/alunos/${aluno.id}`)}>
+                            <Eye className="w-4 h-4 mr-2" />
+                            Ver Perfil
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setEnrollmentAluno({ id: aluno.id, nome: aluno.nome })}>
+                            <GraduationCap className="w-4 h-4 mr-2" />
+                            Matricular em Curso
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEdit(aluno)}>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => setStatusToggleAluno({ id: aluno.id, nome: aluno.nome, currentStatus: aluno.status || "ativo" })}
+                          >
+                            {aluno.status === "ativo" ? (
+                              <><UserX className="w-4 h-4 mr-2" /> Desativar Aluno</>
+                            ) : (
+                              <><RotateCcw className="w-4 h-4 mr-2" /> Reativar Aluno</>
+                            )}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={() => deleteAlunoMutation.mutate(aluno.id)}
+                            disabled={deleteAlunoMutation.isPending}
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+
+                    <div className="mt-3 cursor-pointer" onClick={() => navigate(`/alunos/${aluno.id}`)}>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-semibold truncate">{aluno.nome}</h3>
+                        <Badge variant={aluno.status === "ativo" ? "success" : "outline"}>
+                          {aluno.status}
+                        </Badge>
+                      </div>
+                      {(aluno as any).apelido && (
+                        <p className="text-xs text-muted-foreground italic truncate">"{(aluno as any).apelido}"</p>
+                      )}
+                      <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+                        <p className="flex items-center gap-1">
+                          <Music className="w-3 h-3" />
+                          {aluno.nivel || "Iniciante"}
+                        </p>
+                        {aluno.email && (
+                          <p className="flex items-center gap-1 truncate">
+                            <Mail className="w-3 h-3 flex-shrink-0" />
+                            <span className="truncate">{aluno.email}</span>
+                          </p>
+                        )}
+                        {aluno.telefone && (
+                          <p className="flex items-center gap-1">
+                            <Phone className="w-3 h-3" />
+                            {aluno.telefone}
+                          </p>
+                        )}
+                        {aluno.data_matricula && (
+                          <p className="flex items-center gap-1">
+                            {aluno.status === "ativo" ? (
+                              <><Calendar className="w-3 h-3" /> Desde {new Date(aluno.data_matricula).toLocaleDateString("pt-BR")}</>
+                            ) : (
+                              <><LogOut className="w-3 h-3" /> Saiu em {new Date(aluno.updated_at).toLocaleDateString("pt-BR")}</>
+                            )}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-border flex gap-2">
+                      <Button variant="outline" size="sm" className="flex-1" onClick={() => navigate(`/alunos/${aluno.id}`)}>
+                        <Eye className="w-3 h-3 mr-1" /> Perfil
+                      </Button>
+                      {aluno.telefone && (
+                        <Button variant="ghost" size="icon" asChild>
+                          <a href={`https://wa.me/${aluno.telefone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+                            <Phone className="w-4 h-4" />
+                          </a>
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
         ) : (
           filteredAlunos.map((aluno, index) => (
             <motion.div
