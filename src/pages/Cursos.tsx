@@ -542,6 +542,7 @@ export default function Cursos() {
                   key={editingCurso?.id}
                   value={editForm.instrumento}
                   onChange={(v) => setEditForm(prev => ({ ...prev, instrumento: v }))}
+                  recentes={instrumentosUsados}
                 />
               </div>
               <div className="grid gap-2">
@@ -570,6 +571,17 @@ export default function Cursos() {
               <Label>Duração do Curso</Label>
               <Input placeholder="Ex: 6 meses" value={editForm.duracao}
                 onChange={(e) => setEditForm(prev => ({ ...prev, duracao: e.target.value }))} />
+            </div>
+            <div className="grid gap-2">
+              <Label>Modalidade</Label>
+              <Select value={editForm.modalidade} onValueChange={(v) => setEditForm(prev => ({ ...prev, modalidade: v }))}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {MODALIDADES.map((m) => (
+                    <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid gap-2">
               <Label>Carga Horária</Label>
