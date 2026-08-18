@@ -32,6 +32,12 @@ const nivelConfig = {
   avancado: "bg-primary/20 text-primary border-primary/30",
 };
 
+const modalidadeConfig: Record<string, string> = {
+  individual: "bg-secondary/20 text-secondary border-secondary/30",
+  turma: "bg-primary/20 text-primary border-primary/30",
+  avulso: "bg-warning/20 text-warning border-warning/30",
+};
+
 const filterOptions: FilterOption[] = [
   {
     id: "nivel", label: "Nível", type: "select",
@@ -481,14 +487,16 @@ export default function Cursos() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Nível</span>
-                    <Badge className={nivelConfig[curso.nivel as keyof typeof nivelConfig] || nivelConfig.iniciante}>
-                      {curso.nivel ? curso.nivel.charAt(0).toUpperCase() + curso.nivel.slice(1) : "Iniciante"}
+                    <span className="text-sm text-muted-foreground">Modalidade</span>
+                    <Badge className={modalidadeConfig[curso.modalidade || "individual"]}>
+                      {modalidadeLabel(curso.modalidade)}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Modalidade</span>
-                    <Badge variant="outline">{modalidadeLabel(curso.modalidade)}</Badge>
+                    <span className="text-sm text-muted-foreground">Nível</span>
+                    <Badge variant="outline">
+                      {curso.nivel ? curso.nivel.charAt(0).toUpperCase() + curso.nivel.slice(1) : "Iniciante"}
+                    </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Alunos</span>
