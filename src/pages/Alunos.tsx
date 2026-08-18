@@ -110,7 +110,8 @@ export default function Alunos() {
   const [enrollmentAluno, setEnrollmentAluno] = useState<{ id: string; nome: string } | null>(null);
   const [filterValues, setFilterValues] = usePersistentState<FilterValues>("alunos:filters", {});
   const [statusView, setStatusView] = usePersistentState<"ativo" | "inativo" | "todos">("alunos:statusView", "ativo");
-  const [viewMode, setViewMode] = usePersistentState<"lista" | "grade">("alunos:viewMode", "lista");
+  const [viewMode, setViewMode] = usePersistentState<"lista" | "grade">("alunos:viewMode", "grade");
+  const [flippedCard, setFlippedCard] = useState<string | null>(null);
   const [expandedAluno, setExpandedAluno] = useState<string | null>(null);
   const [previewPhoto, setPreviewPhoto] = useState<{ fotoUrl: string; nome: string } | null>(null);
   const [newAluno, setNewAluno] = useState<NovoAluno>({
