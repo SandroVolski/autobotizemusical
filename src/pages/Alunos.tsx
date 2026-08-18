@@ -1313,8 +1313,10 @@ export default function Alunos() {
                 </SpotlightCard>
                 </div>
 
-                <div className="absolute inset-0 [transform:rotateY(180deg)] [backface-visibility:hidden]">
-                  <SpotlightCard className={`h-full ${inativo ? "opacity-60" : ""}`}>
+                <div
+                  className={`absolute inset-0 [transform:rotateY(180deg)] [backface-visibility:hidden] [-webkit-backface-visibility:hidden] ${isFlipped ? "" : "pointer-events-none"}`}
+                >
+                  <SpotlightCard tilt={false} className={`h-full ${inativo ? "opacity-60" : ""}`}>
                     <div
                       className="p-5 flex flex-col h-[430px] cursor-pointer"
                       onClick={() => setFlippedCard(null)}
