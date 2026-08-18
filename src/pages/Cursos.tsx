@@ -23,6 +23,7 @@ import { useMatriculas } from "@/hooks/useMatriculas";
 import { useAlunos } from "@/hooks/useAlunos";
 import { toast } from "@/hooks/use-toast";
 import { FilterPopover, type FilterValues, type FilterOption } from "@/components/ui/filter-popover";
+import { InstrumentoSelect, INSTRUMENTOS } from "@/components/ui/instrumento-select";
 import { exportCursos } from "@/lib/csv-export";
 
 const nivelConfig = {
@@ -42,14 +43,7 @@ const filterOptions: FilterOption[] = [
   },
   {
     id: "instrumento", label: "Instrumento", type: "select",
-    options: [
-      { value: "Piano", label: "Piano" },
-      { value: "Violão", label: "Violão" },
-      { value: "Guitarra", label: "Guitarra" },
-      { value: "Bateria", label: "Bateria" },
-      { value: "Canto", label: "Canto" },
-      { value: "Violino", label: "Violino" },
-    ],
+    options: INSTRUMENTOS.map((i) => ({ value: i, label: i })),
   },
   {
     id: "status", label: "Status", type: "select",
@@ -284,18 +278,10 @@ export default function Cursos() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label>Instrumento *</Label>
-                    <Select value={newCurso.instrumento} onValueChange={(v) => setNewCurso(prev => ({ ...prev, instrumento: v }))}>
-                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Piano">Piano</SelectItem>
-                        <SelectItem value="Violão">Violão</SelectItem>
-                        <SelectItem value="Guitarra">Guitarra</SelectItem>
-                        <SelectItem value="Bateria">Bateria</SelectItem>
-                        <SelectItem value="Canto">Canto</SelectItem>
-                        <SelectItem value="Violino">Violino</SelectItem>
-                        <SelectItem value="Teoria Musical">Teoria Musical</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <InstrumentoSelect
+                      value={newCurso.instrumento}
+                      onChange={(v) => setNewCurso(prev => ({ ...prev, instrumento: v }))}
+                    />
                   </div>
                   <div className="grid gap-2">
                     <Label>Nível</Label>
@@ -521,18 +507,10 @@ export default function Cursos() {
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Instrumento *</Label>
-                <Select value={editForm.instrumento} onValueChange={(v) => setEditForm(prev => ({ ...prev, instrumento: v }))}>
-                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Piano">Piano</SelectItem>
-                    <SelectItem value="Violão">Violão</SelectItem>
-                    <SelectItem value="Guitarra">Guitarra</SelectItem>
-                    <SelectItem value="Bateria">Bateria</SelectItem>
-                    <SelectItem value="Canto">Canto</SelectItem>
-                    <SelectItem value="Violino">Violino</SelectItem>
-                    <SelectItem value="Teoria Musical">Teoria Musical</SelectItem>
-                  </SelectContent>
-                </Select>
+                <InstrumentoSelect
+                  value={editForm.instrumento}
+                  onChange={(v) => setEditForm(prev => ({ ...prev, instrumento: v }))}
+                />
               </div>
               <div className="grid gap-2">
                 <Label>Nível</Label>
