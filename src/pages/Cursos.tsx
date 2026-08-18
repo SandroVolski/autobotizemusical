@@ -32,6 +32,12 @@ const nivelConfig = {
   avancado: "bg-primary/20 text-primary border-primary/30",
 };
 
+const modalidadeConfig: Record<string, string> = {
+  individual: "bg-secondary/20 text-secondary border-secondary/30",
+  turma: "bg-primary/20 text-primary border-primary/30",
+  avulso: "bg-warning/20 text-warning border-warning/30",
+};
+
 const filterOptions: FilterOption[] = [
   {
     id: "nivel", label: "Nível", type: "select",
