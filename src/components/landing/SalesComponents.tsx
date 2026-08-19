@@ -1624,26 +1624,26 @@ export const NotebookFeaturesSection = () => {
 
       {/* Carrossel horizontal swipeable */}
       <div 
-        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4 px-4 pb-4"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        className="flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide touch-pan-x-only gap-4 px-4 pb-4"
         onScroll={(e) => {
           const scrollLeft = e.currentTarget.scrollLeft;
-          const cardWidth = e.currentTarget.offsetWidth * 0.85;
-          const newIndex = Math.round(scrollLeft / cardWidth);
+          const cardWidth = e.currentTarget.scrollWidth / features.length;
+          const newIndex = cardWidth > 0 ? Math.round(scrollLeft / cardWidth) : 0;
           setActiveIndex(Math.max(0, Math.min(newIndex, features.length - 1)));
         }}
       >
         {features.map((item, index) => (
           <div
             key={index}
-            className="flex-shrink-0 w-[85vw] snap-center"
+            className="flex-shrink-0 w-[82vw] snap-center"
           >
-            <div className="relative bg-zinc-900/50 rounded-2xl border border-white/10 overflow-hidden h-[320px]">
+            <div className="relative bg-zinc-900/50 rounded-2xl border border-white/10 overflow-hidden h-[340px]">
               {/* Imagem de fundo */}
               <div className="absolute inset-0">
                 <img
                   src={item.img}
                   alt={item.title}
+                  draggable={false}
                   className="w-full h-full object-cover grayscale-[30%] brightness-50"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent" />
@@ -1661,10 +1661,10 @@ export const NotebookFeaturesSection = () => {
 
               {/* Conteúdo */}
               <div className="relative z-10 h-full flex flex-col justify-end p-6">
-                <h3 className="text-2xl font-black tracking-tight uppercase italic bg-gradient-to-r from-[#8000FF] to-[#00D084] bg-clip-text text-transparent mb-3">
+                <h3 className="text-xl font-black tracking-tight uppercase italic bg-gradient-to-r from-[#8000FF] to-[#00D084] bg-clip-text text-transparent mb-3 break-words">
                   {item.title}
                 </h3>
-                <p className="text-zinc-400 text-sm leading-relaxed">
+                <p className="text-zinc-400 text-[13px] leading-relaxed">
                   {item.desc}
                 </p>
               </div>
