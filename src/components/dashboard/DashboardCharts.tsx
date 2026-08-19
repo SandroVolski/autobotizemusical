@@ -8,6 +8,7 @@ import { useAlunos } from "@/hooks/useAlunos";
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useAulas } from "@/hooks/useAulas";
 import { Users, Music, TrendingUp, BarChart3 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const themedTooltipStyle = {
   backgroundColor: "hsl(var(--popover))",
@@ -25,6 +26,7 @@ const LEVEL_COLORS = {
 
 export function StudentsByLevelChart() {
   const { data: alunos } = useAlunos();
+  const isMobile = useIsMobile();
 
   const nivelData = [
     { name: "Iniciante", value: alunos?.filter(a => (a.nivel || "iniciante") === "iniciante" && a.status === "ativo").length || 0, color: LEVEL_COLORS.iniciante },
@@ -43,14 +45,14 @@ export function StudentsByLevelChart() {
             Alunos por Nível
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="h-[240px]">
+        <CardContent className="px-2 sm:px-6">
+          <div className="h-[300px] sm:h-[240px]">
             {nivelData.length > 0 ? (
-              <div className="flex items-center h-full gap-6">
-                <div className="flex-1 h-full relative">
+              <div className="flex flex-col sm:flex-row items-center h-full gap-2 sm:gap-6">
+                <div className="w-full sm:flex-1 h-[180px] sm:h-full relative">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={nivelData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={3} dataKey="value" strokeWidth={0}>
+                      <Pie data={nivelData} cx="50%" cy="50%" innerRadius={isMobile ? 48 : 60} outerRadius={isMobile ? 72 : 90} paddingAngle={3} dataKey="value" strokeWidth={0}>
                         {nivelData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
@@ -68,12 +70,12 @@ export function StudentsByLevelChart() {
                     </div>
                   </div>
                 </div>
-                <div className="flex flex-col gap-4 min-w-[130px]">
+                <div className="w-full sm:w-auto grid grid-cols-2 sm:flex sm:flex-col gap-2 sm:gap-4 sm:min-w-[130px] px-2">
                   {nivelData.map((entry) => (
-                    <div key={entry.name} className="flex items-center gap-3">
+                    <div key={entry.name} className="flex items-center gap-2 sm:gap-3 min-w-0">
                       <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium text-foreground">{entry.name}</span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs sm:text-sm font-medium text-foreground truncate">{entry.name}</span>
                         <span className="text-xs text-muted-foreground">{entry.value} ({total > 0 ? Math.round((entry.value / total) * 100) : 0}%)</span>
                       </div>
                     </div>
