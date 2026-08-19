@@ -1070,20 +1070,20 @@ export default function Alunos() {
         transition={{ delay: 0.2 }}
       >
         <Card variant="glass">
-          <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <div className="relative flex-1 min-w-0">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por nome, email..."
+                  placeholder="Buscar aluno..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {/* Status view tabs (persisted) */}
-                <div className="flex items-center rounded-md border border-border p-0.5">
+                <div className="flex flex-1 sm:flex-none items-center rounded-md border border-border p-0.5">
                   {([
                     { id: "ativo", label: "Ativos" },
                     { id: "todos", label: "Todos" },
@@ -1093,7 +1093,7 @@ export default function Alunos() {
                       key={opt.id}
                       variant={statusView === opt.id ? "secondary" : "ghost"}
                       size="sm"
-                      className="h-8 px-3"
+                      className="h-8 flex-1 sm:flex-none px-2 sm:px-3 text-xs sm:text-sm"
                       onClick={() => setStatusView(opt.id)}
                     >
                       {opt.label}
@@ -1101,7 +1101,7 @@ export default function Alunos() {
                   ))}
                 </div>
                 {/* View mode toggle (persisted) */}
-                <div className="flex items-center rounded-md border border-border p-0.5">
+                <div className="flex items-center rounded-md border border-border p-0.5 shrink-0">
                   <Button
                     variant={viewMode === "lista" ? "secondary" : "ghost"}
                     size="icon"
@@ -1128,9 +1128,10 @@ export default function Alunos() {
                   values={filterValues} 
                   onChange={setFilterValues} 
                 />
-                <Button variant="outline" onClick={handleExport}>
-                  <Download className="w-4 h-4 mr-2" />
-                  Exportar
+                <Button variant="outline" onClick={handleExport} className="flex-1 sm:flex-none">
+                  <Download className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Exportar</span>
+                  <span className="sm:hidden ml-2">Exportar</span>
                 </Button>
               </div>
             </div>
@@ -1162,7 +1163,7 @@ export default function Alunos() {
             </CardContent>
           </Card>
         ) : viewMode === "grade" ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredAlunos.map((aluno, index) => {
               const inativo = aluno.status !== "ativo";
               const isFlipped = flippedCard === aluno.id;

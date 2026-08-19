@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -9,11 +10,29 @@ export const PhoneMockupSection = () => {
   const phoneRef = useRef<HTMLDivElement>(null);
   const transitionRef = useRef<HTMLDivElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!sectionRef.current || !phoneRef.current || !transitionRef.current) return;
 
     const ctx = gsap.context(() => {
+      // Mobile: sem pin (corta conteúdo em telas pequenas) — apenas revelação simples
+      if (isMobile) {
+        gsap.set(phoneRef.current, { clearProps: "all" });
+        const msgsM = sectionRef.current?.querySelectorAll(".chat-msg-phone");
+        if (msgsM) {
+          gsap.to(msgsM, {
+            opacity: 1,
+            y: 0,
+            duration: 0.5,
+            stagger: 0.15,
+            ease: "power2.out",
+            scrollTrigger: { trigger: sectionRef.current, start: "top 75%" },
+          });
+        }
+        return;
+      }
+
       // Transition line setup
       const animatedLine = transitionRef.current?.querySelector("#animated-line-phone");
       const glowNode = transitionRef.current?.querySelector("#glowing-node-phone");
@@ -109,7 +128,7 @@ export const PhoneMockupSection = () => {
     }, transitionRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [isMobile]);
 
   return (
     <>
@@ -148,45 +167,48 @@ export const PhoneMockupSection = () => {
       </div>
 
       {/* Main Phone Section */}
-      <section ref={sectionRef} className="h-screen w-full bg-black flex items-center justify-center overflow-hidden relative">
+      <section
+        ref={sectionRef}
+        className="min-h-[100svh] md:h-screen w-full bg-black flex items-center justify-center overflow-hidden relative py-16 md:py-0"
+      >
         {/* Background glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#8000FF]/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(800px,150vw)] h-[min(800px,150vw)] bg-[#8000FF]/10 rounded-full blur-[120px] pointer-events-none" />
 
-        <div className="container mx-auto px-6 max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10 h-full py-12 md:py-0">
+        <div className="container mx-auto px-5 sm:px-6 max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12 items-center relative z-10 md:h-full md:py-0">
           {/* Left: Text */}
-          <div className="flex flex-col justify-center space-y-6 h-full md:h-auto">
+          <div className="flex flex-col justify-center space-y-4 md:space-y-6 h-auto">
             <div className="inline-block px-4 py-1.5 rounded-full bg-[#00FFAC]/10 border border-[#00FFAC]/20 text-[#00FFAC] text-sm font-semibold w-max mb-2">
               Comunicação Inteligente
             </div>
-            <h2 id="phone-text-title" className="text-3xl md:text-5xl font-bold leading-tight text-white">
+            <h2 id="phone-text-title" className="text-2xl sm:text-3xl md:text-5xl font-bold leading-tight text-white">
               Comunicação no <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#8000FF] to-[#00FFAC]">Piloto Automático</span>
             </h2>
-            <p id="phone-text-desc" className="text-gray-400 text-lg md:text-xl leading-relaxed">
+            <p id="phone-text-desc" className="text-gray-400 text-base md:text-xl leading-relaxed">
               Esqueça as cobranças manuais e as faltas por esquecimento. Nosso sistema envia lembretes de aulas e avisos de mensalidade diretamente para seus alunos.
             </p>
 
-            <div id="phone-features-list" className="space-y-4 pt-4">
+            <div id="phone-features-list" className="space-y-3 md:space-y-4 pt-2 md:pt-4">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-[#8000FF]/20 flex items-center justify-center text-[#8000FF]">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
                 </div>
-                <span className="text-gray-300">Confirmações de aulas automáticas</span>
+                <span className="text-gray-300 text-sm md:text-base">Confirmações de aulas automáticas</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-[#00FFAC]/20 flex items-center justify-center text-[#00FFAC]">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 </div>
-                <span className="text-gray-300">Cobranças e envio de Pix integrados</span>
+                <span className="text-gray-300 text-sm md:text-base">Cobranças e envio de Pix integrados</span>
               </div>
             </div>
           </div>
 
           {/* Right: Phone Mockup */}
-          <div className="flex justify-center items-center h-full">
+          <div className="flex justify-center items-center h-auto md:h-full">
             <div
               ref={phoneRef}
-              className="w-full max-w-[320px] h-[600px] max-h-[85vh] bg-[#0b141a] rounded-[40px] border-[6px] border-[#2A2D35] relative shadow-[0_20px_60px_-15px_rgba(128,0,255,0.3)] flex flex-col overflow-hidden"
+              className="w-full max-w-[300px] sm:max-w-[320px] h-[520px] sm:h-[600px] max-h-[78vh] md:max-h-[85vh] bg-[#0b141a] rounded-[40px] border-[6px] border-[#2A2D35] relative shadow-[0_20px_60px_-15px_rgba(128,0,255,0.3)] flex flex-col overflow-hidden"
             >
               {/* Dynamic Island */}
               <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-20 h-6 bg-black rounded-full z-30 flex items-center justify-between px-2 shadow-sm border border-gray-900">
