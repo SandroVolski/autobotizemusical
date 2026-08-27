@@ -20,6 +20,7 @@ import {
   Check,
   Upload,
   Trash2,
+  Wand2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -42,6 +43,8 @@ import { Separator } from "@/components/ui/separator";
 import { useConfiguracoes, useUpdateConfiguracoes, HorarioFuncionamento } from "@/hooks/useConfiguracoes";
 import { Json } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useUpdateOnboarding } from "@/hooks/useOnboarding";
 
 const diasSemana = [
   { key: "segunda", label: "Segunda" },
@@ -194,6 +197,17 @@ export default function Configuracoes() {
   const { user } = useAuth();
   const { data: configuracoes, isLoading } = useConfiguracoes();
   const updateConfiguracoes = useUpdateConfiguracoes();
+  const navigate = useNavigate();
+  const updateOnboarding = useUpdateOnboarding();
+
+  const handleRefazerOnboarding = async () => {
+    try {
+      await updateOnboarding.mutateAsync({ passo_atual: 1, concluido: false });
+    } catch {
+      /* segue para o wizard mesmo assim */
+    }
+    navigate("/onboarding");
+  };
 
   // Dados da escola
   const [nomeEscola, setNomeEscola] = useState("");
@@ -389,9 +403,15 @@ export default function Configuracoes() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Configurações</h1>
-        <p className="text-muted-foreground">Gerencie as configurações do sistema</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Configurações</h1>
+          <p className="text-muted-foreground">Gerencie as configurações do sistema</p>
+        </div>
+        <Button variant="outline" className="gap-2 w-full sm:w-auto" onClick={handleRefazerOnboarding}>
+          <Wand2 className="w-4 h-4" />
+          Refazer configuração inicial
+        </Button>
       </div>
 
       <Tabs defaultValue="escola" className="space-y-4">
