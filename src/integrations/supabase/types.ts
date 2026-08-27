@@ -1022,6 +1022,39 @@ export type Database = {
         }
         Relationships: []
       }
+      onboarding_progresso: {
+        Row: {
+          concluido: boolean
+          created_at: string
+          dados_exemplo_criados: boolean
+          id: string
+          passo_atual: number
+          rascunho: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          concluido?: boolean
+          created_at?: string
+          dados_exemplo_criados?: boolean
+          id?: string
+          passo_atual?: number
+          rascunho?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          concluido?: boolean
+          created_at?: string
+          dados_exemplo_criados?: boolean
+          id?: string
+          passo_atual?: number
+          rascunho?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pagamentos: {
         Row: {
           aluno_id: string | null
