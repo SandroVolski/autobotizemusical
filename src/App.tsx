@@ -8,7 +8,6 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { OnboardingGate } from "@/components/OnboardingGate";
 import { RoleRoute } from "@/components/RoleRoute";
 import { Loader2 } from "lucide-react";
 import LandingPage from "./pages/LandingPage";
@@ -36,7 +35,6 @@ const loaders = {
   Confirmacoes: () => import("./pages/Confirmacoes"),
   Cobrancas: () => import("./pages/Cobrancas"),
   Feriados: () => import("./pages/Feriados"),
-  Onboarding: () => import("./pages/Onboarding"),
   NotFound: () => import("./pages/NotFound"),
 };
 const Login = lazy(loaders.Login);
@@ -60,7 +58,6 @@ const CRM = lazy(loaders.CRM);
 const Confirmacoes = lazy(loaders.Confirmacoes);
 const Cobrancas = lazy(loaders.Cobrancas);
 const Feriados = lazy(loaders.Feriados);
-const Onboarding = lazy(loaders.Onboarding);
 const NotFound = lazy(loaders.NotFound);
 
 const queryClient = new QueryClient({
@@ -98,13 +95,11 @@ const PagePrefetcher = () => {
 // Wrapper component for authenticated pages
 const AuthenticatedPage = ({ children }: { children: React.ReactNode }) => (
   <ProtectedRoute>
-    <OnboardingGate>
     <SidebarProvider>
       <AppLayout>
         <Suspense fallback={<RouteFallback />}>{children}</Suspense>
       </AppLayout>
     </SidebarProvider>
-    </OnboardingGate>
   </ProtectedRoute>
 );
 
@@ -122,14 +117,6 @@ const App = () => (
             
             <Route path="/login" element={<Login />} />
             <Route path="/redefinir-senha" element={<RedefinirSenha />} />
-            <Route
-              path="/onboarding"
-              element={
-                <ProtectedRoute>
-                  <Onboarding />
-                </ProtectedRoute>
-              }
-            />
             <Route
               path="/dashboard"
               element={
