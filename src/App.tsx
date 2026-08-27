@@ -8,6 +8,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { OnboardingGate } from "@/components/OnboardingGate";
 import { RoleRoute } from "@/components/RoleRoute";
 import { Loader2 } from "lucide-react";
 import LandingPage from "./pages/LandingPage";
