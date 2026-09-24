@@ -27,6 +27,7 @@ interface Aniversariante extends Aluno {
   idade: number;
   diasRestantes: number;
   ehHoje: boolean;
+  jaPassou: boolean;
 }
 
 export function BirthdayCard() {
@@ -63,6 +64,7 @@ export function BirthdayCard() {
           idade: anoAtual - ano,
           diasRestantes: diff,
           ehHoje: diff === 0,
+          jaPassou: diff < 0,
         });
         return;
       }
@@ -80,6 +82,7 @@ export function BirthdayCard() {
             idade: (i <= 0 ? anoAtual : dataRef.getFullYear()) - ano,
             diasRestantes: i,
             ehHoje: i === 0,
+            jaPassou: i < 0,
           });
           break;
         }
