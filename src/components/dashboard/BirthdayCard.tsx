@@ -89,9 +89,13 @@ export function BirthdayCard() {
       }
     });
 
-    return lista.sort((a, b) =>
-      filtro === "mes" ? a.dia - b.dia : a.diasRestantes - b.diasRestantes
-    );
+    return lista.sort((a, b) => {
+      if (filtro === "mes") return a.dia - b.dia;
+      // Próximos primeiro (hoje → futuro), depois os que já passaram (mais recente primeiro)
+      const rankA = a.diasRestantes < 0 ? 1000 + Math.abs(a.diasRestantes) : a.diasRestantes;
+      const rankB = b.diasRestantes < 0 ? 1000 + Math.abs(b.diasRestantes) : b.diasRestantes;
+      return rankA - rankB;
+    });
   }, [alunos, filtro, mesSelecionado, anoAtual, hojeDia, hojeMes]);
 
   const hojeCount = aniversariantes.filter((a) => a.ehHoje).length;
@@ -113,6 +117,7 @@ export function BirthdayCard() {
   const labelDias = (a: Aniversariante) => {
     if (a.ehHoje) return "Hoje!";
     if (a.diasRestantes === 1) return "Amanhã";
+    if (a.diasRestantes === -1) return "Ontem";
     if (a.diasRestantes < 0) return `há ${Math.abs(a.diasRestantes)}d`;
     return `em ${a.diasRestantes}d`;
   };
