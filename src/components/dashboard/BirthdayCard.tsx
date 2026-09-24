@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Cake, PartyPopper, CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
+import { Cake, PartyPopper, CalendarDays, ChevronLeft, ChevronRight, History } from "lucide-react";
 import { useAlunos, type Aluno } from "@/hooks/useAlunos";
 import { useNavigate } from "react-router-dom";
 import { StudentPhoto } from "@/components/StudentPhoto";
