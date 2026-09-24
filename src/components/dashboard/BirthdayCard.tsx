@@ -68,15 +68,16 @@ export function BirthdayCard() {
       }
 
       const limite = filtro === "7dias" ? 7 : 30;
-      for (let i = 0; i <= limite; i++) {
-        const futura = new Date(hoje);
-        futura.setDate(hoje.getDate() + i);
-        if (futura.getDate() === dia && futura.getMonth() + 1 === mes) {
+      // Inclui os últimos 7 dias (negativo = já passou) para não esquecer ninguém
+      for (let i = -7; i <= limite; i++) {
+        const dataRef = new Date(hoje);
+        dataRef.setDate(hoje.getDate() + i);
+        if (dataRef.getDate() === dia && dataRef.getMonth() + 1 === mes) {
           lista.push({
             ...aluno,
             dia,
             mes,
-            idade: (i === 0 ? anoAtual : futura.getFullYear()) - ano,
+            idade: (i <= 0 ? anoAtual : dataRef.getFullYear()) - ano,
             diasRestantes: i,
             ehHoje: i === 0,
           });
