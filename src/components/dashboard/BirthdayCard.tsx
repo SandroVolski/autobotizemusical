@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Cake, PartyPopper, CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
+import { Cake, PartyPopper, CalendarDays, ChevronLeft, ChevronRight, History } from "lucide-react";
 import { useAlunos, type Aluno } from "@/hooks/useAlunos";
 import { useNavigate } from "react-router-dom";
 import { StudentPhoto } from "@/components/StudentPhoto";
@@ -27,6 +27,7 @@ interface Aniversariante extends Aluno {
   idade: number;
   diasRestantes: number;
   ehHoje: boolean;
+  jaPassou: boolean;
 }
 
 export function BirthdayCard() {
@@ -63,31 +64,38 @@ export function BirthdayCard() {
           idade: anoAtual - ano,
           diasRestantes: diff,
           ehHoje: diff === 0,
+          jaPassou: diff < 0,
         });
         return;
       }
 
       const limite = filtro === "7dias" ? 7 : 30;
-      for (let i = 0; i <= limite; i++) {
-        const futura = new Date(hoje);
-        futura.setDate(hoje.getDate() + i);
-        if (futura.getDate() === dia && futura.getMonth() + 1 === mes) {
+      // Inclui os últimos 7 dias (negativo = já passou) para não esquecer ninguém
+      for (let i = -7; i <= limite; i++) {
+        const dataRef = new Date(hoje);
+        dataRef.setDate(hoje.getDate() + i);
+        if (dataRef.getDate() === dia && dataRef.getMonth() + 1 === mes) {
           lista.push({
             ...aluno,
             dia,
             mes,
-            idade: (i === 0 ? anoAtual : futura.getFullYear()) - ano,
+            idade: (i <= 0 ? anoAtual : dataRef.getFullYear()) - ano,
             diasRestantes: i,
             ehHoje: i === 0,
+            jaPassou: i < 0,
           });
           break;
         }
       }
     });
 
-    return lista.sort((a, b) =>
-      filtro === "mes" ? a.dia - b.dia : a.diasRestantes - b.diasRestantes
-    );
+    return lista.sort((a, b) => {
+      if (filtro === "mes") return a.dia - b.dia;
+      // Próximos primeiro (hoje → futuro), depois os que já passaram (mais recente primeiro)
+      const rankA = a.diasRestantes < 0 ? 1000 + Math.abs(a.diasRestantes) : a.diasRestantes;
+      const rankB = b.diasRestantes < 0 ? 1000 + Math.abs(b.diasRestantes) : b.diasRestantes;
+      return rankA - rankB;
+    });
   }, [alunos, filtro, mesSelecionado, anoAtual, hojeDia, hojeMes]);
 
   const hojeCount = aniversariantes.filter((a) => a.ehHoje).length;
@@ -109,6 +117,7 @@ export function BirthdayCard() {
   const labelDias = (a: Aniversariante) => {
     if (a.ehHoje) return "Hoje!";
     if (a.diasRestantes === 1) return "Amanhã";
+    if (a.diasRestantes === -1) return "Ontem";
     if (a.diasRestantes < 0) return `há ${Math.abs(a.diasRestantes)}d`;
     return `em ${a.diasRestantes}d`;
   };
@@ -225,7 +234,9 @@ export function BirthdayCard() {
                           "inline-flex items-center justify-center min-w-[3.2rem] px-1.5 py-0.5 rounded-md text-[11px] font-bold tabular-nums",
                           lista.some((a) => a.ehHoje)
                             ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-muted-foreground"
+                            : lista.every((a) => a.jaPassou)
+                              ? "bg-muted/50 text-muted-foreground/60"
+                              : "bg-muted text-muted-foreground"
                         )}
                       >
                         {data}
@@ -244,7 +255,9 @@ export function BirthdayCard() {
                             "flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-colors border",
                             aluno.ehHoje
                               ? "bg-primary/10 border-primary/25 hover:bg-primary/15"
-                              : "bg-muted/40 border-transparent hover:bg-muted"
+                              : aluno.jaPassou
+                                ? "bg-muted/20 border-transparent opacity-55 hover:opacity-90 hover:bg-muted/40 grayscale"
+                                : "bg-muted/40 border-transparent hover:bg-muted"
                           )}
                           onClick={() => navigate(`/alunos/${aluno.id}`)}
                         >
@@ -273,11 +286,23 @@ export function BirthdayCard() {
                               {aluno.apelido || aluno.nome}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              🎂 {aluno.ehHoje ? `Faz ${aluno.idade} anos hoje!` : `${aluno.idade} anos`}
+                              🎂 {aluno.ehHoje
+                                ? `Fez ${aluno.idade} anos hoje!`
+                                : aluno.jaPassou
+                                  ? `Fez ${aluno.idade} anos`
+                                  : `${aluno.idade} anos`}
                             </p>
                           </div>
                           {aluno.ehHoje ? (
                             <PartyPopper className="w-4 h-4 text-primary animate-bounce shrink-0" />
+                          ) : aluno.jaPassou ? (
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] shrink-0 gap-1 border-dashed text-muted-foreground"
+                            >
+                              <History className="w-3 h-3" />
+                              {labelDias(aluno)}
+                            </Badge>
                           ) : (
                             <Badge variant="outline" className="text-[10px] shrink-0">
                               {labelDias(aluno)}
