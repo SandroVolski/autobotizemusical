@@ -255,7 +255,9 @@ export function BirthdayCard() {
                             "flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-colors border",
                             aluno.ehHoje
                               ? "bg-primary/10 border-primary/25 hover:bg-primary/15"
-                              : "bg-muted/40 border-transparent hover:bg-muted"
+                              : aluno.jaPassou
+                                ? "bg-muted/20 border-transparent opacity-55 hover:opacity-90 hover:bg-muted/40 grayscale"
+                                : "bg-muted/40 border-transparent hover:bg-muted"
                           )}
                           onClick={() => navigate(`/alunos/${aluno.id}`)}
                         >
@@ -284,11 +286,23 @@ export function BirthdayCard() {
                               {aluno.apelido || aluno.nome}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              🎂 {aluno.ehHoje ? `Faz ${aluno.idade} anos hoje!` : `${aluno.idade} anos`}
+                              🎂 {aluno.ehHoje
+                                ? `Fez ${aluno.idade} anos hoje!`
+                                : aluno.jaPassou
+                                  ? `Fez ${aluno.idade} anos`
+                                  : `${aluno.idade} anos`}
                             </p>
                           </div>
                           {aluno.ehHoje ? (
                             <PartyPopper className="w-4 h-4 text-primary animate-bounce shrink-0" />
+                          ) : aluno.jaPassou ? (
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] shrink-0 gap-1 border-dashed text-muted-foreground"
+                            >
+                              <History className="w-3 h-3" />
+                              {labelDias(aluno)}
+                            </Badge>
                           ) : (
                             <Badge variant="outline" className="text-[10px] shrink-0">
                               {labelDias(aluno)}
