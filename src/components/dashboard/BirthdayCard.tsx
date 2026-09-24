@@ -234,7 +234,9 @@ export function BirthdayCard() {
                           "inline-flex items-center justify-center min-w-[3.2rem] px-1.5 py-0.5 rounded-md text-[11px] font-bold tabular-nums",
                           lista.some((a) => a.ehHoje)
                             ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-muted-foreground"
+                            : lista.every((a) => a.jaPassou)
+                              ? "bg-muted/50 text-muted-foreground/60"
+                              : "bg-muted text-muted-foreground"
                         )}
                       >
                         {data}
